@@ -28,6 +28,7 @@
 // is settled. NEVER put a mainnet contract id here. Testnet only.
 const CONTRACT_ID = "fairshare-contract.testnet";
 const DAO_ID = "fairshare-dao.testnet";
+const BADGE_CONTRACT_ID = "fairshare-badge.testnet";
 
 const PARAMS = {
   pointsPerMember: 100,
@@ -693,7 +694,7 @@ async function fetchLiveState() {
     }
   } catch (e) {
     if (box) box.textContent =
-      "Live state could not be read from this browser. The numbers on this page are the last verified onchain state: round 1, 5.000 NEAR envelope, 4.999 NEAR paid out, 18 members in the DAO. The contract is still live at " +
+      "Live state could not be read from this browser. The numbers on this page are the last verified onchain state: round 1, 5.000 NEAR envelope, 4.999 NEAR paid out, 19 members in the DAO. The contract is still live at " +
       CONTRACT_ID + "; read it with the command line check in the README.";
     if (statsNote) statsNote.textContent =
       "Numbers above are the last verified onchain state. The live read failed just now, so they were not refreshed.";
@@ -750,6 +751,47 @@ async function contractView(method, args) {
   const d = await res.json();
   if (d.error) throw new Error("RPC error");
   return JSON.parse(new TextDecoder().decode(new Uint8Array(d.result.result)));
+}
+async function badgeView(method, args) {
+  const res = await fetch("https://rpc.testnet.near.org", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      jsonrpc: "2.0", id: method, method: "query",
+      params: {
+        request_type: "call_function",
+        account_id: BADGE_CONTRACT_ID,
+        method_name: method,
+        args_base64: btoa(JSON.stringify(args)),
+        finality: "final",
+      },
+    }),
+  });
+  const d = await res.json();
+  if (d.error) throw new Error("RPC error");
+  return JSON.parse(new TextDecoder().decode(new Uint8Array(d.result.result)));
+}
+// Council badges, read live from the badge contract. One call lists every
+// badge; the standing is read from the badge description, where the mint
+// recorded it. If the read fails, the panel keeps its static fallback.
+async function refreshBadgePanel() {
+  const list = el("badgeList");
+  if (!list) return;
+  try {
+    const tokens = await badgeView("nft_tokens", { from_index: "0", limit: 100 });
+    if (!tokens || tokens.length === 0) {
+      list.innerHTML = "<p class=\"muted\">No badges minted yet.</p>";
+      return;
+    }
+    list.innerHTML = tokens.map((t) => {
+      const desc = (t.metadata && t.metadata.description) || "";
+      const m = desc.match(/standing (\d+) at mint/);
+      const standing = m ? m[1] : "?";
+      return "<p><img src=\"/badge-3d.png\" alt=\"FairShare council badge\" style=\"width:40px;height:40px;vertical-align:middle;border-radius:8px;margin-right:8px\"> <b>" + t.owner_id + "</b> · Council badge, soulbound · standing " + standing + " at mint</p>";
+    }).join("");
+  } catch (e) {
+    list.innerHTML = "<p class=\"muted\">Could not read the badges from the contract just now. 19 badges are minted on fairshare-badge.testnet; read them with the command line check in the README.</p>";
+  }
 }
 async function initWallet() {
   if (typeof window === "undefined") return; // no browser, no wallet
@@ -874,11 +916,16 @@ async function refreshWalletPanel() {
     walletMembers = members || [];
     const isMember = walletMembers.indexOf(walletAccountId) >= 0;
     const standing = await contractView("get_standing", { account_id: walletAccountId });
+    let badge = null;
+    if (isMember) {
+      try { badge = await badgeView("get_badge", { account_id: walletAccountId }); } catch (_) { badge = null; }
+    }
     if (memberBox) {
       memberBox.style.display = "block";
       memberBox.innerHTML = "Connected as <b>" + walletAccountId + "</b> · " +
         (isMember ? "Member of the DAO council" : "Not a member of the DAO council yet") +
         " · Standing <b>" + standing + "</b>" +
+        (badge ? "<br><img src=\"/badge-3d.png\" alt=\"FairShare council badge\" style=\"width:120px;height:120px;margin-top:10px;border-radius:12px\"> Council badge, soulbound, standing <b>" + badge.standing + "</b> at mint." : "") +
         " <button id=\"walletDisconnect\" type=\"button\">Disconnect</button>";
       const d = el("walletDisconnect");
       if (d) d.addEventListener("click", toggleWallet);
@@ -1155,6 +1202,7 @@ if (typeof document !== "undefined") {
     renderLive();
     initWallet();
     refreshGovPanel();
+    refreshBadgePanel();
     const govBtn = el("govProposeBtn");
     if (govBtn) govBtn.addEventListener("click", govProposeAdd);
     const settleBtn = el("settleBtn");

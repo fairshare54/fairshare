@@ -46,6 +46,7 @@ against the DAO policy. The DAO is the source of truth.
 - Site: https://fairshare-pi.vercel.app/
 - Contract: `fairshare-contract.testnet`: https://testnet.nearblocks.io/address/fairshare-contract.testnet
 - DAO: `fairshare-dao.testnet`: https://testnet.nearblocks.io/address/fairshare-dao.testnet
+- Badge: `fairshare-badge.testnet`: https://testnet.nearblocks.io/address/fairshare-badge.testnet — 19 soulbound council badges, one per member, each carrying the member's standing at mint. Transfers are blocked in the contract.
 - Trezu: the DAO is a standard Sputnik DAO that Trezu manages. Trezu
   production is mainnet only, so there is no live Trezu testnet payout;
   the local testnet view was verified instead (see `TREZU.md`): the

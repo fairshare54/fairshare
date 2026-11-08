@@ -478,6 +478,42 @@ round 5 from the site wallet connect. Council grew 18 to 19.
   member_count 19). Script: `scripts/add-clearsite-council.mjs`,
   machine record: `demo-log-add-clearsite.json`.
 
+## Council badges — soulbound 3D membership NFT (2026-11-08)
+
+Every council member now holds a soulbound 3D badge: a non-transferable
+NFT (NEP-171) minted when they join the council, burned if they leave.
+The badge is a 3D medallion in the FairShare colours (teal, green,
+amber), image at `site/badge-3d.png`, and each token records the
+member's standing at mint. Built first, before the video, so the badge
+is visible in it.
+
+- Badge contract `fairshare-badge.testnet`, owner
+  `fairshare-owner.testnet`. Deploy tx
+  `GHzcM1s8AbLwusihFkFoA1vim1baLRvwfQTn33wALggM`, init tx
+  `9YYrCduMW57QknivTn6ZtD7KEdoEV6sfJdgZa2i7e2zc`, wasm 418,480 bytes,
+  sha256
+  `9af4eb65c07e4b4a2efa625f4429ec4dccae00961f03b1f0dea958964f78b41a`.
+- Soulbound by design: `nft_transfer` and `nft_transfer_call` always
+  fail, as do `nft_approve`, `nft_revoke`, `nft_revoke_all`;
+  `nft_is_approved` always returns false. Mint and burn are owner
+  only; mint refuses a second badge per member. Proved live: frank
+  tried to transfer his badge to carol and the call reverted, badge
+  still his afterwards.
+- 19 badges minted, one per council member, standings read live from
+  the round contract at mint time (ada 105, alice 95, amara 106, bob
+  99, carol 99, chidi 106, clearsite587 100, dave 99, emeka 101, erin
+  97, fatima 101, frank 99, ibrahim 101, kemi 106, ngozi 101, segun
+  106, tobi 106, tunde 90, zainab 106). Mint txs in `badge-log.json`.
+  Total supply verified 19 onchain; `nft_token` verified for all 19.
+- Standing on a badge is frozen at mint time by design; later rounds
+  move standing on the round contract, not on the badge.
+- Contract code: `badge-contract/src/lib.rs` (9 unit tests passed, 0
+  failed). Scripts: `scripts/create-badge-account.mjs`,
+  `scripts/deploy-badge.mjs`, `scripts/mint-badges.mjs`. Machine
+  record: `badge-log.json`. The rounds page shows the badge art and
+  the full badge list, and the Your wallet panel shows a connected
+  member's own badge.
+
 ## History — first live demo (superseded, kept for the record)
 
 - Contract `egbe-contract.testnet`, owner `egbe-owner.testnet`,

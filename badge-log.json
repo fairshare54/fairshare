@@ -1,0 +1,381 @@
+{
+  "network": "testnet",
+  "contract_id": "fairshare-badge.testnet",
+  "owner_id": "fairshare-owner.testnet",
+  "wasm_bytes": 418480,
+  "wasm_sha256": "9af4eb65c07e4b4a2efa625f4429ec4dccae00961f03b1f0dea958964f78b41a",
+  "deploy_tx": "GHzcM1s8AbLwusihFkFoA1vim1baLRvwfQTn33wALggM",
+  "init_tx": "9YYrCduMW57QknivTn6ZtD7KEdoEV6sfJdgZa2i7e2zc",
+  "owner_verified": "fairshare-owner.testnet",
+  "total_supply_at_deploy": 0,
+  "nft_metadata": {
+    "spec": "nft-1.0.0",
+    "name": "FairShare Council Badge",
+    "symbol": "FSBADGE",
+    "icon": null,
+    "base_uri": null,
+    "reference": null,
+    "reference_hash": null
+  },
+  "deployed_at": "2026-11-08T12:21:36.130Z",
+  "round_contract_id": "fairshare-contract.testnet",
+  "members": [
+    {
+      "account_id": "ada-fairshare.testnet",
+      "token_id": "badge-ada-fairshare.testnet",
+      "standing_at_mint": 105,
+      "mint_tx": "F9KrMU8TwAmuLFjUuP251Ggq1LuYKkcZHzHvKXNAJicv",
+      "status": "minted"
+    },
+    {
+      "account_id": "alice-fairshare.testnet",
+      "token_id": "badge-alice-fairshare.testnet",
+      "standing_at_mint": 95,
+      "mint_tx": "zsaec1iUrjnFNp6vSnQyFjmMSo2DyWYiJ91YtbCUJJF",
+      "status": "minted"
+    },
+    {
+      "account_id": "amara-fairshare.testnet",
+      "token_id": "badge-amara-fairshare.testnet",
+      "standing_at_mint": 106,
+      "mint_tx": "AFCj5KbMSw4wmM5ojWyTt7zBY3MekSXzKiG2rBgegEzU",
+      "status": "minted"
+    },
+    {
+      "account_id": "bob-fairshare.testnet",
+      "token_id": "badge-bob-fairshare.testnet",
+      "standing_at_mint": 99,
+      "mint_tx": "GpwUMVcwQwqjToxBzL3mR5bSqYZmd3YwasQqBCiRA9d1",
+      "status": "minted"
+    },
+    {
+      "account_id": "carol-fairshare.testnet",
+      "token_id": "badge-carol-fairshare.testnet",
+      "standing_at_mint": 99,
+      "mint_tx": "GycwMBiEV7sQ6exhYk73mvdwouQDjtcD97bbQ4ufyrXU",
+      "status": "minted"
+    },
+    {
+      "account_id": "chidi-fairshare.testnet",
+      "token_id": "badge-chidi-fairshare.testnet",
+      "standing_at_mint": 106,
+      "mint_tx": "J8wGgNCKoVj4Q26HekFCeBvsCaDMJUJsL8RcsyT8uyTn",
+      "status": "minted"
+    },
+    {
+      "account_id": "clearsite587.testnet",
+      "token_id": "badge-clearsite587.testnet",
+      "standing_at_mint": 100,
+      "mint_tx": "DdgqEL1E5gsGH7V6Wmb1m9tVFxeUP3Z7LBFbAvxn46t",
+      "status": "minted"
+    },
+    {
+      "account_id": "dave-fairshare.testnet",
+      "token_id": "badge-dave-fairshare.testnet",
+      "standing_at_mint": 99,
+      "mint_tx": "31UxPX37EEREqbRUGezRZezxXWq5SBbSNQvgJy53srfX",
+      "status": "minted"
+    },
+    {
+      "account_id": "emeka-fairshare.testnet",
+      "token_id": "badge-emeka-fairshare.testnet",
+      "standing_at_mint": 101,
+      "mint_tx": "4YQE6vVnC8Qj3VGXpCihfFnc87PMwWdvMkWfYchTurKz",
+      "status": "minted"
+    },
+    {
+      "account_id": "erin-fairshare.testnet",
+      "token_id": "badge-erin-fairshare.testnet",
+      "standing_at_mint": 97,
+      "mint_tx": "AMj76NhmfsMc2yJfGRMLGsuyxUKEQwX9GhhHEfjVLmV8",
+      "status": "minted"
+    },
+    {
+      "account_id": "fatima-fairshare.testnet",
+      "token_id": "badge-fatima-fairshare.testnet",
+      "standing_at_mint": 101,
+      "mint_tx": "F5TVVtbxy8YMrSi7xEp9eYcp2YE4Vh4iii5BPpCqgML6",
+      "status": "minted"
+    },
+    {
+      "account_id": "frank-fairshare.testnet",
+      "token_id": "badge-frank-fairshare.testnet",
+      "standing_at_mint": 99,
+      "mint_tx": "EEWsx3k6tT3Cr1WdTuo9hDeUKLMmmCij8TMdNBAhLNgA",
+      "status": "minted"
+    },
+    {
+      "account_id": "ibrahim-fairshare.testnet",
+      "token_id": "badge-ibrahim-fairshare.testnet",
+      "standing_at_mint": 101,
+      "mint_tx": "AvBCFLA1iBexKeVjn86sTJJp6e71h5hLmHiJH9c6A6bX",
+      "status": "minted"
+    },
+    {
+      "account_id": "kemi-fairshare.testnet",
+      "token_id": "badge-kemi-fairshare.testnet",
+      "standing_at_mint": 106,
+      "mint_tx": "6Kzatbs9yFWBsDndRmWEq8ztTWmQgj23BqB7uTq9RrKU",
+      "status": "minted"
+    },
+    {
+      "account_id": "ngozi-fairshare.testnet",
+      "token_id": "badge-ngozi-fairshare.testnet",
+      "standing_at_mint": 101,
+      "mint_tx": "4cxkRGtGxgYhRSMMXjUp9GnvnMa3Gnbksk7tzyprXtep",
+      "status": "minted"
+    },
+    {
+      "account_id": "segun-fairshare.testnet",
+      "token_id": "badge-segun-fairshare.testnet",
+      "standing_at_mint": 106,
+      "mint_tx": "GxnpEPkFardEaYy4nZyF3QnSxAAhKiUX5yZzUBj3m4QW",
+      "status": "minted"
+    },
+    {
+      "account_id": "tobi-fairshare.testnet",
+      "token_id": "badge-tobi-fairshare.testnet",
+      "standing_at_mint": 106,
+      "mint_tx": "HiwHeJDFBkacUVeDcpJS618mSbUkb4ocvKXCrZVaEciM",
+      "status": "minted"
+    },
+    {
+      "account_id": "tunde-fairshare.testnet",
+      "token_id": "badge-tunde-fairshare.testnet",
+      "standing_at_mint": 90,
+      "mint_tx": "GYYLXuefRPwZgcHbw9LHvcdWw2VYuotfk4Z1BWzXRqG8",
+      "status": "minted"
+    },
+    {
+      "account_id": "zainab-fairshare.testnet",
+      "token_id": "badge-zainab-fairshare.testnet",
+      "standing_at_mint": 106,
+      "mint_tx": "C2JmNqgrGd9VXXV4dikXSG5pUddq5NJS3WS2qEbDsG74",
+      "status": "minted"
+    }
+  ],
+  "member_count": 19,
+  "standings_live": {
+    "frank-fairshare.testnet": 99,
+    "carol-fairshare.testnet": 99,
+    "bob-fairshare.testnet": 99,
+    "dave-fairshare.testnet": 99,
+    "alice-fairshare.testnet": 95,
+    "erin-fairshare.testnet": 97,
+    "ibrahim-fairshare.testnet": 101,
+    "fatima-fairshare.testnet": 101,
+    "ada-fairshare.testnet": 105,
+    "ngozi-fairshare.testnet": 101,
+    "tunde-fairshare.testnet": 90,
+    "emeka-fairshare.testnet": 101,
+    "tobi-fairshare.testnet": 106,
+    "kemi-fairshare.testnet": 106,
+    "segun-fairshare.testnet": 106,
+    "zainab-fairshare.testnet": 106,
+    "chidi-fairshare.testnet": 106,
+    "amara-fairshare.testnet": 106,
+    "clearsite587.testnet": 100
+  },
+  "verification": [
+    {
+      "account_id": "ada-fairshare.testnet",
+      "token_id": "badge-ada-fairshare.testnet",
+      "nft_token_ok": true,
+      "badge": {
+        "token_id": "badge-ada-fairshare.testnet",
+        "owner_id": "ada-fairshare.testnet",
+        "standing": 105
+      }
+    },
+    {
+      "account_id": "alice-fairshare.testnet",
+      "token_id": "badge-alice-fairshare.testnet",
+      "nft_token_ok": true,
+      "badge": {
+        "token_id": "badge-alice-fairshare.testnet",
+        "owner_id": "alice-fairshare.testnet",
+        "standing": 95
+      }
+    },
+    {
+      "account_id": "amara-fairshare.testnet",
+      "token_id": "badge-amara-fairshare.testnet",
+      "nft_token_ok": true,
+      "badge": {
+        "token_id": "badge-amara-fairshare.testnet",
+        "owner_id": "amara-fairshare.testnet",
+        "standing": 106
+      }
+    },
+    {
+      "account_id": "bob-fairshare.testnet",
+      "token_id": "badge-bob-fairshare.testnet",
+      "nft_token_ok": true,
+      "badge": {
+        "token_id": "badge-bob-fairshare.testnet",
+        "owner_id": "bob-fairshare.testnet",
+        "standing": 99
+      }
+    },
+    {
+      "account_id": "carol-fairshare.testnet",
+      "token_id": "badge-carol-fairshare.testnet",
+      "nft_token_ok": true,
+      "badge": {
+        "token_id": "badge-carol-fairshare.testnet",
+        "owner_id": "carol-fairshare.testnet",
+        "standing": 99
+      }
+    },
+    {
+      "account_id": "chidi-fairshare.testnet",
+      "token_id": "badge-chidi-fairshare.testnet",
+      "nft_token_ok": true,
+      "badge": {
+        "token_id": "badge-chidi-fairshare.testnet",
+        "owner_id": "chidi-fairshare.testnet",
+        "standing": 106
+      }
+    },
+    {
+      "account_id": "clearsite587.testnet",
+      "token_id": "badge-clearsite587.testnet",
+      "nft_token_ok": true,
+      "badge": {
+        "token_id": "badge-clearsite587.testnet",
+        "owner_id": "clearsite587.testnet",
+        "standing": 100
+      }
+    },
+    {
+      "account_id": "dave-fairshare.testnet",
+      "token_id": "badge-dave-fairshare.testnet",
+      "nft_token_ok": true,
+      "badge": {
+        "token_id": "badge-dave-fairshare.testnet",
+        "owner_id": "dave-fairshare.testnet",
+        "standing": 99
+      }
+    },
+    {
+      "account_id": "emeka-fairshare.testnet",
+      "token_id": "badge-emeka-fairshare.testnet",
+      "nft_token_ok": true,
+      "badge": {
+        "token_id": "badge-emeka-fairshare.testnet",
+        "owner_id": "emeka-fairshare.testnet",
+        "standing": 101
+      }
+    },
+    {
+      "account_id": "erin-fairshare.testnet",
+      "token_id": "badge-erin-fairshare.testnet",
+      "nft_token_ok": true,
+      "badge": {
+        "token_id": "badge-erin-fairshare.testnet",
+        "owner_id": "erin-fairshare.testnet",
+        "standing": 97
+      }
+    },
+    {
+      "account_id": "fatima-fairshare.testnet",
+      "token_id": "badge-fatima-fairshare.testnet",
+      "nft_token_ok": true,
+      "badge": {
+        "token_id": "badge-fatima-fairshare.testnet",
+        "owner_id": "fatima-fairshare.testnet",
+        "standing": 101
+      }
+    },
+    {
+      "account_id": "frank-fairshare.testnet",
+      "token_id": "badge-frank-fairshare.testnet",
+      "nft_token_ok": true,
+      "badge": {
+        "token_id": "badge-frank-fairshare.testnet",
+        "owner_id": "frank-fairshare.testnet",
+        "standing": 99
+      }
+    },
+    {
+      "account_id": "ibrahim-fairshare.testnet",
+      "token_id": "badge-ibrahim-fairshare.testnet",
+      "nft_token_ok": true,
+      "badge": {
+        "token_id": "badge-ibrahim-fairshare.testnet",
+        "owner_id": "ibrahim-fairshare.testnet",
+        "standing": 101
+      }
+    },
+    {
+      "account_id": "kemi-fairshare.testnet",
+      "token_id": "badge-kemi-fairshare.testnet",
+      "nft_token_ok": true,
+      "badge": {
+        "token_id": "badge-kemi-fairshare.testnet",
+        "owner_id": "kemi-fairshare.testnet",
+        "standing": 106
+      }
+    },
+    {
+      "account_id": "ngozi-fairshare.testnet",
+      "token_id": "badge-ngozi-fairshare.testnet",
+      "nft_token_ok": true,
+      "badge": {
+        "token_id": "badge-ngozi-fairshare.testnet",
+        "owner_id": "ngozi-fairshare.testnet",
+        "standing": 101
+      }
+    },
+    {
+      "account_id": "segun-fairshare.testnet",
+      "token_id": "badge-segun-fairshare.testnet",
+      "nft_token_ok": true,
+      "badge": {
+        "token_id": "badge-segun-fairshare.testnet",
+        "owner_id": "segun-fairshare.testnet",
+        "standing": 106
+      }
+    },
+    {
+      "account_id": "tobi-fairshare.testnet",
+      "token_id": "badge-tobi-fairshare.testnet",
+      "nft_token_ok": true,
+      "badge": {
+        "token_id": "badge-tobi-fairshare.testnet",
+        "owner_id": "tobi-fairshare.testnet",
+        "standing": 106
+      }
+    },
+    {
+      "account_id": "tunde-fairshare.testnet",
+      "token_id": "badge-tunde-fairshare.testnet",
+      "nft_token_ok": true,
+      "badge": {
+        "token_id": "badge-tunde-fairshare.testnet",
+        "owner_id": "tunde-fairshare.testnet",
+        "standing": 90
+      }
+    },
+    {
+      "account_id": "zainab-fairshare.testnet",
+      "token_id": "badge-zainab-fairshare.testnet",
+      "nft_token_ok": true,
+      "badge": {
+        "token_id": "badge-zainab-fairshare.testnet",
+        "owner_id": "zainab-fairshare.testnet",
+        "standing": 106
+      }
+    }
+  ],
+  "total_supply_after_mint": 19,
+  "soulbound_transfer_check": {
+    "attempted_by": "frank-fairshare.testnet",
+    "token_id": "badge-frank-fairshare.testnet",
+    "receiver_id": "carol-fairshare.testnet",
+    "outcome": "failed_as_expected",
+    "tx_hash": null,
+    "error": "{\"index\":0,\"kind\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` opcode was executed.\"}}}}"
+  },
+  "minted_at": "2026-11-08T12:23:15.485Z"
+}
