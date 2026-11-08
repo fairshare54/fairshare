@@ -1347,8 +1347,8 @@ function refreshWalletBtn() {
   try { fastnear(); } catch (_) { libOk = false; }
   if (!libOk) { btn.textContent = "Wallet unavailable"; btn.disabled = true; return; }
   const id = walletAccountId;
-  btn.textContent = id ? id : "Connect wallet";
-  if (btn.title !== undefined) btn.title = id ? "Open your dashboard" : "";
+  btn.textContent = id ? id + " (sign out)" : "Connect wallet";
+  if (btn.title !== undefined) btn.title = id ? "Tap to sign out" : "";
   btn.disabled = false;
 }
 async function disconnectWallet() {
@@ -1371,10 +1371,16 @@ async function disconnectWallet() {
       }
       drop.forEach((k) => { try { localStorage.removeItem(k); } catch (_) {} });
     } catch (_) { /* storage unavailable */ }
+    let stillConnected = false;
     try {
       const still = nw.accountId({ network: NETWORK });
-      if (still) walletStatus("Disconnect did not take. Tap Disconnect again.");
+      if (still) stillConnected = true;
     } catch (_) { /* accountId unavailable, session is clear */ }
+    if (stillConnected) {
+      walletStatus("Disconnect did not take. Tap sign out again.");
+    } else {
+      walletStatus("Signed out.");
+    }
   } catch (_) { /* library missing, clear local state anyway */ }
   walletAccountId = null; walletMembers = []; walletOpenRound = null;
   refreshWalletBtn(); refreshWalletPanel(); refreshGovPanel();
@@ -1382,10 +1388,11 @@ async function disconnectWallet() {
 async function toggleWallet() {
   let nw;
   try { nw = fastnear(); } catch (_) { walletStatus("Wallet library did not load. Check your connection and reload."); return; }
-  // When connected, this button is the profile button: it opens the
-  // member's dashboard. Disconnecting is done from the Disconnect button
-  // in the wallet panel. When not connected, it starts the connect flow.
-  if (walletAccountId) { openDashboardFromHeader(); return; }
+  // PAC style: this one button toggles. When connected it signs out
+  // (the label reads "<account> (sign out)"); when not connected it
+  // starts the connect flow. The dashboard lives in the wallet panel
+  // on the rounds page.
+  if (walletAccountId) { await disconnectWallet(); return; }
   try { localStorage.removeItem("fairshare-wallet-disconnected"); } catch (_) { /* storage unavailable */ }
   try { sessionStorage.removeItem("fairshare-wallet-disconnected"); } catch (_) { /* storage unavailable */ }
   try {
