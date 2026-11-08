@@ -4,8 +4,8 @@ Date: 2026-11-08. Testnet only, never mainnet. No private key is printed
 or committed anywhere. Keys live only in
 `.testnet-fairshare-accounts.json` (chmod 600, gitignored) on this machine.
 
-Formerly named Egbe; renamed FairShare on 2026-11-08. The first live
-demo ran under the Egbe name; its record is kept at the end of this log.
+The first live demo ran under the earlier contract; its record is kept at
+the end of this log.
 
 ## Accounts (all fresh, created via the testnet helper faucet, 10 NEAR each)
 
@@ -119,6 +119,111 @@ No cap triggered (max raw share 23.74% < 25%).
 
 ## What is NOT done (needs Isaiah or a follow-up)
 
+- **Live round with real humans** (not test accounts), **GitHub push**,
+  **hackathon submission**: need Isaiah's separate explicit approval.
+  Live round 2 with a script-operated crew is done (see above); a round
+  with actual people still needs Isaiah to bring them — see
+  `LIVE_ROUND.md`. The repo
+  https://github.com/fairshare54/fairshare already exists (public,
+  empty); nothing pushed yet.
+- **Lead question**: FairShare is the fourth project (Genesis, PAC,
+  VeilProof, FairShare); one person can lead at most 2, so it needs a
+  different lead or Genesis to wait.
+- DAO treasury is nearly empty (0.2591 NEAR available) after funding
+  round 2 — top it up before any round 3.
+
+## Live round 2 — 5 NEAR, full DAO flow, freezer cooperative crew (2026-11-08)
+
+Run by `scripts/live-round-2.mjs` (verified by `scripts/verify-round-2.mjs`).
+Full machine-readable record: `demo-log-round2.json` (also merged into
+`demo-log.json` under `round_2`). This is NOT a round with six real humans:
+the six crew members are fresh testnet accounts with personas, created and
+operated by scripts. What IS real: every step went through genuine Sputnik
+DAO proposals, real council votes, a real DAO-funded `create_round`, and
+real onchain settlement. A round with actual humans still needs Isaiah to
+bring the people — see `LIVE_ROUND.md`.
+
+### Crew (fresh testnet accounts, 10 NEAR each from the helper faucet)
+
+| member | account | work in the cooperative |
+|---|---|---|
+| Ada | `ada-fairshare.testnet` | freezer temperature log and the books |
+| Emeka | `emeka-fairshare.testnet` | delivery bike, collects fish from the jetty |
+| Fatima | `fatima-fairshare.testnet` | collects stall rent, chases late payments |
+| Ibrahim | `ibrahim-fairshare.testnet` | repairs the freezer and the generator |
+| Ngozi | `ngozi-fairshare.testnet` | buys stock at wholesale, negotiates prices |
+| Tunde | `tunde-fairshare.testnet` | night watch and cleaning, guards the stall |
+
+Keys only in `.testnet-fairshare-accounts.json` (chmod 600, gitignored).
+
+### What happened, step by step
+
+1. **Six AddMemberToRole proposals (#0–#5)** — proposed by the owner
+   (`fairshare-owner.testnet`, 1 NEAR bond each, returned on approval),
+   voted by the existing 6-member demo council. Threshold is a STRICT
+   majority: e.g. proposal #2 needed 5 of 7 votes, #4 needed 6 of 10.
+   All six passed; council grew 6 → 12.
+2. **Funding proposal #6 (FunctionCall)** — DAO calls `create_round` on
+   `fairshare-contract.testnet` with round 2 and a 5 NEAR deposit.
+   Proposed by the owner. First attempt FAILED onchain (tx
+   `HkEZRVyuKooMui9yPDj2wDCfPcFKWon5BX2BBqu9jMBf`): the `ActionCall`
+   `gas` field was passed as a JSON integer, Sputnik expects a string.
+   No proposal was created; only gas was lost. Fixed and re-proposed as
+   #6 (tx `BGBWhTQUM2D3MZQzRN6iAkTmDrT3CPTixYa5Wi5KA98K`). Six demo
+   votes (exactly 1/2 of 12) did NOT pass — a 7th vote from Ada
+   (`Cu4UqfKntuLtUyw5arqitXGfWfdYbMCM9aAPAFPy2AkQ`) approved it and
+   round 2 was created with the 5 NEAR envelope. DAO balance after
+   funding: 0.2591 NEAR available — the DAO is nearly empty now and
+   needs a top-up before it can fund another round.
+3. **`sync_dao_members`** (tx
+   `Ah87M1UuRdaXx6aHqKD1PdoMty9xysH7Tbyv1VKJ27jW`) — contract members
+   6 → 12, all six crew confirmed via `get_cached_dao_role`.
+4. **Allocations** — each crew member spent all 100 points across 3
+   recipients, reasons describing real work (see `demo-log-round2.json`).
+5. **Close + settle** — owner closed (tx
+   `4FBgHecs549qEiGshPCM8ZXjzdGsvT3dgR5PLNx3VEXG`) and settled (tx
+   `6FsBf9r42Ji8afF8G6rebq2GqChmpUQW41cCpTuaodJF`) instead of waiting
+   7 days.
+
+### Settlement results (verified live via `explain_payout` + balances)
+
+Scores match the contract's maths exactly (verified by an independent
+integer model in `scripts/verify-round-2.mjs`). The 25% cap TRIGGERED
+for the first time in a live round: Ada and Ibrahim both capped at
+exactly 1.25 NEAR, the surplus redistributed to the others.
+
+| member | score | payout (NEAR) | capped? | balance after (NEAR) |
+|---|---|---|---|---|
+| ada-fairshare.testnet | 33489 | 1.250000 | yes | 11.2492 |
+| emeka-fairshare.testnet | 19600 | 0.869812 | no | 10.8696 |
+| fatima-fairshare.testnet | 17689 | 0.785006 | no | 10.7848 |
+| ibrahim-fairshare.testnet | 36100 | 1.250000 | yes | 11.2498 |
+| ngozi-fairshare.testnet | 12321 | 0.546783 | no | 10.5465 |
+| tunde-fairshare.testnet | 6724 | 0.298399 | no | 10.2982 |
+
+Total score 125923. Payouts sum to envelope minus 3 yocto. Every
+member's balance is 10 NEAR (faucet start) + payout − gas (under
+0.001 NEAR each), so the transfers really landed.
+
+### Two bugs found and fixed during this run
+
+- **ActionCall gas must be a JSON string** in Sputnik FunctionCall
+  proposals (`"100000000000000"`, not `100000000000000`). The contract
+  deserializes `gas` as a string (near-sdk U64). One failed proposal
+  attempt, fixed in `scripts/live-round-2.mjs`.
+- **`act_proposal` takes the full proposal kind** in current Sputnik v2
+  (post-#217): `(id, action, proposal, memo)`. The old `(id, action,
+  memo)` form fails. The script tries new-style first and falls back to
+  old-style only on an argument error. New-style worked on the live DAO.
+- **Verification-model bug (script only, not the contract):** the
+  expected-score model discounted mutual points in place, so the second
+  leg of a pair used the already-discounted value and over-scored Ada
+  (36481 vs the contract's correct 33489). Fixed to compute discounts
+  from a snapshot of the original points; `scripts/verify-round-2.mjs`
+  re-verified every score exactly.
+
+### What is NOT done (needs Isaiah or a follow-up)
+
 - **Live round with real people**, **GitHub push**, **hackathon
   submission**: need Isaiah's separate explicit approval. The repo
   https://github.com/fairshare54/fairshare already exists (public,
@@ -126,8 +231,13 @@ No cap triggered (max raw share 23.74% < 25%).
 - **Lead question**: FairShare is the fourth project (Genesis, PAC,
   VeilProof, FairShare); one person can lead at most 2, so it needs a
   different lead or Genesis to wait.
+- DAO treasury is nearly empty (0.2591 NEAR available) after funding
+  round 2 — top it up before any round 3.
+- The 6 demo members are still on the council alongside the 6 crew
+  (12 total). They did not allocate in round 2, but they can still vote.
+  Removing them takes one RemoveMemberFromRole proposal each.
 
-## History — first live demo as Egbe (superseded, kept for the record)
+## History — first live demo (superseded, kept for the record)
 
 - Contract `egbe-contract.testnet`, owner `egbe-owner.testnet`,
   planned DAO `egbe-dao.testnet` (never created).

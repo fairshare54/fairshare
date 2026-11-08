@@ -1,4 +1,4 @@
-// FairShare — peer allocation of credit. NEAR testnet only. Formerly Egbe.
+// FairShare — peer allocation of credit. NEAR testnet only.
 // Settlement math. This file mirrors the Rust contract in
 // ../contract/src/lib.rs EXACTLY, including its integer arithmetic:
 //   * discount on a mutual pair = floor(min(points) * 5000 / 10000),
@@ -131,7 +131,7 @@ function memberName(id) {
 // the envelope minus 3 yocto. Two members hit the 25% cap and were paid
 // exactly 1.250 NEAR each, with the excess flowing to the other four.
 // Settle tx 6FsBf9r42Ji8afF8G6rebq2GqChmpUQW41cCpTuaodJF, runbook
-// ~/workspace/egbe/LIVE_ROUND.md.
+// LIVE_ROUND.md.
 const LIVE_ROUND2 = {
   roundId: 2,
   envelopeYocto: "5000000000000000000000000",

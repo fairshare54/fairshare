@@ -3,9 +3,9 @@
 Date: 2026-11-08. Testnet only, never mainnet. No private key is printed
 or committed anywhere in this repo.
 
-Formerly named Egbe; renamed FairShare on 2026-11-08. The first build and
-live demo ran under the Egbe name (contract `egbe-contract.testnet`); that
-deployment is kept as history at the end of this log.
+The first build and live demo used the earlier contract
+`egbe-contract.testnet`; that deployment is kept as history at the end of
+this log.
 
 ## What was built
 
@@ -215,18 +215,23 @@ Full record: `DEMO_LOG.md`, `deploy-log.json`, `demo-log.json`.
 
 ## What remains
 
+- Live round 2 is done (crew accounts, full DAO flow — see DEMO_LOG.md
+  and `LIVE_ROUND.md`). A live round with REAL HUMANS still needs
+  Isaiah to bring 5–8 people; the runbook for it is `LIVE_ROUND.md`.
 - GitHub push and hackathon submission — need Isaiah's separate
   explicit approval; not done here. Repo exists, empty.
 - A live round with real people — needs Isaiah's approval.
 - Lead question: FairShare is the fourth project (Genesis, PAC,
   VeilProof, FairShare); one person can lead at most 2, so it needs a
   different lead or Genesis to wait.
+- DAO treasury is nearly empty (0.2591 NEAR available) after funding
+  round 2 — top it up before any round 3.
 
-## History — first build as Egbe (superseded, kept for the record)
+## History — first build (superseded, kept for the record)
 
 - Contract `egbe-contract.testnet` (owner `egbe-owner.testnet`,
   planned DAO id `egbe-dao.testnet`, never created). Wasm
-  `egbe_round.wasm`, 414,082 bytes. Deploy tx
+  414,082 bytes. Deploy tx
   `8MgasF8FP1Tv4YebR9Y2ks5RgwffkwnE6dNkmYgZaHy1`, init tx
   `E7pDbVrhm4sM3PYVStD4uLpgo9N9ah3yF7FvA46ABHkh`. Demo round 1 settled
   tx `DA2DciS2KXhcsinnHZParpDTRcvZBmgKB4PpKJLdiEMr`, same worked-example
