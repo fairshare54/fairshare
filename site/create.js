@@ -15,6 +15,24 @@ const CREATE_KEY = "fairshare-creating";
 let createState = null; // the in-progress record from localStorage
 let badgeDataUrl = ""; // downscaled badge image, if the user picked a file
 let slugAvailable = null;
+let redirectPending = false; // set once the group is live and the page is about to leave for it
+
+// A tap must show feedback before the wallet opens: the wallet call is
+// async and can take seconds on a phone, so the button is disabled and
+// given a spinner synchronously, in the same tick as the tap — before
+// any await yields. Without this the page looks dead until the wallet
+// prompt appears, and an impatient tap fires the flow twice.
+function setBusy(btn, busy, label) {
+  if (!btn) return;
+  if (busy) {
+    if (btn.dataset.origHtml === undefined) btn.dataset.origHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = "<span class=\"spinner\" aria-hidden=\"true\"></span>" + label;
+  } else {
+    if (btn.dataset.origHtml !== undefined) { btn.innerHTML = btn.dataset.origHtml; delete btn.dataset.origHtml; }
+    btn.disabled = false;
+  }
+}
 
 function loadCreateState() {
   try {
@@ -93,6 +111,10 @@ async function renderProgress() {
     else if (createState.failedStep) note.textContent = "Stopped at: " + createState.failedStep + ". Tap Continue creating to retry from there.";
     else note.textContent = "Tap Continue creating to pick up where you stopped.";
   }
+  // All done — including when the page reloaded after the last wallet
+  // signing and the user never tapped Continue again. Show the done
+  // panel, which takes them to their group's page.
+  if (allDone) showDone();
 }
 
 function setStepFailed(stepId, message) {
@@ -178,13 +200,20 @@ function showDone() {
   if (link) link.textContent = inviteLinkFor(s.slug, s.inviteCode);
   if (groupLink) groupLink.href = "/group?id=" + encodeURIComponent(s.slug) + "&invite=" + encodeURIComponent(s.inviteCode);
   if (contractEl) contractEl.textContent = contractIdFor(s.slug);
-  if (next) next.textContent = "Next: share the invite link, then open your group's page and propose your first round. Your DAO holds " + s.treasury + " NEAR; a " + s.envelope + " NEAR round needs that much liquid plus the proposal bond, which is returned when the council approves.";
+  if (next) next.textContent = "Taking you to your group's page — the invite link is shown there, so share it with your members, then propose your first round. Your DAO holds " + s.treasury + " NEAR; a " + s.envelope + " NEAR round needs that much liquid plus the proposal bond, which is returned when the council approves.";
   if (panel) panel.style.display = "block";
   const form = el("formPanel");
   if (form) form.style.display = "none";
-  pageStatus("Your group is live.");
+  pageStatus("Your group is live. Taking you to your group's page…");
   createState = null;
   saveCreateState();
+  // Do not leave the creator on /create: the group's own page is where
+  // the invite link lives and the first round gets proposed. A short
+  // pause lets the "Your group is live" panel be seen first.
+  redirectPending = true;
+  setTimeout(() => {
+    window.location.href = "/group?id=" + encodeURIComponent(s.slug) + "&invite=" + encodeURIComponent(s.inviteCode);
+  }, 1500);
 }
 
 let slugTimer = null;
@@ -213,14 +242,38 @@ function onNameInput() {
   }, 400);
 }
 
+// What finishing still costs. A fresh create needs the DAO deposit, the
+// contract funding, the 1 NEAR register deposit and the 1 NEAR proposal
+// bond float. Resuming mid-flow only needs the steps not yet done
+// onchain — the DAO's 10.5 NEAR is already spent once the DAO exists, so
+// the warning must not keep claiming the full 17.7. A step whose onchain
+// check fails reads as not done, so the figure can only overstate, never
+// understate, what is left to pay.
+async function remainingNeedYocto() {
+  if (!createState) {
+    const t = parseFloat((el("groupTreasury") || {}).value) || GROUP_DAO_DEPOSIT_NEAR;
+    return BigInt(Math.round((t + GROUP_CONTRACT_FUND_NEAR + 2) * 10)) * YOCTO_PER_NEAR / 10n;
+  }
+  let need = 0;
+  if (!(await stepDone("dao"))) need += createState.treasury;
+  if (!(await stepDone("register"))) need += 1;
+  if (!(await stepDone("contract"))) need += GROUP_CONTRACT_FUND_NEAR;
+  return BigInt(Math.round(need * 10)) * YOCTO_PER_NEAR / 10n;
+}
+
 async function refreshCreatePage() {
   const bal = el("balanceLine");
   if (walletAccountId && bal) {
     try {
       const b = await rpcAccountBalance(walletAccountId);
-      const need = (BigInt(Math.round((GROUP_DAO_DEPOSIT_NEAR + GROUP_CONTRACT_FUND_NEAR + 2) * 10)) * YOCTO_PER_NEAR / 10n);
-      bal.textContent = "Wallet balance: " + fmtYocto(b) + " NEAR. You need about " + fmtYocto(need) + " NEAR to create a group with the defaults above."
-        + (b < need ? " Top up from the NEAR faucet first." : "");
+      const need = await remainingNeedYocto();
+      if (createState) {
+        bal.textContent = "Wallet balance: " + fmtYocto(b) + " NEAR. You need about " + fmtYocto(need) + " NEAR more to finish creating this group."
+          + (b < need ? " Top up from the NEAR faucet first." : "");
+      } else {
+        bal.textContent = "Wallet balance: " + fmtYocto(b) + " NEAR. You need about " + fmtYocto(need) + " NEAR to create a group with the defaults above."
+          + (b < need ? " Top up from the NEAR faucet first." : "");
+      }
     } catch (_) { bal.textContent = "Wallet balance: could not be read just now."; }
   } else if (bal) {
     bal.textContent = "Wallet balance: not connected.";
@@ -231,6 +284,21 @@ async function refreshCreatePage() {
 async function submitCreate() {
   const result = el("createResult");
   if (!walletAccountId) { if (result) result.textContent = "Connect your testnet wallet first (top right)."; return; }
+  const btn = el("createBtn");
+  // Show the spinner synchronously, before any await: the balance check
+  // and the wallet prompt both take time on a phone, and until now the
+  // tap showed nothing at all.
+  setBusy(btn, true, "Creating…");
+  try {
+    await submitCreateInner(result);
+  } finally {
+    // On success showDone has set redirectPending and the page is
+    // leaving for the group's page, so keep the button disabled.
+    if (!redirectPending) setBusy(btn, false);
+  }
+}
+
+async function submitCreateInner(result) {
   const name = (el("groupName").value || "").trim();
   const template = el("groupTemplate").value;
   const envelope = parseInt(el("groupEnvelope").value, 10);
@@ -242,10 +310,15 @@ async function submitCreate() {
   if (!envelope || envelope < 1) { if (result) result.textContent = "The first round envelope must be at least 1 NEAR."; return; }
   if (!treasury || treasury < 5.5) { if (result) result.textContent = "The DAO needs at least 5.5 NEAR for its storage. Use 10.5 NEAR to also fund a 5 NEAR first round."; return; }
   if (slugAvailable === false) { if (result) result.textContent = "That group name is already taken. Try another name."; return; }
-  const need = BigInt(Math.round((treasury + GROUP_CONTRACT_FUND_NEAR + 2) * 10)) * YOCTO_PER_NEAR / 10n;
+  // Resuming the same group only needs what its unfinished steps cost —
+  // the DAO deposit is already spent once the DAO exists.
+  const resuming = !!(createState && createState.slug === slug);
+  const need = resuming
+    ? await remainingNeedYocto()
+    : BigInt(Math.round((treasury + GROUP_CONTRACT_FUND_NEAR + 2) * 10)) * YOCTO_PER_NEAR / 10n;
   try {
     const b = await rpcAccountBalance(walletAccountId);
-    if (b < need) { if (result) result.textContent = "You have " + fmtYocto(b) + " NEAR but need about " + fmtYocto(need) + " NEAR. Top up from the NEAR faucet first."; return; }
+    if (b < need) { if (result) result.textContent = "You have " + fmtYocto(b) + " NEAR but need about " + fmtYocto(need) + " NEAR" + (resuming ? " more to finish creating this group." : ".") + " Top up from the NEAR faucet first."; return; }
   } catch (_) { /* balance check failed; the chain will reject an underfunded call instead */ }
   let badgeUrl = badgeDataUrl;
   if (!badgeUrl) {
@@ -292,7 +365,12 @@ function initCreatePage() {
   const btn = el("createBtn");
   if (btn) btn.addEventListener("click", submitCreate);
   const cont = el("continueBtn");
-  if (cont) cont.addEventListener("click", runCreate);
+  if (cont) cont.addEventListener("click", () => {
+    // Same as Create: spinner synchronously, before any await, so the
+    // tap reads as working while the wallet prompt is being prepared.
+    setBusy(cont, true, "Continuing…");
+    runCreate().finally(() => { if (!redirectPending) setBusy(cont, false); });
+  });
   const copy = el("copyInviteBtn");
   if (copy) copy.addEventListener("click", () => {
     const link = el("doneInviteLink");

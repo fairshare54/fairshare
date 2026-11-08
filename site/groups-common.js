@@ -28,6 +28,18 @@ const TEMPLATES = [
 ];
 
 const RPC_ENDPOINTS = ["https://rpc.testnet.near.org", "https://rpc.testnet.fastnear.com"];
+// A stalled RPC endpoint must fail over, not hang the page: one view call
+// to rpc.testnet.near.org took about 4 seconds from here, and a dropped
+// connection hung indefinitely. Ten seconds is generous for a read; the
+// caller retries the next endpoint on abort.
+const RPC_TIMEOUT_MS = 10000;
+async function fetchWithTimeout(url, opts) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), RPC_TIMEOUT_MS);
+  try {
+    return await fetch(url, { ...(opts || {}), signal: ctrl.signal });
+  } finally { clearTimeout(timer); }
+}
 
 function el(id) { return document.getElementById(id); }
 function escapeHtml(s) {
@@ -57,7 +69,7 @@ async function rpcViewCall(accountId, method, args) {
   let lastErr = null;
   for (const url of RPC_ENDPOINTS) {
     try {
-      const res = await fetch(url, {
+      const res = await fetchWithTimeout(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -83,7 +95,7 @@ async function rpcViewCall(accountId, method, args) {
 async function rpcAccountBalance(accountId) {
   for (const url of RPC_ENDPOINTS) {
     try {
-      const res = await fetch(url, {
+      const res = await fetchWithTimeout(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

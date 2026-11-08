@@ -85,6 +85,59 @@ check("how-it-works is not inside the form panel", createHtml.slice(formAt, crea
 check("progress panel stays after the form", progressAt > formAt, "form at " + formAt + ", progress at " + progressAt);
 check("how-it-works lists the new step order", createHtml.includes("your DAO is created, the group is listed in the directory, your group's contract is deployed, and your membership is synced"));
 
+// 4e. Create flow UX (Isaiah's 2026-11-08 phone observations): the tap
+// must show a spinner before the wallet opens, the page must take the
+// creator to their group when done, and the balance warning must only
+// claim what finishing still costs.
+check("create page has a CSS spinner", /\.spinner\s*\{/.test(createHtml) && /@keyframes spin/.test(createHtml));
+check("setBusy disables the button and inserts a spinner", /function setBusy\(btn, busy, label\)/.test(createJs) && createJs.includes('btn.innerHTML = "<span class=\\"spinner\\"'));
+check("submitCreate spins synchronously before any await", (() => {
+  const body = createJs.slice(createJs.indexOf("async function submitCreate()"), createJs.indexOf("async function submitCreateInner"));
+  const code = body.replace(/\/\/[^\n]*/g, ""); // comments may mention await
+  const spinAt = code.indexOf('setBusy(btn, true, "Creating…")');
+  return spinAt >= 0 && code.slice(0, spinAt).indexOf("await") < 0;
+})());
+check("continue handler spins synchronously", createJs.includes('setBusy(cont, true, "Continuing…")'));
+check("buttons are restored unless the redirect is pending", createJs.includes("if (!redirectPending) setBusy(btn, false)") && createJs.includes("if (!redirectPending) setBusy(cont, false)"));
+check("showDone redirects to the group's page", createJs.includes('window.location.href = "/group?id=" + encodeURIComponent(s.slug) + "&invite=" + encodeURIComponent(s.inviteCode)'));
+check("all-done progress also shows the done panel", /if \(allDone\) showDone\(\);/.test(createJs));
+check("remaining cost only counts unfinished steps", createJs.includes("async function remainingNeedYocto()") && createJs.includes('if (!(await stepDone("dao"))) need += createState.treasury') && createJs.includes('if (!(await stepDone("register"))) need += 1') && createJs.includes('if (!(await stepDone("contract"))) need += GROUP_CONTRACT_FUND_NEAR'));
+check("balance line and gate use the remaining cost", createJs.includes("const need = await remainingNeedYocto()") && createJs.includes("more to finish creating this group"));
+check("group page shows the invite link text", groupJs.includes('el("groupInviteLink")') && groupJs.includes('inviteEl.textContent = window.location.origin + "/group?id="') && fs.readFileSync("/home/hatch/workspace/egbe/site/group.html", "utf8").includes('id="groupInviteLink"'));
+
+// 4f. Group page speed (Isaiah 2026-11-08: Rounds and Governance stuck on
+// "Reading..."): one parallel scan shared by every panel, and every RPC
+// fetch times out so a stalled endpoint fails over.
+check("shared RPC fetch has a 10s AbortController timeout", commonJs.includes("const RPC_TIMEOUT_MS = 10000") && commonJs.includes("new AbortController()") && commonJs.includes("async function fetchWithTimeout"));
+check("both shared RPC readers use the timeout fetch", (() => {
+  const view = commonJs.slice(commonJs.indexOf("async function rpcViewCall"), commonJs.indexOf("async function rpcAccountBalance"));
+  const bal = commonJs.slice(commonJs.indexOf("async function rpcAccountBalance"));
+  return view.includes("fetchWithTimeout(url") && bal.includes("fetchWithTimeout(url") && !view.includes("await fetch(url") && !bal.includes("await fetch(url");
+})());
+check("group page has one cached parallel round scan", groupJs.includes("let groupRoundsCache = null") && groupJs.includes("await Promise.all(ids.map(async (id) =>") && groupJs.includes('rpcViewCall(GROUP.contract_id, "get_round", { round_id: id })'));
+check("no sequential per-id round loops left in group.js", !/for \(let id = 1; id <= 20/.test(groupJs) && !/for \(let id = 20; id >= 1/.test(groupJs));
+check("open-round and next-id read the shared scan", /async function findGroupOpenRound\(\) \{ return findGroupOpenRoundFrom\(await scanGroupRounds\(\)\); \}/.test(groupJs) && /async function nextGroupRoundId\(\) \{ return nextGroupRoundIdFrom\(await scanGroupRounds\(\)\); \}/.test(groupJs));
+check("rounds panel reads the shared scan and parallelises details", groupJs.includes("const rounds = await scanGroupRounds();") && groupJs.includes("const details = await Promise.all(rounds.map(async (r) =>"));
+check("rounds empty state kept", groupJs.includes("No rounds yet. A council member can propose the first one below."));
+check("governance empty state kept", groupJs.includes("No open proposals right now."));
+
+// 4g. Homepage directory (Isaiah 2026-11-08: Football fans was only
+// reachable through its invite link): every group listed, with "My DAO
+// group" first for the connected wallet.
+const appJs = fs.readFileSync("/home/hatch/workspace/egbe/site/app.js", "utf8");
+const indexHtml = fs.readFileSync("/home/hatch/workspace/egbe/site/index.html", "utf8");
+check("home page has the groups section", indexHtml.includes('id="groupsPanel"') && indexHtml.includes('id="groupsNote"') && indexHtml.includes('id="allGroups"'));
+check("my-groups section is headed My DAO group", indexHtml.includes("<h3>My DAO group</h3>") && indexHtml.includes('id="myGroupWrap"') && indexHtml.includes('id="myGroup"'));
+check("home page loads the new app.js", indexHtml.includes('src="app.js?v=10"'));
+check("directory reads list_groups once from the registry", appJs.includes('rpcViewCall(REGISTRY_ID, "list_groups", { from_index: 0, limit: 100 })') && appJs.includes("let groupsDirectoryCache = null"));
+check("membership counts the contract set and the DAO council", appJs.includes('rpcViewCall(g.contract_id, "get_members", {})') && appJs.includes('rpcViewCall(g.dao_id, "get_policy", {})') && appJs.includes('council.kind.Group'));
+check("membership checks run in parallel", appJs.includes("await Promise.all(groups.map((g) => groupRoleFor(g, walletAccountId)))"));
+check("directory links carry id and invite", appJs.includes('"/group?id=" + encodeURIComponent(g.group_id) + "&invite=" + encodeURIComponent(g.invite_code)'));
+check("directory shows the no-groups state", appJs.includes("No groups yet. Be the first to start one."));
+check("directory asks the unconnected to connect", appJs.includes("Connect your wallet above to see which groups are yours."));
+check("directory re-renders on wallet connect and disconnect", appJs.includes("refreshGroupsDirectory();"));
+check("home page RPC reads time out too", appJs.includes("const RPC_TIMEOUT_MS = 10000") && appJs.includes("new AbortController()") && (appJs.match(/await fetchWithTimeout\(url/g) || []).length === 2);
+
 // 5. Structural check: every id the page scripts look up exists in the HTML.
 function idsIn(html) {
   return new Set([...html.matchAll(/id="([^"]+)"/g)].map((m) => m[1]));

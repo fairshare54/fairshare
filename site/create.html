@@ -30,6 +30,8 @@
   .muted { color:var(--muted); font-size:13px; }
   button { background:var(--gold); color:#111; border:0; border-radius:8px; padding:10px 14px; font-weight:700; cursor:pointer; margin:4px 4px 4px 0; }
   button:disabled { opacity:.55; cursor:default; }
+  .spinner { display:inline-block; width:14px; height:14px; border:2px solid rgba(17,17,17,.3); border-top-color:#111; border-radius:50%; animation:spin .7s linear infinite; vertical-align:-2px; margin-right:8px; }
+  @keyframes spin { to { transform:rotate(360deg); } }
   button.secondary { background:#1f2937; color:var(--text); }
   select, input[type="text"], input[type="number"], input[type="url"] { background:#0d1420; color:var(--text); border:1px solid var(--line); border-radius:8px; padding:10px; margin:4px 4px 4px 0; max-width:420px; width:100%; font-size:15px; }
   label { display:block; margin:12px 0 2px; font-weight:700; }
@@ -154,7 +156,7 @@
   <a href="https://testnet.nearblocks.io/address/fairshare-registry.testnet">Registry on Nearblocks</a>
 </footer>
 <script src="fastnear-wallet.bundle.js"></script>
-<script src="groups-common.js?v=3"></script>
-<script src="create.js?v=3"></script>
+<script src="groups-common.js?v=4"></script>
+<script src="create.js?v=4"></script>
 </body>
 </html>

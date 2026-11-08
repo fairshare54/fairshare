@@ -121,6 +121,11 @@ async function refreshMembersPanel() {
   const list = el("membersList");
   const note = el("membersNote");
   if (!list) return;
+  // The invite link itself is shown here, not only behind the copy
+  // button — the create flow lands the creator on this page, and the
+  // link is what they came to share.
+  const inviteEl = el("groupInviteLink");
+  if (inviteEl) inviteEl.textContent = window.location.origin + "/group?id=" + encodeURIComponent(GROUP.group_id) + "&invite=" + encodeURIComponent(GROUP.invite_code);
   try {
     const rows = [];
     for (const m of groupMembers) {
@@ -135,58 +140,81 @@ async function refreshMembersPanel() {
   }
 }
 
-async function findGroupOpenRound() {
-  for (let id = 20; id >= 1; id--) {
-    try {
-      const r = await rpcViewCall(GROUP.contract_id, "get_round", { round_id: id });
-      if (r && !r.closed && !r.settled) return r;
-    } catch (_) { /* a missing round id is not an error */ }
+// One shared round scan per page load. The page used to scan get_round
+// 1..20 three times over, one call at a time — refreshRoundsPanel, then
+// the allocate form, then Governance — about 66 sequential view calls,
+// and a single call can take seconds, so Rounds and Governance sat on
+// "Reading..." for minutes. Now every panel reads this one scan, issued
+// in parallel and cached for the load. Rounds only appear through a DAO
+// proposal, so the list cannot change under the page except through a
+// wallet signing, which reloads the page and clears the cache anyway.
+let groupRoundsCache = null; // Promise<Array> of the rounds that exist
+let groupRoundsCacheKey = "";
+function scanGroupRounds() {
+  if (!GROUP) return Promise.resolve([]);
+  if (groupRoundsCache && groupRoundsCacheKey === GROUP.contract_id) return groupRoundsCache;
+  groupRoundsCacheKey = GROUP.contract_id;
+  groupRoundsCache = (async () => {
+    const ids = [];
+    for (let i = 1; i <= 20; i++) ids.push(i);
+    const results = await Promise.all(ids.map(async (id) => {
+      try {
+        const r = await rpcViewCall(GROUP.contract_id, "get_round", { round_id: id });
+        return r || null;
+      } catch (_) { return null; }
+    }));
+    return results.filter((r) => r);
+  })();
+  // A failed scan must not stick: clear it so the next panel retries.
+  groupRoundsCache.catch(() => { if (groupRoundsCacheKey === GROUP.contract_id) clearGroupRoundsCache(); });
+  return groupRoundsCache;
+}
+function clearGroupRoundsCache() { groupRoundsCache = null; groupRoundsCacheKey = ""; }
+function findGroupOpenRoundFrom(rounds) {
+  for (let i = rounds.length - 1; i >= 0; i--) {
+    const r = rounds[i];
+    if (r && !r.closed && !r.settled) return r;
   }
   return null;
 }
-async function nextGroupRoundId() {
-  for (let id = 20; id >= 1; id--) {
-    try {
-      const r = await rpcViewCall(GROUP.contract_id, "get_round", { round_id: id });
-      if (r) return id + 1;
-    } catch (_) { /* no round at this id */ }
-  }
-  return 1;
+function nextGroupRoundIdFrom(rounds) {
+  let max = 0;
+  for (const r of rounds) if (r && r.id > max) max = r.id;
+  return max + 1;
 }
+async function findGroupOpenRound() { return findGroupOpenRoundFrom(await scanGroupRounds()); }
+async function nextGroupRoundId() { return nextGroupRoundIdFrom(await scanGroupRounds()); }
 
 async function refreshRoundsPanel() {
   const list = el("roundsList");
   if (!list) return;
   try {
-    const rounds = [];
-    for (let id = 1; id <= 20; id++) {
-      try {
-        const r = await rpcViewCall(GROUP.contract_id, "get_round", { round_id: id });
-        if (r) rounds.push(r);
-      } catch (_) { /* no round at this id */ }
-    }
+    const rounds = await scanGroupRounds();
     if (rounds.length === 0) {
       list.innerHTML = "<p class=\"muted\">No rounds yet. A council member can propose the first one below.</p>";
       return;
     }
-    let html = "";
-    for (const r of rounds) {
-      const status = r.settled ? "Settled" : (r.closed ? "Closed" : "Open");
-      html += "<h3>Round " + r.id + " · " + fmtYocto(BigInt(r.envelope_yocto)) + " NEAR · " + status + "</h3>";
+    // One call per round, all in parallel: payouts for settled rounds,
+    // allocations so far for open ones.
+    const details = await Promise.all(rounds.map(async (r) => {
       if (r.settled) {
         try {
           const payouts = await rpcViewCall(GROUP.contract_id, "get_payouts", { round_id: r.id });
           const lines = (payouts || []).filter((p) => BigInt(p.payout_yocto || "0") > 0n)
             .map((p) => escapeHtml(p.account_id) + " · " + fmtYocto(BigInt(p.payout_yocto)) + " NEAR");
-          html += lines.length ? "<p>" + lines.join("<br>") + "</p>" : "<p class=\"muted\">Settled with no payouts.</p>";
-        } catch (_) { html += "<p class=\"muted\">Payouts could not be read just now.</p>"; }
-      } else {
-        try {
-          const subs = await rpcViewCall(GROUP.contract_id, "get_allocations", { round_id: r.id });
-          html += "<p class=\"muted\">" + (subs || []).length + " member(s) have allocated so far. Deadline: " + new Date(r.deadline_ns / 1000000).toLocaleString() + ".</p>";
-        } catch (_) { /* ignore */ }
+          return lines.length ? "<p>" + lines.join("<br>") + "</p>" : "<p class=\"muted\">Settled with no payouts.</p>";
+        } catch (_) { return "<p class=\"muted\">Payouts could not be read just now.</p>"; }
       }
-    }
+      try {
+        const subs = await rpcViewCall(GROUP.contract_id, "get_allocations", { round_id: r.id });
+        return "<p class=\"muted\">" + (subs || []).length + " member(s) have allocated so far. Deadline: " + new Date(r.deadline_ns / 1000000).toLocaleString() + ".</p>";
+      } catch (_) { return ""; }
+    }));
+    let html = "";
+    rounds.forEach((r, i) => {
+      const status = r.settled ? "Settled" : (r.closed ? "Closed" : "Open");
+      html += "<h3>Round " + r.id + " · " + fmtYocto(BigInt(r.envelope_yocto)) + " NEAR · " + status + "</h3>" + details[i];
+    });
     list.innerHTML = html;
   } catch (e) {
     list.innerHTML = "<p class=\"muted\">Could not read the rounds just now.</p>";

@@ -417,3 +417,70 @@ no fee logic.
   form). `dom_test.js` and `charts_test.js` still pass.
 - The original FairShare group, `fairshare-contract.testnet`, round 5
   and `prove-group`'s contract are untouched by all of this.
+
+## Create-flow UX, group-page speed, homepage directory — 2026-11-08
+Isaiah's phone test of his own group (Football fans, created 2026-11-08
+~20:50 WAT) found five issues; all fixed in the frontend only, no
+contract change. `fairshare-dao.testnet`, `fairshare-contract.testnet`,
+round 5, `prove-group` and `prove-group-2` untouched.
+
+- Create button silence: tapping "Create my group" showed nothing
+  while the wallet prompt was prepared. Both it and "Continue creating"
+  now disable themselves and show a CSS border spinner synchronously,
+  in the same tick as the tap, before any await; the label is restored
+  on failure and the button stays disabled while the completion
+  redirect is pending. (`site/create.js` `setBusy`, `site/create.html`
+  `.spinner`, `create.js?v=4`.)
+- No landing after completion: the page stayed on /create. `showDone`
+  now takes the creator to their group page
+  (`/group?id=<slug>&invite=<code>`) 1.5 seconds after the "Your group
+  is live" panel appears, and the progress panel does the same when a
+  reload lands on an already-finished flow. The group page now shows
+  the invite link itself in the members panel (`#groupInviteLink`),
+  not only behind the copy button. (`site/group.js?v=4`,
+  `site/group.html`.)
+- Balance warning overstated the cost when resuming: it claimed the
+  full 17.7 NEAR even with the DAO step done. `remainingNeedYocto`
+  counts only the steps not yet done onchain (DAO treasury, 1 NEAR
+  register, 5.2 NEAR contract); the balance line and the create gate
+  both use it, so Isaiah's 7.466 NEAR against 6.2 NEAR remaining shows
+  no top-up warning.
+- Group page slow load: about 66 sequential view calls on load
+  (rounds 1..20 scanned three times over, plus Governance calling
+  both scans again), at ~4 seconds a call from here. One shared scan
+  per load now (`scanGroupRounds` in `site/group.js`): get_round 1..20
+  in parallel via `Promise.all`, cached, shared by the Rounds panel,
+  the allocate form and Governance; per-round payouts/allocations also
+  in parallel. Every fetch in `rpcViewCall` and `rpcAccountBalance`
+  (`site/groups-common.js`, and the same pattern in `site/app.js`)
+  now times out after 10 seconds via AbortController and fails over to
+  the next endpoint instead of hanging. Empty states kept verbatim:
+  "No rounds yet. A council member can propose the first one below."
+  and "No open proposals right now." (`groups-common.js?v=4`.)
+- Homepage directory: Football fans was only reachable through its
+  invite link. The home page now has a Groups section
+  (`site/index.html`, `site/app.js?v=10`) listing every registered
+  group from `list_groups` (one fetch per load) with name, template
+  and creator, each linking to its group page. With a wallet
+  connected, "My DAO group" comes first: a group counts when the
+  account is the creator, in the contract's `get_members`, or on the
+  DAO council (`get_policy`, council role) — the DAO list is the
+  source of truth, so a member sees the group as soon as their join
+  is approved, before the next membership sync. Membership checks run
+  in parallel and are cached per load. Unconnected visitors see all
+  groups with a note to connect to see which are theirs; an empty
+  registry shows "No groups yet. Be the first to start one." The
+  directory lives in `app.js` (not `groups-common.js`, whose top-level
+  names collide with `app.js` and would break the homepage).
+- Tests: `hidden_files/groups_test.js` passes (138 checks, new
+  sections 4e–4g: spinner, redirect, remaining cost, parallel scan,
+  fetch timeout, directory). New harnesses drive the real page
+  scripts with stubbed DOM/wallet/RPC:
+  `hidden_files/create_flow_test.js` passes (31 checks: spinner
+  synchronous on both buttons, four wallet calls in order, redirect
+  to the group page, remaining 6.200 NEAR on resume, group page scan
+  exactly 20 parallel calls, both empty states, invite link shown);
+  `hidden_files/home_directory_test.js` passes (16 checks: creator
+  and DAO-council membership, parallel checks, cached list,
+  unconnected and empty states). `dom_test.js` and `charts_test.js`
+  still pass.

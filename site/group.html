@@ -37,6 +37,7 @@
   table { width:100%; border-collapse:collapse; font-size:14px; }
   th, td { text-align:left; padding:8px 6px; border-bottom:1px solid var(--line); }
   .group-badge { width:96px; height:96px; border-radius:12px; border:1px solid var(--line); object-fit:cover; vertical-align:middle; margin-right:12px; }
+  .invitelink { font-size:18px; font-weight:700; word-break:break-all; background:#0d1420; border:1px solid var(--line); border-radius:8px; padding:12px; }
   code { overflow-wrap:break-word; word-break:break-all; }
   footer { color:var(--muted); font-size:12px; padding:20px; text-align:center; }
   @media (max-width:640px) {
@@ -82,6 +83,8 @@
       <h2>Members</h2>
       <p class="muted" id="membersNote"></p>
       <div id="membersList"></div>
+      <p class="muted">Invite link — share it with people you want in the group:</p>
+      <p class="invitelink" id="groupInviteLink"></p>
       <p><button id="copyInviteBtn2" type="button" class="secondary">Copy invite link</button></p>
     </section>
 
@@ -121,7 +124,7 @@
   <a href="/create">Create your own group</a>
 </footer>
 <script src="fastnear-wallet.bundle.js"></script>
-<script src="groups-common.js?v=2"></script>
-<script src="group.js?v=2"></script>
+<script src="groups-common.js?v=4"></script>
+<script src="group.js?v=4"></script>
 </body>
 </html>

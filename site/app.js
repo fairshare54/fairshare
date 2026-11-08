@@ -1013,7 +1013,7 @@ function renderStressCompare() {
 async function rpcAccountBalance(accountId) {
   for (const url of RPC_ENDPOINTS) {
     try {
-      const res = await fetch(url, {
+      const res = await fetchWithTimeout(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1182,11 +1182,23 @@ function runAttackLab() {
 // try the primary first, then the fallback once. Only if both fail does
 // the caller show its "could not read" message.
 const RPC_ENDPOINTS = ["https://rpc.testnet.near.org", "https://rpc.testnet.fastnear.com"];
+// A stalled RPC endpoint must fail over, not hang the page: a view call
+// can take seconds on a phone, and a dropped connection hung
+// indefinitely. Ten seconds is generous for a read; the caller retries
+// the next endpoint on abort.
+const RPC_TIMEOUT_MS = 10000;
+async function fetchWithTimeout(url, opts) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), RPC_TIMEOUT_MS);
+  try {
+    return await fetch(url, { ...(opts || {}), signal: ctrl.signal });
+  } finally { clearTimeout(timer); }
+}
 async function rpcViewCall(accountId, method, args) {
   let lastErr = null;
   for (const url of RPC_ENDPOINTS) {
     try {
-      const res = await fetch(url, {
+      const res = await fetchWithTimeout(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1324,6 +1336,99 @@ async function refreshBadgePanel() {
     list.innerHTML = "<p class=\"muted\">Could not read the badges from the contract just now. 19 badges are minted on fairshare-badge.testnet; read them with the command line check in the README.</p>";
   }
 }
+// ---- Groups directory (home page) ----
+// Every registered group, from fairshare-registry.testnet. The list is
+// fetched once per load; membership is checked in parallel per group.
+// A connected account counts as a member when it is the creator, when it
+// is in the group's contract member set, or when it is on the group's DAO
+// council — the DAO list is the source of truth, so a member sees the
+// group as soon as their join is approved, even before the next
+// membership sync into the contract.
+const REGISTRY_ID = "fairshare-registry.testnet";
+const GROUP_TEMPLATE_LABELS = {
+  "market-traders": "Market traders",
+  "grant-team": "Team splitting a grant",
+  "cooperative": "Cooperative",
+  "friends": "Friends sharing costs",
+  "other": "Something else",
+};
+let groupsDirectoryCache = null; // list_groups result, one fetch per load
+let groupsMembershipCache = {}; // "group_id|account" -> true/false, per load
+function groupRowHtml(g, role) {
+  const label = GROUP_TEMPLATE_LABELS[g.template] || g.template || "";
+  const badge = role ? " · " + role : "";
+  return "<p><a href=\"/group?id=" + encodeURIComponent(g.group_id) + "&invite=" + encodeURIComponent(g.invite_code) + "\">" + escapeHtml(g.name) + "</a> · " + escapeHtml(label) + " · created by " + escapeHtml(g.creator) + badge + "</p>";
+}
+async function groupRoleFor(g, accountId) {
+  if (g.creator === accountId) return "Creator";
+  const key = g.group_id + "|" + accountId;
+  if (groupsMembershipCache[key] !== undefined) return groupsMembershipCache[key] ? "Member" : null;
+  // Contract members and DAO council in parallel; either one counts.
+  const [inContract, inCouncil] = await Promise.all([
+    (async () => {
+      try {
+        const members = await rpcViewCall(g.contract_id, "get_members", {});
+        return Array.isArray(members) && members.indexOf(accountId) >= 0;
+      } catch (_) { return false; }
+    })(),
+    (async () => {
+      try {
+        const policy = await rpcViewCall(g.dao_id, "get_policy", {});
+        const council = (policy.roles || []).find((r) => r.name === "council");
+        return Array.isArray(council && council.kind && council.kind.Group)
+          && council.kind.Group.indexOf(accountId) >= 0;
+      } catch (_) { return false; }
+    })(),
+  ]);
+  const isMember = inContract || inCouncil;
+  groupsMembershipCache[key] = isMember;
+  return isMember ? "Member" : null;
+}
+async function refreshGroupsDirectory() {
+  const note = el("groupsNote");
+  const all = el("allGroups");
+  const myWrap = el("myGroupWrap");
+  const my = el("myGroup");
+  const allHeading = el("allGroupsHeading");
+  if (!all) return; // only the home page has the directory
+  try {
+    if (!groupsDirectoryCache) {
+      groupsDirectoryCache = await rpcViewCall(REGISTRY_ID, "list_groups", { from_index: 0, limit: 100 });
+    }
+    const groups = groupsDirectoryCache || [];
+    if (groups.length === 0) {
+      if (note) note.textContent = "No groups yet. Be the first to start one.";
+      if (myWrap) myWrap.style.display = "none";
+      if (allHeading) allHeading.style.display = "none";
+      all.innerHTML = "";
+      return;
+    }
+    let mine = [];
+    if (walletAccountId) {
+      // One membership check per group, all in parallel.
+      const roles = await Promise.all(groups.map((g) => groupRoleFor(g, walletAccountId)));
+      mine = groups.map((g, i) => ({ group: g, role: roles[i] })).filter((m) => m.role);
+    }
+    if (myWrap && my) {
+      if (mine.length > 0) {
+        myWrap.style.display = "block";
+        my.innerHTML = mine.map((m) => groupRowHtml(m.group, m.role)).join("");
+      } else {
+        myWrap.style.display = "none";
+        my.innerHTML = "";
+      }
+    }
+    if (allHeading) allHeading.style.display = mine.length > 0 ? "block" : "none";
+    all.innerHTML = groups.map((g) => groupRowHtml(g, null)).join("");
+    if (note) {
+      if (!walletAccountId) note.textContent = "Connect your wallet above to see which groups are yours.";
+      else if (mine.length > 0) note.textContent = "Your groups are listed first under My DAO group.";
+      else note.textContent = "You are not in any group yet. Join one from its page, or start your own.";
+    }
+  } catch (e) {
+    if (note) note.textContent = "Could not read the directory just now. Reload to try again.";
+  }
+}
 async function initWallet() {
   if (typeof window === "undefined") return; // no browser, no wallet
   let skipRestore = false;
@@ -1349,6 +1454,7 @@ async function initWallet() {
   refreshWalletBtn();
   refreshWalletPanel();
   refreshGovPanel();
+  refreshGroupsDirectory();
 }
 function refreshWalletBtn() {
   const btn = el("connectBtn");
@@ -1393,7 +1499,7 @@ async function disconnectWallet() {
     }
   } catch (_) { /* library missing, clear local state anyway */ }
   walletAccountId = null; walletMembers = []; walletOpenRound = null;
-  refreshWalletBtn(); refreshWalletPanel(); refreshGovPanel();
+  refreshWalletBtn(); refreshWalletPanel(); refreshGovPanel(); refreshGroupsDirectory();
 }
 async function toggleWallet() {
   let nw;
@@ -1414,6 +1520,7 @@ async function toggleWallet() {
     refreshWalletBtn();
     refreshWalletPanel();
     refreshGovPanel();
+    refreshGroupsDirectory();
   } catch (e) { walletStatus("Wallet error: " + String(e.message).slice(0, 160)); }
 }
 async function walletCall(contractId, method, args, depositYocto, gas) {
@@ -2361,6 +2468,7 @@ if (typeof document !== "undefined") {
     renderHomeDashboard();
     renderLive();
     initWallet();
+    refreshGroupsDirectory();
     refreshGovPanel();
     refreshBadgePanel();
     renderMonitorStatic();
