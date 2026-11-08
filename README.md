@@ -8,6 +8,11 @@ every payout explainable giver by giver.
 **Launching on testnet. No private key is printed or committed anywhere in
 this repo.**
 
+Submitted to the NEAR Hackathon, Social Money track, lead Christian
+(fairshare085@gmail.com), payout crist54.near. The lead also leads Public
+Agent Coin (PAC), a memecoin arena. That is the lead's other hackathon
+project.
+
 ## How it works
 
 A round is one shared pot, funded by the DAO as a single envelope. Each
