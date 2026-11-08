@@ -76,6 +76,11 @@
     <p id="joinText">Connect your wallet above. Members see the group's rounds, proposals and allocations; everyone else sees only this page.</p>
     <p><button id="joinBtn" type="button" style="display:none">Join this group</button></p>
     <p class="muted" id="joinResult"></p>
+    <div id="syncPanel" style="display:none">
+      <p id="syncText">You are on this group's council, but the member list has not caught up yet. Sync it to see the rounds, proposals and votes.</p>
+      <p><button id="syncMembersBtn" type="button">Sync members</button></p>
+      <p class="muted" id="syncMembersResult"></p>
+    </div>
   </section>
 
   <div id="detailsSection" style="display:none">
@@ -83,6 +88,11 @@
       <h2>Members</h2>
       <p class="muted" id="membersNote"></p>
       <div id="membersList"></div>
+      <div id="membersSyncPanel" style="display:none">
+        <p class="muted" id="membersSyncText"></p>
+        <p><button id="syncMembersBtn2" type="button" class="secondary">Sync members</button></p>
+        <p class="muted" id="syncMembersResult2"></p>
+      </div>
       <p class="muted">Invite link — share it with people you want in the group:</p>
       <p class="invitelink" id="groupInviteLink"></p>
       <p><button id="copyInviteBtn2" type="button" class="secondary">Copy invite link</button></p>
@@ -125,6 +135,6 @@
 </footer>
 <script src="fastnear-wallet.bundle.js"></script>
 <script src="groups-common.js?v=4"></script>
-<script src="group.js?v=5"></script>
+<script src="group.js?v=6"></script>
 </body>
 </html>

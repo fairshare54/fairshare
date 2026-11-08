@@ -101,12 +101,26 @@ async function refreshGroupPage() {
     const jt = el("joinText");
     const jb = el("joinBtn");
     const jr = el("joinResult");
-    if (INVITE && INVITE === GROUP.invite_code) {
-      if (jt) jt.textContent = "You opened this page with the group's invite link. Tap Join and a council member will approve you.";
-      if (jb) jb.style.display = "inline-block";
-    } else {
-      if (jt) jt.textContent = "You need an invite link from a member of this group. Ask a member to share it with you.";
+    const sp = el("syncPanel");
+    if (walletAccountId && isCouncil()) {
+      // On the DAO council but not in the contract's member list yet: the
+      // join was approved but nobody has run sync_dao_members since. The
+      // member list is the synced mirror, so the details section (and its
+      // vote buttons) stay hidden until then — show the sync control here,
+      // where the stuck member can actually reach it, instead of the Join
+      // button, which would propose adding them a second time.
+      if (jt) jt.textContent = "You are on this group's council, but the member list has not caught up yet. Sync it to see the rounds, proposals and votes.";
       if (jb) jb.style.display = "none";
+      if (sp) sp.style.display = "block";
+    } else {
+      if (sp) sp.style.display = "none";
+      if (INVITE && INVITE === GROUP.invite_code) {
+        if (jt) jt.textContent = "You opened this page with the group's invite link. Tap Join and a council member will approve you.";
+        if (jb) jb.style.display = "inline-block";
+      } else {
+        if (jt) jt.textContent = "You need an invite link from a member of this group. Ask a member to share it with you.";
+        if (jb) jb.style.display = "none";
+      }
     }
     if (jr) jr.textContent = "";
     if (details) details.style.display = "none";
@@ -138,6 +152,20 @@ async function refreshMembersPanel() {
     const rows = groupMembers.map((m, i) => "<tr><td>" + escapeHtml(m) + "</td><td>" + standings[i] + "</td><td>" + (m === GROUP.creator ? "Creator" : "") + "</td></tr>");
     list.innerHTML = "<table><tr><th>Member</th><th>Standing</th><th></th></tr>" + rows.join("") + "</table>";
     if (note) note.textContent = groupMembers.length + " members. Standing starts at 100, rises when others give you points, and falls by 5 when you skip a round. DAO: " + GROUP.dao_id + ". Contract: " + GROUP.contract_id + ".";
+    // The DAO council is the source of truth; the member list is its
+    // synced mirror. If they disagree, a member who was just approved
+    // cannot vote yet — offer the sync here instead of leaving the
+    // group stuck until someone calls the contract from elsewhere.
+    const msp = el("membersSyncPanel");
+    const mst = el("membersSyncText");
+    if (msp) {
+      if (groupCouncil.length !== groupMembers.length) {
+        msp.style.display = "block";
+        if (mst) mst.textContent = "The DAO council has " + groupCouncil.length + " members and the member list has " + groupMembers.length + ". Sync to fix it.";
+      } else {
+        msp.style.display = "none";
+      }
+    }
   } catch (e) {
     list.innerHTML = "<p class=\"muted\">Could not read the members just now.</p>";
   }
@@ -511,6 +539,21 @@ async function govProposeAdd() {
   }
 }
 
+async function syncGroupMembers(resultEl) {
+  const result = resultEl || el("syncMembersResult");
+  if (!walletAccountId || !GROUP) return;
+  if (result) result.textContent = "Opening your wallet to sync the member list…";
+  try {
+    // Permissionless: anyone can call it. It reads the DAO council live
+    // and mirrors it into the contract's member set. No deposit.
+    await walletCall(GROUP.contract_id, "sync_dao_members", {}, "0", WALLET_GAS_100);
+    if (result) result.textContent = "Sent to your wallet. Approve the call there; the member list refreshes when you return.";
+    setTimeout(refreshGroupPage, 3000);
+  } catch (e) {
+    if (result) result.textContent = "Wallet error: " + String(e.message).slice(0, 160);
+  }
+}
+
 async function joinGroup() {
   const result = el("joinResult");
   if (!walletAccountId || !GROUP) return;
@@ -534,6 +577,10 @@ async function joinGroup() {
 function initGroupPage() {
   const joinBtn = el("joinBtn");
   if (joinBtn) joinBtn.addEventListener("click", joinGroup);
+  const syncBtn = el("syncMembersBtn");
+  if (syncBtn) syncBtn.addEventListener("click", () => syncGroupMembers(el("syncMembersResult")));
+  const syncBtn2 = el("syncMembersBtn2");
+  if (syncBtn2) syncBtn2.addEventListener("click", () => syncGroupMembers(el("syncMembersResult2")));
   const roundBtn = el("govRoundBtn");
   if (roundBtn) roundBtn.addEventListener("click", govProposeRound);
   const addBtn = el("govProposeBtn");
