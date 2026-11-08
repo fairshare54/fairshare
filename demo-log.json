@@ -600,7 +600,7 @@
           "frank-fairshare.testnet": "GYXtUbL1kcNcdJFLdpCty1ynx6Bf9sTq3m78uxi5fNMR",
           "ada-fairshare.testnet": "Cu4UqfKntuLtUyw5arqitXGfWfdYbMCM9aAPAFPy2AkQ"
         },
-        "note": "6 of 12 council votes (exactly 1/2) did NOT pass \u2014 Sputnik threshold is a strict majority. The 7th vote (ada) approved it."
+        "note": "6 of 12 council votes (exactly 1/2) did NOT pass — Sputnik threshold is a strict majority. The 7th vote (ada) approved it."
       },
       "sync_dao_members": "Ah87M1UuRdaXx6aHqKD1PdoMty9xysH7Tbyv1VKJ27jW",
       "allocate": {
@@ -2700,5 +2700,58 @@
     "remainder_yocto": "3",
     "dao_balance_after_yocto": "40150000000000000000000000",
     "demo_at": "2026-11-08T11:42:20.334Z"
+  },
+  "add_clearsite587": {
+    "member": "clearsite587.testnet",
+    "proposal_id": 15,
+    "member_count": 19,
+    "standing": 100,
+    "txs": {
+      "propose_tx": "8S89xddY1rahiPZvCRpUYyaNLvNCrZGQBfLsPTfZMMZ1",
+      "votes": [
+        {
+          "voter": "alice-fairshare.testnet",
+          "tx": "3kcQAePR2raP7qQ4V5TJRpks6uUFUwyxbv1Eve8UtLim"
+        },
+        {
+          "voter": "bob-fairshare.testnet",
+          "tx": "J1ELTVzN3wNUkXuzQJbed7tyrf2GavbY2xkHTP9ANsoz"
+        },
+        {
+          "voter": "carol-fairshare.testnet",
+          "tx": "6PUZ6iup47AEFaBH8oZNcq8ZzDXobKqT7eoDcoqdGvyk"
+        },
+        {
+          "voter": "dave-fairshare.testnet",
+          "tx": "5AVVkWmk571K1GyQkiizpuo3V6RQPuD7dAQXh1hpFFbY"
+        },
+        {
+          "voter": "erin-fairshare.testnet",
+          "tx": "7hBN6UtnKZHzapfLhA7d2SREvCrde4n8RCjxd72eWBmx"
+        },
+        {
+          "voter": "frank-fairshare.testnet",
+          "tx": "5rr8cqXb7Uvr7XfxsMyg8a7qmyYhHRtxbYWu8KVptdXm"
+        },
+        {
+          "voter": "ada-fairshare.testnet",
+          "tx": "2fJqe2JfM6JfSeCSg2PfKh5Jva8GefHDvQiW9jVJq82e"
+        },
+        {
+          "voter": "emeka-fairshare.testnet",
+          "tx": "HFUHdML6QwASDfjejH3AmrGCvhxWNyi1mGyxpg1xrWno"
+        },
+        {
+          "voter": "fatima-fairshare.testnet",
+          "tx": "E3xXjJwVDBModjG2KUA5ArDPvi8UocE9eMGt7xZZFVtK"
+        },
+        {
+          "voter": "ibrahim-fairshare.testnet",
+          "tx": "FJgocbFLfFEb2t9xHxppgpCJC27Q4otygkapnJ46YdMt"
+        }
+      ],
+      "proposal_id": 15,
+      "sync_dao_members": "B92RYmbboLwazJzd5V7LS7en1w7UNy5Z92HRMhK3YvQF"
+    }
   }
 }

@@ -450,6 +450,34 @@ Each of the six new members received points from exactly 3 distinct
 givers, so each gained 6: 100 to 106. The 12 existing members scored 0
 and were paid 0 in round 4.
 
+## clearsite587.testnet joins the council (2026-11-08)
+
+Isaiah's own testnet account, clearsite587.testnet (his phone wallet),
+joined the DAO council by real Sputnik proposal so he can allocate in
+round 5 from the site wallet connect. Council grew 18 to 19.
+
+- Proposal #15, AddMemberToRole clearsite587.testnet to council, owner
+  proposed, propose tx
+  `8S89xddY1rahiPZvCRpUYyaNLvNCrZGQBfLsPTfZMMZ1`, 1 NEAR bond (returned
+  on approval).
+- 10 approvals, strict majority of 18: alice
+  `3kcQAePR2raP7qQ4V5TJRpks6uUFUwyxbv1Eve8UtLim`, bob
+  `J1ELTVzN3wNUkXuzQJbed7tyrf2GavbY2xkHTP9ANsoz`, carol
+  `6PUZ6iup47AEFaBH8oZNcq8ZzDXobKqT7eoDcoqdGvyk`, dave
+  `5AVVkWmk571K1GyQkiizpuo3V6RQPuD7dAQXh1hpFFbY`, erin
+  `7hBN6UtnKZHzapfLhA7d2SREvCrde4n8RCjxd72eWBmx`, frank
+  `5rr8cqXb7Uvr7XfxsMyg8a7qmyYhHRtxbYWu8KVptdXm`, ada
+  `2fJqe2JfM6JfSeCSg2PfKh5Jva8GefHDvQiW9jVJq82e`, emeka
+  `HFUHdML6QwASDfjejH3AmrGCvhxWNyi1mGyxpg1xrWno`, fatima
+  `E3xXjJwVDBModjG2KUA5ArDPvi8UocE9eMGt7xZZFVtK`, ibrahim
+  `FJgocbFLfFEb2t9xHxppgpCJC27Q4otygkapnJ46YdMt`. Vote counts
+  council [10, 0, 0], status Approved.
+- Sync tx `B92RYmbboLwazJzd5V7LS7en1w7UNy5Z92HRMhK3YvQF` (sync_dao_members).
+  Contract members now 19, clearsite587.testnet included, standing 100
+  (verified live via get_members, get_standing, get_dao_info
+  member_count 19). Script: `scripts/add-clearsite-council.mjs`,
+  machine record: `demo-log-add-clearsite.json`.
+
 ## History — first live demo (superseded, kept for the record)
 
 - Contract `egbe-contract.testnet`, owner `egbe-owner.testnet`,
