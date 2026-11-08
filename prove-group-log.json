@@ -1,0 +1,91 @@
+{
+  "network": "testnet",
+  "group_id": "prove-group",
+  "group_name": "Prove Group",
+  "template": "cooperative",
+  "invite_code": "prove-abc123",
+  "dao_id": "prove-group.sputnikv2.testnet",
+  "contract_id": "prove-group-fairshare.prove-creator.testnet",
+  "creator": "prove-creator.testnet",
+  "registry_id": "fairshare-registry.testnet",
+  "envelope_yocto": "5000000000000000000000000",
+  "txs": {
+    "topup_creator_8NEAR_from_funder": "6LsLdVZqvn2iZdBgQ4ZUXUjrJCUwjMVDuTtssjhHZwFg",
+    "topup_from_prove-funder.testnet": "6cJsebHpoZtgusRwC9JhQBaPBvVPMMZijnYymhM3W4dm",
+    "topup_from_alice-fairshare.testnet": "6ybP6hwBAxdwkRL3Sp3w3dxXgGs5hzYokrB2UL5L88mn",
+    "dao_create": "B4Wa47dAYkr3Kss7etvnZGfm3dWEbE6kDxnRTzVT9NJi",
+    "contract_account": "12YvCbUkg9zYfGJW8LnXFC8PMCKjEyvnKkSo1Tn8xNp8",
+    "contract_deploy": "HNBeeKvsPoXgA8ctRYMT2hWtGd7Sj83kFdSwPBpa7oP7",
+    "contract_init": "Dw6ZT24WRdpaYvvcP5dpxiHQzwN6vFVfD4u3QAH5yJdc",
+    "register": "ANhLvar4AFCegcReMV1DsHosHHhTczire78otBpvtcrE",
+    "sync": "85RyQSF6aoT31HJxmq2d57CfXBkV4sdyqhF9FwpgPXD7",
+    "fund_propose": "DR3d2zWFXSiYd87F3qzjA7BSLNG63GE8wWCUiiThQEqL",
+    "fund_vote": "H9261zGJ89Zm9kLLTs9JxSDrLFhfBctxhoEDTdrXyWhQ",
+    "add_bob-fairshare.testnet": {
+      "proposal_id": 1,
+      "propose_tx": "Jv7VhHAqcnMDTa33RhrkodVfDBLZJq22qSHaQEUbHPz",
+      "vote_tx": [
+        "AG16bp3MRt1YSoyrfoDx7S7FVxj1UezWwPCcP5VWnuqi"
+      ]
+    },
+    "add_carol-fairshare.testnet": {
+      "proposal_id": 2,
+      "propose_tx": "BZqShyhMgM5v4U5xCiZYjNrwg2DiwkaEhikt86vBcEYf",
+      "vote_tx": [
+        "AuCHySaYd8ixoeJ7mLtFGP6h1kDgabZ4i2K7ebU4EMvr",
+        "Dwo3YkMsQztLdXx3Ph1H179bqf568hubunQYTLWKx6Do"
+      ]
+    },
+    "add_dave-fairshare.testnet": {
+      "proposal_id": 3,
+      "propose_tx": "DfU98YMGK1ATshAF8fzr5RVW71JXuAPna1Uy7ECpaeUr",
+      "vote_tx": [
+        "2RAtMPRaXWarAnNyaPHRjHKnx7GixQq5LBo4iFnUyktm",
+        "CvQygJwHd8zkW9vJ18zJRT6Cy6Yu1AY9AfUMLcRdENrZ"
+      ]
+    },
+    "sync2": "wDaMGigrehcVKjnQhrb8p9fTp3ArkeeJ4KtPNRr4bQp",
+    "allocate": {
+      "prove-creator.testnet": "9Zb2wMMx8WcH6p9V64zsMwFoJVLPd3RtRfyiJkFxedEw",
+      "bob-fairshare.testnet": "AU6Tk56Ry8gRGQXBeofqViXBbGj4vZyHuV9KMxug3MGk",
+      "carol-fairshare.testnet": "DLJM19DFJoBwEyMhkeVaqP6hdnHUuX7UEw1WWojLGA4G",
+      "dave-fairshare.testnet": "i2vcr2LjpCBeJEAs6JjYtH5mgdyhjv8hbMDLRwdP6td"
+    },
+    "close_round": "8ykwTkdqxUxvj2HctXqtevJvGWUwpaFpTwoLVM9NPPj",
+    "settle_round": "JWcDo5HaVRo9UFb3c7zRaWLW5Dq7zKGHY3Yba6MVJzq"
+  },
+  "round": {
+    "id": 1,
+    "envelope_yocto": "5000000000000000000000000",
+    "created_ns": 1794160945564699600,
+    "deadline_ns": 1794765745564699600,
+    "closed": true,
+    "settled": true,
+    "total_payout_yocto": "5000000000000000000000000"
+  },
+  "expected_scores": {
+    "prove-creator.testnet": "20449",
+    "bob-fairshare.testnet": "15376",
+    "carol-fairshare.testnet": "15376",
+    "dave-fairshare.testnet": "12100"
+  },
+  "expected_payouts_yocto": {
+    "prove-creator.testnet": "1250000000000000000000000",
+    "bob-fairshare.testnet": "1250000000000000000000000",
+    "carol-fairshare.testnet": "1250000000000000000000000",
+    "dave-fairshare.testnet": "1250000000000000000000000"
+  },
+  "total_score": "63301",
+  "payout_sum_yocto": "5000000000000000000000000",
+  "standings_after": {
+    "prove-creator.testnet": 106,
+    "bob-fairshare.testnet": 106,
+    "carol-fairshare.testnet": 106,
+    "dave-fairshare.testnet": 106
+  },
+  "dao_balance_after_yocto": "5500000000000000000000000",
+  "creator_balance_after_yocto": "7929704684850463657092927",
+  "contract_balance_after_yocto": "5196274863652341000000000",
+  "group_page": "https://fairshare-pi.vercel.app/group?id=prove-group&invite=prove-abc123",
+  "proved_at": "2026-11-08T18:08:30.689Z"
+}

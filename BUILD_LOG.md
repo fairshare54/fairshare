@@ -289,3 +289,67 @@ Full record: `migrate-log.json`, `demo-log-round3.json`, `DEMO_LOG.md`
   #7 failed twice (3.7466 short, then 0.74295 short) before the DAO was
   topped to 11.5 NEAR total and the 7th vote passed. A 5 NEAR round
   needs the DAO at about 11.5 NEAR total. Top up before any round 4.
+
+## Self-serve groups, 2026-11-08 (testnet only)
+
+Authorised by Isaiah 2026-11-08 ~18:28 WAT: anyone can create their own
+FairShare group from the site, no technical person, no mainnet parts,
+no fee logic.
+
+- Registry contract `fairshare-registry.testnet` (source
+  `registry-contract/`, near-sdk 5.5, wasm 311,253 bytes, 11 unit tests
+  pass). Deploy tx `AYHtQEMkk87vfDYwKwPwHBng2btbnh6BqCGXmCzytaxW`, init tx
+  `2gkNKdvKyyuSkxh1gAiLtuQfCa4UaGJGhZcUSw9dEbvu`, owner
+  fairshare-owner.testnet. It is only the directory: group metadata and
+  invite codes, never group money. Methods: `register_group`,
+  `update_badge` (only the group's DAO may call), `get_group`,
+  `get_group_by_dao`, `get_group_by_contract`, `list_groups`,
+  `group_count`, `get_owner`.
+- Factory experiment: DAO `testgroup1.sputnikv2.testnet` created through
+  `sputnikv2.testnet` `create` with 5.5 NEAR attached, tx
+  `8qTu3SHJMLssufU6kHmpEZcZw4HBiMh4SqnvYjZjVucj` (log
+  `exp-factory-create.json`).
+- Storage is a minimum balance, not a deduction: deploying code does not
+  reduce the account balance; the account must keep storage_usage x 1e19
+  yocto locked. A DAO holding 5.5 NEAR can only spend ~0.1 NEAR. A 5 NEAR
+  round needs ~11.5 NEAR total in the DAO. Per-group creator cost about
+  17.7 testnet NEAR: 10.5 DAO treasury + 5.2 contract subaccount + 1
+  register (mostly refunded) + 1 bond float (returned).
+- Site: `site/create.html` + `site/create.js` (four-step flow, resumable
+  across wallet redirects, progress in localStorage), `site/group.html`
+  + `site/group.js` (members-only page: rounds, members, allocate form,
+  start-a-round and propose-member forms, proposals with votes),
+  `site/groups-common.js` (shared wallet/RPC/slug/invite helpers),
+  `site/near-api-js.bundle.js` (near-api-js 5.1.1, esbuild 0.28.2;
+  the build NEEDS `--define:global=window` and
+  `--inject:./nearjs-shim.js`, see `nearjs-entry.js` — without them the
+  bundle throws "global is not defined" / "process is not defined" and
+  `window.nearApiJs` never appears; caught by the headless check).
+  Home hero + nav on all four pages link to `/create`; `vercel.json`
+  rewrites added for `/create`, `/group`, `/create.js`, `/group.js`,
+  `/groups-common.js`, `/near-api-js.bundle.js`. Tests:
+  `hidden_files/groups_test.js` passes (slugify, invite codes, fmtYocto,
+  constants, every element id the page scripts look up, rewrites, nav
+  links). Existing `dom_test.js` and `charts_test.js` still pass.
+- Proof, `scripts/prove-group-instance.mjs`, log `prove-group-log.json`:
+  group `prove-group`, DAO `prove-group.sputnikv2.testnet`, contract
+  `prove-group-fairshare.prove-creator.testnet`, round 1 settled with
+  total score 63301, four members paid exactly the 1.25 NEAR cap each
+  (5 NEAR), standings 100 to 106 each. Full tx hashes in the log.
+- Bugs the proof caught, all fixed in the script (the page flow does not
+  share them, but the lesson stands): (1) `accountExists` called
+  `.state()` on the Promise from `near.account()` instead of awaiting
+  it, so it always returned false — this is why the first two proof runs
+  "timed out waiting for the faucet account onchain" when the accounts
+  had in fact landed. (2) Sputnik's default vote policy [1,2] needs
+  STRICTLY more than half the council's weight: after the first member
+  joins, one vote no longer passes an add — every current council member
+  must vote. (3) A flat 17.7 NEAR top-up demand on resume is wrong once
+  the deploys are done; the top-up is now need-based, drawing from the
+  funder then alice.
+- The group page's membership gating is app-level: onchain data is
+  public by nature, so a determined reader can query the contract
+  directly. The README and the page say so.
+- Left out deliberately: mainnet parts, fee logic, round length (fixed
+  at 7 days by the contract), badge changes need a DAO vote, no try-it
+  group (Isaiah: the site would be too congested).

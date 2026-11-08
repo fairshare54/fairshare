@@ -1,0 +1,13 @@
+{
+  "network": "testnet",
+  "registry_id": "fairshare-registry.testnet",
+  "owner_id": "fairshare-owner.testnet",
+  "wasm_bytes": 311253,
+  "wasm_sha256": "10e42ae2eb91bec96a31ac6307eb782a211be135a9f85bebcd06db5fc1e09834",
+  "deploy_tx": "AYHtQEMkk87vfDYwKwPwHBng2btbnh6BqCGXmCzytaxW",
+  "init_tx": "2gkNKdvKyyuSkxh1gAiLtuQfCa4UaGJGhZcUSw9dEbvu",
+  "owner": "fairshare-owner.testnet",
+  "group_count": 0,
+  "registry_balance_yocto": "9997547664980885200000000",
+  "deployed_at": "2026-11-08T17:43:31.721Z"
+}

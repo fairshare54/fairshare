@@ -722,3 +722,42 @@ every scenario, and no payout passes the 1.250 NEAR cap.
   2026-11-08 but its keypair was lost when the first account script died
   on a too-fast finality check before writing the file. Nobody holds its
   key; do not use that name.
+
+## Self-serve group proof, 2026-11-08 (prove-group)
+
+First group created exactly the way the Create-your-DAO page does it,
+from one creator wallet. Creator prove-creator.testnet (faucet + 8 NEAR
+top-up from prove-funder, then 1.8 NEAR from the funder and 2.61 NEAR
+from alice-fairshare on resume).
+
+- DAO `prove-group.sputnikv2.testnet`, create tx
+  `B4Wa47dAYkr3Kss7etvnZGfm3dWEbE6kDxnRTzVT9NJi`, 10.5 NEAR treasury.
+- Contract `prove-group-fairshare.prove-creator.testnet`: subaccount tx
+  `12YvCbUkg9zYfGJW8LnXFC8PMCKjEyvnKkSo1Tn8xNp8`, deploy tx
+  `HNBeeKvsPoXgA8ctRYMT2hWtGd7Sj83kFdSwPBpa7oP7`, init tx
+  `Dw6ZT24WRdpaYvvcP5dpxiHQzwN6vFVfD4u3QAH5yJdc`; `get_params`
+  verified identical to the main contract.
+- Registered in `fairshare-registry.testnet`, tx
+  `ANhLvar4AFCegcReMV1DsHosHHhTczire78otBpvtcrE`; membership synced,
+  tx `85RyQSF6aoT31HJxmq2d57CfXBkV4sdyqhF9FwpgPXD7`.
+- Round 1 funded by DAO proposal #0, tx
+  `DR3d2zWFXSiYd87F3qzjA7BSLNG63GE8wWCUiiThQEqL`, 5 NEAR envelope.
+- Members added by DAO vote: bob proposal #1
+  (`Jv7VhHAqcnMDTa33RhrkodVfDBLZJq22qSHaQEUbHPz`), carol proposal #2
+  (`BZqShyhMgM5v4U5xCiZYjNrwg2DiwkaEhikt86vBcEYf`, creator's vote alone
+  did not pass it — the strict-majority rule needed bob's vote too,
+  `Dwo3YkMsQztLdXx3Ph1H179bqf568hubunQYTLWKx6Do`), dave proposal #3
+  (`DfU98YMGK1ATshAF8fzr5RVW71JXuAPna1Uy7ECpaeUr`).
+- All four allocated 100 points each (creator
+  `9Zb2wMMx8WcH6p9V64zsMwFoJVLPd3RtRfyiJkFxedEw`, bob
+  `AU6Tk56Ry8gRGQXBeofqViXBbGj4vZyHuV9KMxug3MGk`, carol
+  `DLJM19DFJoBwEyMhkeVaqP6hdnHUuX7UEw1WWojLGA4G`, dave
+  `i2vcr2LjpCBeJEAs6JjYtH5mgdyhjv8hbMDLRwdP6td`).
+- Close tx `8ykwTkdqxUxvj2HctXqtevJvGWUwpaFpTwoLVM9NPPj`, settle tx
+  `JWcDo5HaVRo9UFb3c7zRaWLW5Dq7zKGHY3Yba6MVJzq`. Total score 63301.
+  Scores: creator 20449 (capped), bob 15376, carol 15376, dave 12100.
+  Payouts: 1.25 NEAR each, 5 NEAR in all, matching the independent
+  integer model in the script exactly. Standings 100 to 106 each.
+  Balances after: DAO 5.5 NEAR, creator 7.93 NEAR, contract 5.196 NEAR.
+  Group page: https://fairshare-pi.vercel.app/group?id=prove-group&invite=prove-abc123
+  Full record: `prove-group-log.json`.

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Group — FairShare</title>
+<meta name="description" content="A FairShare group: its own DAO, its own rounds, its own payouts on NEAR testnet.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+  :root { --bg:#0a0e14; --panel:#111827; --panel2:#0d1420; --line:#1f2937; --text:#e5e7eb; --muted:#9ca3af; --gold:#e3a008; --green:#22c55e; --red:#ef4444; --blue:#60a5fa; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,sans-serif; line-height:1.5; }
+  a { color:var(--blue); }
+  header { padding:16px 20px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; position:sticky; top:0; background:var(--bg); z-index:10; }
+  header nav a { color:var(--muted); text-decoration:none; margin-left:16px; font-size:14px; }
+  header nav a:hover { color:var(--text); }
+  header nav a.active { color:var(--gold); }
+  .logo { font-size:22px; font-weight:800; text-decoration:none; color:var(--text); } .logo svg { vertical-align:-4px; margin-right:6px; }
+  #connectBtn { background:var(--gold); color:#111; border:0; border-radius:8px; padding:8px 12px; font-weight:700; cursor:pointer; font-size:14px; white-space:nowrap; }
+  #connectBtn:disabled { opacity:.55; cursor:default; }
+  .net { color:var(--muted); font-size:13px; }
+  main { max-width:960px; margin:0 auto; padding:20px; }
+  .hero { padding:28px 0 8px; }
+  .hero h1 { font-size:34px; line-height:1.15; margin:10px 0; max-width:640px; }
+  .kicker { color:var(--gold); font-size:13px; letter-spacing:.08em; text-transform:uppercase; margin:0; }
+  .lede { color:var(--muted); font-size:18px; max-width:680px; }
+  .panel { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:16px; margin:18px 0; }
+  .panel h2 { margin:0 0 8px; font-size:20px; }
+  .panel h3 { margin:14px 0 6px; font-size:15px; }
+  .muted { color:var(--muted); font-size:13px; }
+  .badge { display:inline-block; background:#7c2d12; color:#fdba74; border-radius:6px; padding:2px 8px; font-size:12px; font-weight:700; letter-spacing:.05em; }
+  .badge.live { background:#14532d; color:#86efac; }
+  button { background:var(--gold); color:#111; border:0; border-radius:8px; padding:10px 14px; font-weight:700; cursor:pointer; margin:4px 4px 4px 0; }
+  button:disabled { opacity:.55; cursor:default; }
+  button.secondary { background:#1f2937; color:var(--text); }
+  select, input[type="text"], input[type="number"] { background:#0d1420; color:var(--text); border:1px solid var(--line); border-radius:8px; padding:10px; margin:4px 4px 4px 0; max-width:320px; }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  th, td { text-align:left; padding:8px 6px; border-bottom:1px solid var(--line); }
+  .group-badge { width:96px; height:96px; border-radius:12px; border:1px solid var(--line); object-fit:cover; vertical-align:middle; margin-right:12px; }
+  code { overflow-wrap:break-word; word-break:break-all; }
+  footer { color:var(--muted); font-size:12px; padding:20px; text-align:center; }
+  @media (max-width:640px) {
+    header { padding:12px 14px; gap:6px; }
+    header nav { display:flex; flex-wrap:wrap; gap:6px 14px; }
+    header nav a { margin-left:0; font-size:13px; white-space:nowrap; }
+    .logo { font-size:19px; }
+    main { padding:16px 14px; }
+    .hero h1 { font-size:28px; }
+    .lede { font-size:16px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <a class="logo" href="/">FairShare <svg viewBox="0 0 32 32" width="22" height="22" aria-hidden="true"><path fill="#2dd4bf" stroke="#0a0e14" stroke-width="1" d="M16 16 L16 0 A16 16 0 0 1 29.86 24 Z"/><path fill="#22c55e" stroke="#0a0e14" stroke-width="1" d="M16 16 L29.86 24 A16 16 0 0 1 2.14 24 Z"/><path fill="#f59e0b" stroke="#0a0e14" stroke-width="1" d="M16 16 L2.14 24 A16 16 0 0 1 16 0 Z"/></svg></a>
+  <nav>
+    <a href="/">Home</a>
+    <a href="/rounds">Live rounds</a>
+    <a href="/how">How it works</a>
+    <a href="/lab">Attack Lab</a>
+    <a href="/create">Create your DAO</a>
+  </nav>
+  <button id="connectBtn" onclick="toggleWallet()">Connect wallet</button>
+</header>
+<main>
+  <section class="hero">
+    <p class="kicker" id="groupKicker">FairShare group</p>
+    <h1><img class="group-badge" id="groupBadge" alt="" style="display:none"><span id="groupName">Loading…</span></h1>
+    <p class="lede" id="groupLede"></p>
+    <p class="muted" id="pageStatus">Reading the group from the directory…</p>
+  </section>
+
+  <section class="panel" id="joinPanel" style="display:none">
+    <h2>This group is members-only</h2>
+    <p id="joinText">Connect your wallet above. Members see the group's rounds, proposals and allocations; everyone else sees only this page.</p>
+    <p><button id="joinBtn" type="button" style="display:none">Join this group</button></p>
+    <p class="muted" id="joinResult"></p>
+  </section>
+
+  <div id="detailsSection" style="display:none">
+    <section class="panel" id="membersPanel">
+      <h2>Members</h2>
+      <p class="muted" id="membersNote"></p>
+      <div id="membersList"></div>
+      <p><button id="copyInviteBtn2" type="button" class="secondary">Copy invite link</button></p>
+    </section>
+
+    <section class="panel" id="allocPanel">
+      <h2 id="allocTitle">Allocate your 100 points</h2>
+      <p class="muted" id="allocNote"></p>
+      <div id="allocForm"></div>
+    </section>
+
+    <section class="panel" id="roundsPanel">
+      <h2>Rounds</h2>
+      <div id="roundsList"><p class="muted">Reading rounds…</p></div>
+    </section>
+
+    <section class="panel" id="govPanel">
+      <h2>Governance</h2>
+      <p class="muted" id="govStatus">Reading open proposals from the DAO…</p>
+      <div id="govProposals"></div>
+      <div id="govForms" style="display:none">
+        <h3>Start a round</h3>
+        <p class="muted" id="govRoundNote">Reading the next round…</p>
+        <label>Envelope (NEAR) <input type="number" id="govRoundEnvelope" value="5" min="1" step="1" aria-label="Round envelope in NEAR"></label>
+        <button id="govRoundBtn" type="button">Propose starting the next round</button>
+        <p class="muted" id="govRoundResult"></p>
+        <h3>Propose adding a member</h3>
+        <p class="muted">The new member joins the council role. Proposing costs a 1 NEAR bond, returned when the proposal is approved.</p>
+        <input type="text" id="govNewMember" maxlength="64" placeholder="newmember.testnet" aria-label="Account to add">
+        <button id="govProposeBtn" type="button">Propose adding this member</button>
+        <p class="muted" id="govProposeResult"></p>
+      </div>
+    </section>
+  </div>
+</main>
+<footer>
+  FairShare · NEAR testnet only · Social Money, NEAR Hackathon 2026<br>
+  <a href="https://github.com/fairshare54/fairshare">Repo</a> ·
+  <a href="/create">Create your own group</a>
+</footer>
+<script src="fastnear-wallet.bundle.js"></script>
+<script src="groups-common.js?v=1"></script>
+<script src="group.js?v=1"></script>
+</body>
+</html>

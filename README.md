@@ -142,6 +142,58 @@ on what the mechanism caught and where its limit is. The whole round
 colluding scenario is the honest limit: the maths cannot stop it, only
 DAO curation can.
 
+## Create your own group
+
+Any group can run its own FairShare without a technical person. The
+site's "Create your DAO" page builds, from one wallet, in four steps:
+
+1. A Sputnik DAO through the factory `sputnikv2.testnet`, council =
+   creator, strict-majority voting, 1 NEAR proposal bond.
+2. The group's own round contract as a creator subaccount, deployed
+   with the same code as `fairshare-contract.testnet` (same settlement
+   maths, same standing rules), bound to that DAO.
+3. The group listed in the directory contract
+   `fairshare-registry.testnet` (name, template, badge URL, creator,
+   invite code). The badge image is stored offchain; only the URL goes
+   onchain.
+4. The DAO council synced into the contract.
+
+Creating is free on testnet apart from the deposits the chain itself
+locks: about 10.5 NEAR to the DAO treasury (about 5.4 NEAR of that is
+the DAO's storage minimum) and 5.2 NEAR to the contract account (about
+4.9 NEAR is its storage minimum), plus a 1 NEAR register deposit
+(mostly refunded) and a 1 NEAR proposal bond (returned when approved).
+About 17.7 testnet NEAR in the creator's wallet covers the defaults.
+Rounds are 7 days, fixed by the contract. There is no fee and no
+mainnet part.
+
+Each group gets its own page at `/group?id=<slug>&invite=<code>`,
+showing its rounds, members, proposals and allocations. Only members
+see the details; the invite link is what lets a new member in, and the
+council must approve them. The chain underneath is public by nature,
+so this is app-level gating, not privacy.
+
+Proved live on testnet 2026-11-08 (script
+`scripts/prove-group-instance.mjs`, log `prove-group-log.json`):
+group `prove-group`, DAO `prove-group.sputnikv2.testnet` (create tx
+`B4Wa47dAYkr3Kss7etvnZGfm3dWEbE6kDxnRTzVT9NJi`), contract
+`prove-group-fairshare.prove-creator.testnet` (deploy tx
+`HNBeeKvsPoXgA8ctRYMT2hWtGd7Sj83kFdSwPBpa7oP7`, init tx
+`Dw6ZT24WRdpaYvvcP5dpxiHQzwN6vFVfD4u3QAH5yJdc`, params verified
+identical to the main contract), registered in the directory
+(`ANhLvar4AFCegcReMV1DsHosHHhTczire78otBpvtcrE`), membership synced
+(`85RyQSF6aoT31HJxmq2d57CfXBkV4sdyqhF9FwpgPXD7`), round 1 funded by
+DAO proposal #0 (`DR3d2zWFXSiYd87F3qzjA7BSLNG63GE8wWCUiiThQEqL`, 5 NEAR
+envelope). Round 1 then ran end to end on the same group: bob, carol
+and dave joined the council by DAO vote, all four members allocated
+100 points each, the round closed and settled (close tx
+`8ykwTkdqxUxvj2HctXqtevJvGWUwpaFpTwoLVM9NPPj`, settle tx
+`JWcDo5HaVRo9UFb3c7zRaWLW5Dq7zKGHY3Yba6MVJzq`), total score 63301,
+every member paid exactly the 1.25 NEAR cap (5 NEAR in all), standings
+100 to 106 each. The independent integer model in the script matched
+every score and payout. The full record is in
+`prove-group-log.json`.
+
 ## Honest limits
 
 - Collusion is made costly, not impossible. The Attack Lab shows a closed
@@ -151,8 +203,10 @@ DAO curation can.
   round 3, and the gates on proposing and closing are enforced onchain.
 - The site has wallet connect on testnet. A connected member can
   allocate in an open round and can propose and vote on DAO proposals
-  from the governance section of the rounds page. Creating a round and
-  settling it live are still manual steps, not buttons on the page.
+  from the governance section of the rounds page. A council member can
+  also propose a round from that section (and from a group's own page).
+  Closing and settling a round live are still contract calls, not
+  buttons on the page.
 - Trezu manages the DAO, and the local testnet view was verified (see
   `TREZU.md`): all 8 proposals Executed, 12 council members, 6 of 12
   voting policy. Trezu production is mainnet only, so there is no live

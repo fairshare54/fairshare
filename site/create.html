@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Create your DAO — FairShare</title>
+<meta name="description" content="Start your own FairShare group: create a Sputnik DAO and a FairShare round contract for it, invite members, and allocate together. NEAR testnet only.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+  :root { --bg:#0a0e14; --panel:#111827; --panel2:#0d1420; --line:#1f2937; --text:#e5e7eb; --muted:#9ca3af; --gold:#e3a008; --green:#22c55e; --red:#ef4444; --blue:#60a5fa; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,sans-serif; line-height:1.5; }
+  a { color:var(--blue); }
+  header { padding:16px 20px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; position:sticky; top:0; background:var(--bg); z-index:10; }
+  header nav a { color:var(--muted); text-decoration:none; margin-left:16px; font-size:14px; }
+  header nav a:hover { color:var(--text); }
+  header nav a.active { color:var(--gold); }
+  .logo { font-size:22px; font-weight:800; text-decoration:none; color:var(--text); } .logo svg { vertical-align:-4px; margin-right:6px; }
+  #connectBtn { background:var(--gold); color:#111; border:0; border-radius:8px; padding:8px 12px; font-weight:700; cursor:pointer; font-size:14px; white-space:nowrap; }
+  #connectBtn:disabled { opacity:.55; cursor:default; }
+  .net { color:var(--muted); font-size:13px; }
+  main { max-width:960px; margin:0 auto; padding:20px; }
+  .hero { padding:28px 0 8px; }
+  .hero h1 { font-size:34px; line-height:1.15; margin:10px 0; max-width:640px; }
+  .kicker { color:var(--gold); font-size:13px; letter-spacing:.08em; text-transform:uppercase; margin:0; }
+  .lede { color:var(--muted); font-size:18px; max-width:680px; }
+  .panel { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:16px; margin:18px 0; }
+  .panel h2 { margin:0 0 8px; font-size:20px; }
+  .panel h3 { margin:14px 0 6px; font-size:15px; }
+  .muted { color:var(--muted); font-size:13px; }
+  button { background:var(--gold); color:#111; border:0; border-radius:8px; padding:10px 14px; font-weight:700; cursor:pointer; margin:4px 4px 4px 0; }
+  button:disabled { opacity:.55; cursor:default; }
+  button.secondary { background:#1f2937; color:var(--text); }
+  select, input[type="text"], input[type="number"], input[type="url"] { background:#0d1420; color:var(--text); border:1px solid var(--line); border-radius:8px; padding:10px; margin:4px 4px 4px 0; max-width:420px; width:100%; font-size:15px; }
+  label { display:block; margin:12px 0 2px; font-weight:700; }
+  .field-note { color:var(--muted); font-size:13px; margin:0 0 6px; }
+  .steps { list-style:none; padding:0; margin:10px 0; }
+  .steps li { padding:8px 0; border-bottom:1px solid var(--line); }
+  .steps li:last-child { border-bottom:0; }
+  .steps .done { color:var(--green); }
+  .steps .doing { color:var(--gold); }
+  .invitelink { font-size:18px; font-weight:700; word-break:break-all; background:#0d1420; border:1px solid var(--line); border-radius:8px; padding:12px; }
+  .badge-preview { width:96px; height:96px; border-radius:12px; border:1px solid var(--line); object-fit:cover; vertical-align:middle; }
+  code { overflow-wrap:break-word; word-break:break-all; }
+  footer { color:var(--muted); font-size:12px; padding:20px; text-align:center; }
+  @media (max-width:640px) {
+    header { padding:12px 14px; gap:6px; }
+    header nav { display:flex; flex-wrap:wrap; gap:6px 14px; }
+    header nav a { margin-left:0; font-size:13px; white-space:nowrap; }
+    .logo { font-size:19px; }
+    main { padding:16px 14px; }
+    .hero h1 { font-size:28px; }
+    .lede { font-size:16px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <a class="logo" href="/">FairShare <svg viewBox="0 0 32 32" width="22" height="22" aria-hidden="true"><path fill="#2dd4bf" stroke="#0a0e14" stroke-width="1" d="M16 16 L16 0 A16 16 0 0 1 29.86 24 Z"/><path fill="#22c55e" stroke="#0a0e14" stroke-width="1" d="M16 16 L29.86 24 A16 16 0 0 1 2.14 24 Z"/><path fill="#f59e0b" stroke="#0a0e14" stroke-width="1" d="M16 16 L2.14 24 A16 16 0 0 1 16 0 Z"/></svg></a>
+  <nav>
+    <a href="/">Home</a>
+    <a href="/rounds">Live rounds</a>
+    <a href="/how">How it works</a>
+    <a href="/lab">Attack Lab</a>
+    <a href="/create" class="active">Create your DAO</a>
+  </nav>
+  <button id="connectBtn" onclick="toggleWallet()">Connect wallet</button>
+</header>
+<main>
+  <section class="hero">
+    <p class="kicker">Your own FairShare group</p>
+    <h1>Create your DAO</h1>
+    <p class="lede">Start a FairShare group for the people you work with. You create the group, you get an invite link, your members join, and the group allocates its own money, onchain, with every payout explainable. No technical person needed.</p>
+    <p class="muted" id="pageStatus">Connect your testnet wallet above to create a group. Nothing moves without your signature.</p>
+  </section>
+
+  <section class="panel" id="costsPanel">
+    <h2>What it costs</h2>
+    <p>Creating a group is free on testnet in the sense that no fee is charged. The NEAR below is not a fee: it funds your group's own accounts, and most of it stays there.</p>
+    <ul>
+      <li><b>About 10.5 NEAR for your group's DAO.</b> About 5.4 NEAR of that stays locked as the DAO's storage, and about 5.1 NEAR stays in the DAO treasury, which funds your first 5 NEAR round.</li>
+      <li><b>About 5.2 NEAR for your group's contract.</b> It stays locked in the contract's account as storage for the contract code.</li>
+      <li><b>1 NEAR to register the group.</b> Almost all of it is refunded; only the small storage cost of the directory record is kept.</li>
+      <li><b>1 NEAR per proposal bond.</b> The bond is returned when the council approves the proposal.</li>
+    </ul>
+    <p class="muted">In total, have about <b>17.7 testnet NEAR</b> in your wallet before you start. Testnet NEAR is free from the <a href="https://near-faucet.io/" target="_blank" rel="noopener">NEAR faucet</a>. Rounds last 7 days; the contract fixes that for now. There are no mainnet parts here: this whole flow is testnet only.</p>
+    <p class="muted" id="balanceLine">Wallet balance: not connected.</p>
+  </section>
+
+  <section class="panel" id="formPanel">
+    <h2>Your group</h2>
+    <label for="groupName">Group name</label>
+    <input type="text" id="groupName" maxlength="80" placeholder="Lagos Market Traders" autocomplete="off">
+    <p class="field-note" id="slugLine">Your group's address will be shown here once you type a name.</p>
+
+    <label for="groupTemplate">What is the group for?</label>
+    <select id="groupTemplate" aria-label="Group template">
+      <option value="market-traders">Market traders</option>
+      <option value="grant-team">Team splitting a grant</option>
+      <option value="cooperative">Cooperative</option>
+      <option value="friends">Friends sharing costs</option>
+      <option value="other">Something else</option>
+    </select>
+
+    <label for="groupEnvelope">First round envelope (NEAR)</label>
+    <input type="number" id="groupEnvelope" value="5" min="1" step="1">
+    <p class="field-note">Each round pays out this much in total. The DAO needs this much liquid NEAR, plus its storage, to fund a round.</p>
+
+    <label for="groupTreasury">DAO treasury funding (NEAR)</label>
+    <input type="number" id="groupTreasury" value="10.5" min="5.5" step="0.5">
+    <p class="field-note">This goes into your DAO when it is created. 10.5 NEAR covers the DAO's storage plus a 5 NEAR first round. Use more if your first round is bigger; use 5.5 if you will top the DAO up yourself later.</p>
+
+    <label for="badgeFile">Group badge (optional)</label>
+    <input type="file" id="badgeFile" accept="image/*">
+    <p class="field-note">An image for your group, shown on its page and on the invite link. It is shrunk to 256px in your browser before it is stored. Or paste an image link instead:</p>
+    <input type="url" id="badgeUrl" maxlength="2048" placeholder="https://example.com/badge.png" autocomplete="off">
+    <p><img class="badge-preview" id="badgePreview" alt="Group badge preview" style="display:none"></p>
+
+    <p><button id="createBtn" type="button">Create my group</button></p>
+    <p class="muted" id="createResult"></p>
+
+    <h3>How it works, in three steps</h3>
+    <ol>
+      <li><b>Create.</b> Your wallet signs four steps: your DAO is created, your group's contract is deployed, the group is listed in the directory, and your membership is synced. Each step checks the chain first, so if you reload halfway, you continue where you stopped.</li>
+      <li><b>Invite with your link.</b> You get an invite link. Members open it, connect, and join through a DAO proposal your council approves.</li>
+      <li><b>Allocate your 100 points.</b> In an open round, every member gives 100 points to at least 3 others, with a reason each. The contract settles the payouts onchain.</li>
+    </ol>
+  </section>
+
+  <section class="panel" id="progressPanel" style="display:none">
+    <h2>Creating your group</h2>
+    <ul class="steps" id="progressSteps"></ul>
+    <p><button id="continueBtn" type="button" style="display:none">Continue creating</button></p>
+    <p class="muted" id="progressNote"></p>
+  </section>
+
+  <section class="panel" id="donePanel" style="display:none">
+    <h2>Your group is live</h2>
+    <p id="doneLine"></p>
+    <p>Invite link — share it with your members:</p>
+    <p class="invitelink" id="doneInviteLink"></p>
+    <p><button id="copyInviteBtn" type="button">Copy invite link</button> <a id="doneGroupLink" href="#">Open your group's page</a></p>
+    <h3>Keep this safe</h3>
+    <p class="muted">Your group's contract has its own key, made in your browser when the contract was deployed. It is only needed if the contract is ever upgraded. Save it somewhere safe:</p>
+    <p><code id="doneContractKey"></code></p>
+    <p class="muted" id="doneNext"></p>
+  </section>
+</main>
+<footer>
+  FairShare · NEAR testnet only · Social Money, NEAR Hackathon 2026<br>
+  <a href="https://github.com/fairshare54/fairshare">Repo</a> ·
+  <a href="https://testnet.nearblocks.io/address/fairshare-registry.testnet">Registry on Nearblocks</a>
+</footer>
+<script src="fastnear-wallet.bundle.js"></script>
+<script src="near-api-js.bundle.js"></script>
+<script src="groups-common.js?v=1"></script>
+<script src="create.js?v=1"></script>
+</body>
+</html>

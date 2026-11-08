@@ -1,0 +1,18 @@
+{
+  "network": "testnet",
+  "factory_id": "sputnikv2.testnet",
+  "dao_id": "testgroup1.sputnikv2.testnet",
+  "creator": "alice-fairshare.testnet",
+  "attached_yocto": "5500000000000000000000000",
+  "create_tx": "8qTu3SHJMLssufU6kHmpEZcZw4HBiMh4SqnvYjZjVucj",
+  "council": [
+    "alice-fairshare.testnet"
+  ],
+  "config": {
+    "name": "testgroup1",
+    "purpose": "Experiment DAO for the FairShare self-serve groups build",
+    "metadata": ""
+  },
+  "dao_balance_yocto": "5500000000000000000000000",
+  "at": "2026-11-08T17:34:31.699Z"
+}
