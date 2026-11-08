@@ -1,0 +1,16 @@
+{
+  "network": "testnet",
+  "dao_id": "fairshare-dao.testnet",
+  "topup_account_id": "topup-fairshare.testnet",
+  "faucet": "helper.testnet.near.org (10 NEAR)",
+  "sent_yocto": "9950000000000000000000000",
+  "sent_near": 9.950000000000001,
+  "transfer_tx": "8grpQmxvcUpr7cVtz7wbS9FYkbnJkUjF6Rq6tuzidS7a",
+  "dao_balance_before_yocto": "5500000000000000000000000",
+  "dao_balance_after_yocto": "15450000000000000000000000",
+  "dao_balance_before_near": 5.5,
+  "dao_balance_after_near": 15.450000000000001,
+  "topup_balance_after_yocto": "49955363487500000000000",
+  "topup_balance_after_near": 0.0499553634875,
+  "demo_at": "2026-11-08T11:22:50.941Z"
+}

@@ -600,7 +600,7 @@
           "frank-fairshare.testnet": "GYXtUbL1kcNcdJFLdpCty1ynx6Bf9sTq3m78uxi5fNMR",
           "ada-fairshare.testnet": "Cu4UqfKntuLtUyw5arqitXGfWfdYbMCM9aAPAFPy2AkQ"
         },
-        "note": "6 of 12 council votes (exactly 1/2) did NOT pass — Sputnik threshold is a strict majority. The 7th vote (ada) approved it."
+        "note": "6 of 12 council votes (exactly 1/2) did NOT pass \u2014 Sputnik threshold is a strict majority. The 7th vote (ada) approved it."
       },
       "sync_dao_members": "Ah87M1UuRdaXx6aHqKD1PdoMty9xysH7Tbyv1VKJ27jW",
       "allocate": {
@@ -1758,5 +1758,69 @@
     "payout_sum_yocto": "4999999999999999999999995",
     "remainder_yocto": "5",
     "demo_at": "2026-11-08T11:07:50.883Z"
+  },
+  "topup": {
+    "single": {
+      "network": "testnet",
+      "dao_id": "fairshare-dao.testnet",
+      "topup_account_id": "topup-fairshare.testnet",
+      "faucet": "helper.testnet.near.org (10 NEAR)",
+      "sent_yocto": "9950000000000000000000000",
+      "sent_near": 9.950000000000001,
+      "transfer_tx": "8grpQmxvcUpr7cVtz7wbS9FYkbnJkUjF6Rq6tuzidS7a",
+      "dao_balance_before_yocto": "5500000000000000000000000",
+      "dao_balance_after_yocto": "15450000000000000000000000",
+      "dao_balance_before_near": 5.5,
+      "dao_balance_after_near": 15.450000000000001,
+      "topup_balance_after_yocto": "49955363487500000000000",
+      "topup_balance_after_near": 0.0499553634875,
+      "demo_at": "2026-11-08T11:22:50.941Z"
+    },
+    "multi": {
+      "network": "testnet",
+      "dao_id": "fairshare-dao.testnet",
+      "faucet": "helper.testnet.near.org (10 NEAR each)",
+      "wallets": [
+        {
+          "account_id": "topup1-fairshare.testnet",
+          "faucet_near": 10.000000000000002,
+          "sent_yocto": "9900000000000000000000000",
+          "sent_near": 9.9,
+          "transfer_tx": "8t5peSYDU1QVKo8SDCnthDTg4FrETaUD9o5uPHthMp2R",
+          "balance_after_yocto": "10000000000000000000000000",
+          "balance_after_near": 10.000000000000002
+        },
+        {
+          "account_id": "topup2-fairshare.testnet",
+          "faucet_near": 10.000000000000002,
+          "sent_yocto": "9900000000000000000000000",
+          "sent_near": 9.9,
+          "transfer_tx": "BRYW8Eu4iy8Zqsv3esgaZkWW2tENTD8zFijE2smA9WRf",
+          "balance_after_yocto": "10000000000000000000000000",
+          "balance_after_near": 10.000000000000002
+        },
+        {
+          "account_id": "topup3-fairshare.testnet",
+          "faucet_near": 10.000000000000002,
+          "sent_yocto": "9900000000000000000000000",
+          "sent_near": 9.9,
+          "transfer_tx": "JDacL4tQQi1qYGQYx4Z3cVmiKbVkb2SeYV7PiEhZV4u9",
+          "balance_after_yocto": "10000000000000000000000000",
+          "balance_after_near": 10.000000000000002
+        }
+      ],
+      "total_sent_yocto": "29700000000000000000000000",
+      "total_sent_near": 29.7,
+      "dao_balance_before_yocto": "15450000000000000000000000",
+      "dao_balance_after_yocto": "45150000000000000000000000",
+      "dao_balance_before_near": 15.450000000000001,
+      "dao_balance_after_near": 45.15,
+      "demo_at": "2026-11-08T11:23:49.475Z"
+    },
+    "dao_balance_before_all_yocto": "5500000000000000000000000",
+    "dao_balance_after_all_yocto": "45150000000000000000000000",
+    "dao_balance_before_all_near": 5.5,
+    "dao_balance_after_all_near": 45.15,
+    "total_sent_near": 39.65
   }
 }

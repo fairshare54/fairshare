@@ -16,6 +16,26 @@ the end of this log.
 | DAO | `fairshare-dao.testnet` |
 | members | `alice-fairshare.testnet`, `bob-fairshare.testnet`, `carol-fairshare.testnet`, `dave-fairshare.testnet`, `erin-fairshare.testnet`, `frank-fairshare.testnet` |
 
+## DAO treasury top-up (2026-11-08)
+
+The DAO was at 5.5 NEAR after round 3; a 5 NEAR round needs about 11.5
+NEAR total in the DAO (4.74 NEAR storage + 5 envelope + 1 bond, returned).
+Topped up with fresh faucet wallets (10 NEAR each from the helper faucet),
+each sending almost everything to the DAO and keeping a little back for gas.
+
+- First: `topup-fairshare.testnet` sent 9.95 NEAR, tx
+  `8grpQmxvcUpr7cVtz7wbS9FYkbnJkUjF6Rq6tuzidS7a`. DAO 5.5 → 15.45 NEAR.
+- Then three more, 9.9 NEAR each:
+  - `topup1-fairshare.testnet`, tx
+    `8t5peSYDU1QVKo8SDCnthDTg4FrETaUD9o5uPHthMp2R`
+  - `topup2-fairshare.testnet`, tx
+    `BRYW8Eu4iy8Zqsv3esgaZkWW2tENTD8zFijE2smA9WRf`
+  - `topup3-fairshare.testnet`, tx
+    `JDacL4tQQi1qYGQYx4Z3cVmiKbVkb2SeYV7PiEhZV4u9`
+- DAO balance verified onchain after: **45.15 NEAR** (15.45 + 29.7).
+  Enough for several 5 NEAR rounds. Full record: `demo-log-topup.json`,
+  `demo-log-topup-multi.json`, `demo-log.json` (`topup`).
+
 ## Sputnik DAO
 
 - DAO: `fairshare-dao.testnet`, name `fairshare`, council = the 6 demo

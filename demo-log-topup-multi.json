@@ -1,0 +1,41 @@
+{
+  "network": "testnet",
+  "dao_id": "fairshare-dao.testnet",
+  "faucet": "helper.testnet.near.org (10 NEAR each)",
+  "wallets": [
+    {
+      "account_id": "topup1-fairshare.testnet",
+      "faucet_near": 10.000000000000002,
+      "sent_yocto": "9900000000000000000000000",
+      "sent_near": 9.9,
+      "transfer_tx": "8t5peSYDU1QVKo8SDCnthDTg4FrETaUD9o5uPHthMp2R",
+      "balance_after_yocto": "10000000000000000000000000",
+      "balance_after_near": 10.000000000000002
+    },
+    {
+      "account_id": "topup2-fairshare.testnet",
+      "faucet_near": 10.000000000000002,
+      "sent_yocto": "9900000000000000000000000",
+      "sent_near": 9.9,
+      "transfer_tx": "BRYW8Eu4iy8Zqsv3esgaZkWW2tENTD8zFijE2smA9WRf",
+      "balance_after_yocto": "10000000000000000000000000",
+      "balance_after_near": 10.000000000000002
+    },
+    {
+      "account_id": "topup3-fairshare.testnet",
+      "faucet_near": 10.000000000000002,
+      "sent_yocto": "9900000000000000000000000",
+      "sent_near": 9.9,
+      "transfer_tx": "JDacL4tQQi1qYGQYx4Z3cVmiKbVkb2SeYV7PiEhZV4u9",
+      "balance_after_yocto": "10000000000000000000000000",
+      "balance_after_near": 10.000000000000002
+    }
+  ],
+  "total_sent_yocto": "29700000000000000000000000",
+  "total_sent_near": 29.7,
+  "dao_balance_before_yocto": "15450000000000000000000000",
+  "dao_balance_after_yocto": "45150000000000000000000000",
+  "dao_balance_before_near": 15.450000000000001,
+  "dao_balance_after_near": 45.15,
+  "demo_at": "2026-11-08T11:23:49.475Z"
+}
