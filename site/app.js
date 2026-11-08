@@ -1521,7 +1521,9 @@ async function refreshWalletPanel() {
           const a = mine[i] || {};
           rows.push(walletRowHtml(others, a.to || others[i % others.length], a.points || 0, a.reason || ""));
         }
-        form.innerHTML = rows.join("") +
+        form.innerHTML = (mine.length > 0
+          ? "<p><strong>Your allocation is onchain:</strong> " + mine.map((a) => (a.to || "").replace(".testnet", "") + " " + a.points).join(", ") + ".</p>"
+          : "") + rows.join("") +
           "<p><button id=\"walletAddRow\" type=\"button\">Add another recipient</button> " +
           "<button id=\"walletSubmit\" type=\"button\" class=\"primary\">Send my 100 points</button></p>" +
           "<p class=\"muted\" id=\"walletTotal\"></p>";
@@ -1543,7 +1545,7 @@ async function refreshWalletPanel() {
         });
         const submit = el("walletSubmit");
         if (submit) submit.addEventListener("click", submitWalletAllocate);
-        if (mine.length > 0) walletStatus("You already allocated in round " + open.id + ". Change the rows below and send again to replace your submission.");
+        if (mine.length > 0) walletStatus("You already allocated in round " + open.id + " — your points are onchain. Change the rows below and send again to replace your submission.");
         else walletStatus("Round " + open.id + " is open. Give your 100 points below and send them with your wallet.");
       }
     }
@@ -1581,7 +1583,14 @@ async function submitWalletAllocate() {
   walletStatus("Opening your wallet to sign the allocate call for round " + walletOpenRound.id + "…");
   try {
     await walletCall(CONTRACT_ID, "allocate", { round_id: walletOpenRound.id, allocations: allocations }, "0");
-    walletStatus("Sent to your wallet. Approve the call there; the page confirms it when you return.");
+    walletStatus("Allocation sent. Checking the chain…");
+    // The wallet returns to this page, and the panel only rebuilds the
+    // form once — clear its built flag so the refresh below re-reads the
+    // chain and shows the onchain confirmation line.
+    await new Promise((r) => setTimeout(r, 4000));
+    const form = el("walletAllocateForm");
+    if (form) form.dataset.built = "";
+    await refreshWalletPanel();
   } catch (e) {
     walletStatus("Wallet error: " + String(e.message).slice(0, 160));
   }
