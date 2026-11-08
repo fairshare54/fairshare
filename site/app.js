@@ -1521,15 +1521,28 @@ async function refreshWalletPanel() {
           const a = mine[i] || {};
           rows.push(walletRowHtml(others, a.to || others[i % others.length], a.points || 0, a.reason || ""));
         }
+        // Once this member has allocated, the form stays closed: the
+        // confirmation shows instead, with a button to reopen it.
+        // Before that, the form is open and ready to fill.
         form.innerHTML = (mine.length > 0
-          ? "<p><strong>Your allocation is onchain:</strong> " + mine.map((a) => (a.to || "").replace(".testnet", "") + " " + a.points).join(", ") + ".</p>"
-          : "") + rows.join("") +
+          ? "<div id=\"walletAllocDone\"><p><strong>Your allocation is onchain:</strong> " + mine.map((a) => (a.to || "").replace(".testnet", "") + " " + a.points).join(", ") + ".</p>" +
+            "<p><button id=\"walletChangeAlloc\" type=\"button\">Change my allocation</button></p></div>"
+          : "") +
+          "<div id=\"walletAllocEdit\" style=\"display:" + (mine.length > 0 ? "none" : "block") + "\">" +
+          rows.join("") +
           "<p><button id=\"walletAddRow\" type=\"button\">Add another recipient</button> " +
           "<button id=\"walletSubmit\" type=\"button\" class=\"primary\">Send my 100 points</button></p>" +
-          "<p class=\"muted\" id=\"walletTotal\"></p>";
+          "<p class=\"muted\" id=\"walletTotal\"></p></div>";
         form.dataset.built = "1";
         form.querySelectorAll(".walletPoints").forEach((i) => i.addEventListener("input", walletUpdateTotal));
         walletUpdateTotal();
+        const change = el("walletChangeAlloc");
+        if (change) change.addEventListener("click", () => {
+          const edit = el("walletAllocEdit");
+          const done = el("walletAllocDone");
+          if (edit) edit.style.display = "block";
+          if (done) done.style.display = "none";
+        });
         const add = el("walletAddRow");
         if (add) add.addEventListener("click", () => {
           const count = form.querySelectorAll(".walletRow").length;
