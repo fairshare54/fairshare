@@ -118,6 +118,8 @@ check("group page has one cached parallel round scan", groupJs.includes("let gro
 check("no sequential per-id round loops left in group.js", !/for \(let id = 1; id <= 20/.test(groupJs) && !/for \(let id = 20; id >= 1/.test(groupJs));
 check("open-round and next-id read the shared scan", /async function findGroupOpenRound\(\) \{ return findGroupOpenRoundFrom\(await scanGroupRounds\(\)\); \}/.test(groupJs) && /async function nextGroupRoundId\(\) \{ return nextGroupRoundIdFrom\(await scanGroupRounds\(\)\); \}/.test(groupJs));
 check("rounds panel reads the shared scan and parallelises details", groupJs.includes("const rounds = await scanGroupRounds();") && groupJs.includes("const details = await Promise.all(rounds.map(async (r) =>"));
+check("group setup reads go out together", groupJs.includes("const [contractExists, members, policy] = await Promise.all([") && groupJs.includes('rpcViewCall(GROUP.contract_id, "get_members", {}).catch(() => [])') && groupJs.includes('rpcViewCall(GROUP.dao_id, "get_policy", {}).catch(() => null)'));
+check("member standings are read in parallel", groupJs.includes("const standings = await Promise.all(groupMembers.map(async (m) =>"));
 check("rounds empty state kept", groupJs.includes("No rounds yet. A council member can propose the first one below."));
 check("governance empty state kept", groupJs.includes("No open proposals right now."));
 

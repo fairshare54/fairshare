@@ -451,7 +451,9 @@ round 5, `prove-group` and `prove-group-2` untouched.
   per load now (`scanGroupRounds` in `site/group.js`): get_round 1..20
   in parallel via `Promise.all`, cached, shared by the Rounds panel,
   the allocate form and Governance; per-round payouts/allocations also
-  in parallel. Every fetch in `rpcViewCall` and `rpcAccountBalance`
+  in parallel. The setup reads (contract existence, member set, DAO
+  policy) go out together too, as do the per-member standing reads.
+  Every fetch in `rpcViewCall` and `rpcAccountBalance`
   (`site/groups-common.js`, and the same pattern in `site/app.js`)
   now times out after 10 seconds via AbortController and fails over to
   the next endpoint instead of hanging. Empty states kept verbatim:

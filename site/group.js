@@ -67,23 +67,27 @@ async function refreshGroupPage() {
   if (!GROUP) return;
   const details = el("detailsSection");
   const join = el("joinPanel");
+  // The setup reads are independent, so they go out together instead of
+  // one at a time: a missing contract just makes get_members fail, which
+  // reads as an empty member set, the same as before.
+  const [contractExists, members, policy] = await Promise.all([
+    accountExists(GROUP.contract_id),
+    rpcViewCall(GROUP.contract_id, "get_members", {}).catch(() => []),
+    rpcViewCall(GROUP.dao_id, "get_policy", {}).catch(() => null),
+  ]);
   // The contract may not exist yet if the creator stopped halfway.
-  const contractExists = await accountExists(GROUP.contract_id);
   if (!contractExists) {
     pageStatus("This group is still being set up — its contract is not deployed yet. Ask the creator to finish creating it.");
     if (join) join.style.display = "none";
     if (details) details.style.display = "none";
     return;
   }
-  try {
-    groupMembers = await rpcViewCall(GROUP.contract_id, "get_members", {});
-  } catch (_) { groupMembers = []; }
-  try {
-    const policy = await rpcViewCall(GROUP.dao_id, "get_policy", {});
+  groupMembers = members || [];
+  if (policy) {
     const role = (policy.roles || []).find((r) => r.name === "council");
     groupCouncil = (role && role.kind && role.kind.Group) || [];
     groupThreshold = Math.floor(groupCouncil.length / 2) + 1;
-  } catch (_) { groupCouncil = []; groupThreshold = 0; }
+  } else { groupCouncil = []; groupThreshold = 0; }
   if (!walletAccountId) {
     pageStatus("Connect your wallet above. Members see the group's rounds, proposals and allocations.");
     if (join) join.style.display = "block";
@@ -127,12 +131,11 @@ async function refreshMembersPanel() {
   const inviteEl = el("groupInviteLink");
   if (inviteEl) inviteEl.textContent = window.location.origin + "/group?id=" + encodeURIComponent(GROUP.group_id) + "&invite=" + encodeURIComponent(GROUP.invite_code);
   try {
-    const rows = [];
-    for (const m of groupMembers) {
-      let standing = "?";
-      try { standing = await rpcViewCall(GROUP.contract_id, "get_standing", { account_id: m }); } catch (_) { /* keep ? */ }
-      rows.push("<tr><td>" + escapeHtml(m) + "</td><td>" + standing + "</td><td>" + (m === GROUP.creator ? "Creator" : "") + "</td></tr>");
-    }
+    // One standing read per member, all in parallel.
+    const standings = await Promise.all(groupMembers.map(async (m) => {
+      try { return await rpcViewCall(GROUP.contract_id, "get_standing", { account_id: m }); } catch (_) { return "?"; }
+    }));
+    const rows = groupMembers.map((m, i) => "<tr><td>" + escapeHtml(m) + "</td><td>" + standings[i] + "</td><td>" + (m === GROUP.creator ? "Creator" : "") + "</td></tr>");
     list.innerHTML = "<table><tr><th>Member</th><th>Standing</th><th></th></tr>" + rows.join("") + "</table>";
     if (note) note.textContent = groupMembers.length + " members. Standing starts at 100, rises when others give you points, and falls by 5 when you skip a round. DAO: " + GROUP.dao_id + ". Contract: " + GROUP.contract_id + ".";
   } catch (e) {
