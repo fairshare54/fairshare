@@ -34,6 +34,22 @@
   .linkcard p { margin:0 0 10px; color:var(--muted); font-size:14px; }
   .muted { color:var(--muted); font-size:13px; }
   footer { color:var(--muted); font-size:12px; padding:20px; text-align:center; }
+  @media (max-width:640px) {
+    header { padding:12px 14px; gap:8px; }
+    .logo { font-size:19px; }
+    header nav { display:flex; flex-wrap:wrap; gap:6px 14px; }
+    header nav a { margin-left:0; font-size:13px; white-space:nowrap; }
+    .net { flex-basis:100%; }
+    main { padding:16px 14px; }
+    .hero { padding:18px 0 4px; }
+    .hero h1 { font-size:28px; }
+    .lede { font-size:16px; }
+    table { display:block; overflow-x:auto; }
+    th, td { padding:7px 5px; }
+    code { overflow-wrap:break-word; word-break:break-all; }
+    p, .lede { overflow-wrap:break-word; }
+    .panel { padding:14px; }
+  }
 </style>
 </head>
 <body>
@@ -45,7 +61,6 @@
     <a href="/how">How it works</a>
     <a href="/lab">Attack Lab</a>
   </nav>
-  <div class="net">NEAR testnet · <span id="modeLabel">Live contract linked</span></div>
 </header>
 <main>
   <section class="hero">

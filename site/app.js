@@ -702,9 +702,6 @@ function renderLive() {
   const cid = el("liveContractId");
   if (cid) cid.textContent = CONTRACT_ID || "not deployed yet";
   const badge = el("liveBadge");
-  if (badge && CONTRACT_ID) { badge.textContent = "SETTLED ONCHAIN"; badge.classList.add("live"); }
-  const ml = el("modeLabel");
-  if (ml && CONTRACT_ID) ml.textContent = "Live contract linked";
   if (CONTRACT_ID && typeof window !== "undefined") fetchLiveState();
 }
 
