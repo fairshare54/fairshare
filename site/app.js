@@ -1316,12 +1316,16 @@ async function refreshBadgePanel() {
 }
 async function initWallet() {
   if (typeof window === "undefined") return; // no browser, no wallet
+  let skipRestore = false;
+  try { skipRestore = localStorage.getItem("fairshare-wallet-disconnected") === "1" || sessionStorage.getItem("fairshare-wallet-disconnected") === "1"; } catch (_) { /* storage unavailable */ }
+  if (!skipRestore) {
   try {
     const nw = fastnear();
     const restored = await nw.restore({ network: NETWORK });
     const id = (restored && typeof restored.accountId === "string" && restored.accountId) || currentAccountId(nw);
     if (id) walletAccountId = id;
   } catch (e) { console.warn("wallet restore failed", e); }
+  }
   // Clean the wallet return params off the URL, keeping the page and
   // its query string.
   try {
@@ -1347,6 +1351,34 @@ function refreshWalletBtn() {
   if (btn.title !== undefined) btn.title = id ? "Open your dashboard" : "";
   btn.disabled = false;
 }
+async function disconnectWallet() {
+  // Remember the choice so the page does not sign the wallet straight back
+  // in on the next load: initWallet skips its automatic restore while
+  // this is set, and connecting again clears it.
+  try { localStorage.setItem("fairshare-wallet-disconnected", "1"); } catch (_) { /* storage unavailable */ }
+  try { sessionStorage.setItem("fairshare-wallet-disconnected", "1"); } catch (_) { /* storage unavailable */ }
+  try {
+    const nw = fastnear();
+    try { await nw.disconnect({ network: NETWORK }); } catch (_) { /* wallet already signed out */ }
+    // Belt and braces: remove the wallet library's own stored session keys
+    // directly, so a later restore cannot find the wallet even if the
+    // library sign-out did not clear them.
+    try {
+      const drop = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && (k.indexOf("selected-wallet") >= 0 || k.indexOf("signedAccountId") >= 0 || k.indexOf("near-wallet") >= 0 || k.indexOf("fastnear") >= 0)) drop.push(k);
+      }
+      drop.forEach((k) => { try { localStorage.removeItem(k); } catch (_) {} });
+    } catch (_) { /* storage unavailable */ }
+    try {
+      const still = nw.accountId({ network: NETWORK });
+      if (still) walletStatus("Disconnect did not take. Tap Disconnect again.");
+    } catch (_) { /* accountId unavailable, session is clear */ }
+  } catch (_) { /* library missing, clear local state anyway */ }
+  walletAccountId = null; walletMembers = []; walletOpenRound = null;
+  refreshWalletBtn(); refreshWalletPanel(); refreshGovPanel();
+}
 async function toggleWallet() {
   let nw;
   try { nw = fastnear(); } catch (_) { walletStatus("Wallet library did not load. Check your connection and reload."); return; }
@@ -1354,6 +1386,8 @@ async function toggleWallet() {
   // member's dashboard. Disconnecting is done from the Disconnect button
   // in the wallet panel. When not connected, it starts the connect flow.
   if (walletAccountId) { openDashboardFromHeader(); return; }
+  try { localStorage.removeItem("fairshare-wallet-disconnected"); } catch (_) { /* storage unavailable */ }
+  try { sessionStorage.removeItem("fairshare-wallet-disconnected"); } catch (_) { /* storage unavailable */ }
   try {
     walletStatus("Opening wallet selector…");
     const result = await nw.connect({ network: NETWORK });
@@ -1445,7 +1479,7 @@ async function refreshWalletPanel() {
         (badge ? "<br><img src=\"/badge-3d.png\" alt=\"FairShare council badge\" style=\"width:120px;height:120px;margin-top:10px;border-radius:12px\"> Council badge, soulbound, standing <b>" + badge.standing + "</b> at mint." : "") +
         " <button id=\"walletDisconnect\" type=\"button\">Disconnect</button>";
       const d = el("walletDisconnect");
-      if (d) d.addEventListener("click", toggleWallet);
+      if (d) d.addEventListener("click", disconnectWallet);
     }
     if (!isMember) {
       walletStatus("This account is not a member yet, so it cannot allocate. Membership comes from a DAO proposal; see the governance section below.");
