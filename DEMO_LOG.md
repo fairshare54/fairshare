@@ -633,6 +633,28 @@ every scenario, and no payout passes the 1.250 NEAR cap.
   member set, and the sync callback removes dropped members, but only
   when a sync runs.
 
+## RPC fallback — live reads retry against fastnear (2026-11-08)
+
+- The Council badges panel showed "Could not read the badges from the
+  contract just now" on Isaiah's phone (2026-11-08 14:01 WAT) even
+  though 19 badges exist on `fairshare-badge.testnet`. Cause: the site
+  called `https://rpc.testnet.near.org` once with no fallback, so one
+  failed or slow request on 4G killed the whole panel.
+- Fix in `site/app.js` only: new shared helper `rpcViewCall` tries
+  `https://rpc.testnet.near.org` first, then retries the same call once
+  against `https://rpc.testnet.fastnear.com` on any fetch error, non-200
+  response, or RPC error. Only if both fail does the caller show its
+  "could not read" message. All four live view call sites now use it:
+  `fetchLiveState`, `contractView`, `badgeView`, `daoView`. No displayed
+  copy changed. The badge image path (`/badge-3d.png`) was not touched;
+  that file is still missing from the repo (404) and is being fixed
+  separately by Isaiah uploading it.
+- Headless tests (`hidden_files/rpc_fallback_test.js`): 6/6 pass —
+  fallback after primary throw, after primary 502, after primary RPC
+  error; throws only when both fail; badge panel renders via fallback
+  with no error message; error message appears only when both fail.
+  Existing `dom_test.js` suite still passes unchanged.
+
 ## History — first live demo (superseded, kept for the record)
 
 - Contract `egbe-contract.testnet`, owner `egbe-owner.testnet`,

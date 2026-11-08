@@ -871,6 +871,38 @@ function runAttackLab() {
   if (res) res.style.display = "block";
 }
 
+// Live reads use two public testnet RPC endpoints. A phone on 4G drops a
+// single request often enough that one failure must not kill a whole panel:
+// try the primary first, then the fallback once. Only if both fail does
+// the caller show its "could not read" message.
+const RPC_ENDPOINTS = ["https://rpc.testnet.near.org", "https://rpc.testnet.fastnear.com"];
+async function rpcViewCall(accountId, method, args) {
+  let lastErr = null;
+  for (const url of RPC_ENDPOINTS) {
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jsonrpc: "2.0", id: method, method: "query",
+          params: {
+            request_type: "call_function",
+            account_id: accountId,
+            method_name: method,
+            args_base64: btoa(JSON.stringify(args)),
+            finality: "final",
+          },
+        }),
+      });
+      if (!res.ok) throw new Error("RPC HTTP " + res.status);
+      const d = await res.json();
+      if (d.error) throw new Error("RPC error");
+      return JSON.parse(new TextDecoder().decode(new Uint8Array(d.result.result)));
+    } catch (e) { lastErr = e; }
+  }
+  throw lastErr || new Error("RPC read failed");
+}
+
 // Read-only live state straight from the contract. No wallet, no signing,
 // no funds move. If the browser cannot reach the public RPC, the page
 // says so plainly and keeps the last verified values, labelled as such.
@@ -879,23 +911,7 @@ async function fetchLiveState() {
   const statsNote = el("statsNote");
   try {
     async function call(method, args) {
-      const res = await fetch("https://rpc.testnet.near.org", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          jsonrpc: "2.0", id: method, method: "query",
-          params: {
-            request_type: "call_function",
-            account_id: CONTRACT_ID,
-            method_name: method,
-            args_base64: btoa(JSON.stringify(args)),
-            finality: "final",
-          },
-        }),
-      });
-      const d = await res.json();
-      if (d.error) throw new Error("RPC error");
-      return JSON.parse(new TextDecoder().decode(new Uint8Array(d.result.result)));
+      return rpcViewCall(CONTRACT_ID, method, args);
     }
     const params = await call("get_params", {});
     const members = await call("get_members", {});
@@ -975,42 +991,10 @@ function walletStatus(msg) {
   if (s) s.textContent = msg;
 }
 async function contractView(method, args) {
-  const res = await fetch("https://rpc.testnet.near.org", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      jsonrpc: "2.0", id: method, method: "query",
-      params: {
-        request_type: "call_function",
-        account_id: CONTRACT_ID,
-        method_name: method,
-        args_base64: btoa(JSON.stringify(args)),
-        finality: "final",
-      },
-    }),
-  });
-  const d = await res.json();
-  if (d.error) throw new Error("RPC error");
-  return JSON.parse(new TextDecoder().decode(new Uint8Array(d.result.result)));
+  return rpcViewCall(CONTRACT_ID, method, args);
 }
 async function badgeView(method, args) {
-  const res = await fetch("https://rpc.testnet.near.org", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      jsonrpc: "2.0", id: method, method: "query",
-      params: {
-        request_type: "call_function",
-        account_id: BADGE_CONTRACT_ID,
-        method_name: method,
-        args_base64: btoa(JSON.stringify(args)),
-        finality: "final",
-      },
-    }),
-  });
-  const d = await res.json();
-  if (d.error) throw new Error("RPC error");
-  return JSON.parse(new TextDecoder().decode(new Uint8Array(d.result.result)));
+  return rpcViewCall(BADGE_CONTRACT_ID, method, args);
 }
 // Council badges, read live from the badge contract. One call lists every
 // badge; the standing is read from the badge description, where the mint
@@ -1639,23 +1623,7 @@ let govCouncil = [];
 let govThreshold = 0;
 
 async function daoView(method, args) {
-  const res = await fetch("https://rpc.testnet.near.org", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      jsonrpc: "2.0", id: method, method: "query",
-      params: {
-        request_type: "call_function",
-        account_id: DAO_ID,
-        method_name: method,
-        args_base64: btoa(JSON.stringify(args)),
-        finality: "final",
-      },
-    }),
-  });
-  const d = await res.json();
-  if (d.error) throw new Error("RPC error");
-  return JSON.parse(new TextDecoder().decode(new Uint8Array(d.result.result)));
+  return rpcViewCall(DAO_ID, method, args);
 }
 
 function govKindLabel(kind) {
@@ -1971,5 +1939,5 @@ if (typeof document !== "undefined") {
 }
 
 if (typeof module !== "undefined") {
-  module.exports = { PARAMS, MEMBERS, ALLOCATIONS, ENVELOPE_NEAR, settle, effectivePoints, isqrt, fmtYocto, LAB_MEMBERS, LAB_TRIO, LAB_RING, LAB_HONEST, LAB_ENVELOPE_NEAR, LIVE_ROUND1, LIVE_ROUND2, CONTRACT_ID, DAO_ID, standingAfter, STRESS_MEMBERS, STRESS_NAMES, STRESS_SCENARIOS, STRESS_ENVELOPE_NEAR, runStressScenario, MONITOR_THRESHOLD, MONITOR_SYNCS, MONITOR_ADDS, MONITOR_REMOVALS, MONITOR_ACTIVITY, MONITOR_ALLOCATIONS, monitorMutualPairs, renderMonitorStatic };
+  module.exports = { PARAMS, MEMBERS, ALLOCATIONS, ENVELOPE_NEAR, settle, effectivePoints, isqrt, fmtYocto, LAB_MEMBERS, LAB_TRIO, LAB_RING, LAB_HONEST, LAB_ENVELOPE_NEAR, LIVE_ROUND1, LIVE_ROUND2, CONTRACT_ID, DAO_ID, standingAfter, STRESS_MEMBERS, STRESS_NAMES, STRESS_SCENARIOS, STRESS_ENVELOPE_NEAR, runStressScenario, MONITOR_THRESHOLD, MONITOR_SYNCS, MONITOR_ADDS, MONITOR_REMOVALS, MONITOR_ACTIVITY, MONITOR_ALLOCATIONS, monitorMutualPairs, renderMonitorStatic, RPC_ENDPOINTS, rpcViewCall };
 }
