@@ -93,6 +93,19 @@ function makeContext(groups) {
 }
 
 (async () => {
+  // --- Placement: the Groups panel sits directly under the hero ---------
+  {
+    const html = fs.readFileSync(EGBE + "/site/index.html", "utf8");
+    const hero = html.indexOf('class="hero"');
+    const groups = html.indexOf('id="groupsPanel"');
+    const stats = html.indexOf('id="statsStrip"');
+    const dash = html.indexOf('id="dashboard"');
+    check("groups panel exists once", (html.match(/id="groupsPanel"/g) || []).length === 1);
+    check("groups panel is under the hero", hero >= 0 && groups > hero, "hero@" + hero + " groups@" + groups);
+    check("groups panel comes before the stats strip", groups >= 0 && stats > groups, "groups@" + groups + " stats@" + stats);
+    check("groups panel comes before the dashboard", groups >= 0 && dash > groups, "groups@" + groups + " dash@" + dash);
+  }
+
   // --- Connected as clearsite587.testnet --------------------------------
   {
     const ctx = makeContext(GROUPS);

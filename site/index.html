@@ -87,6 +87,20 @@
     <p class="muted">Testnet only. This site reads live state from a real contract on NEAR testnet. Connect a wallet in the header to allocate in an open round and to vote on DAO proposals; nothing moves without your signature.</p>
   </section>
 
+  <section class="panel" id="groupsPanel" aria-label="FairShare groups">
+    <h2>Groups</h2>
+    <p class="muted" id="groupsNote">Reading the directory…</p>
+    <div id="myGroupWrap" style="display:none">
+      <h3>My DAO group</h3>
+      <div id="myGroup"></div>
+    </div>
+    <div id="allGroupsWrap">
+      <h3 id="allGroupsHeading" style="display:none">All groups</h3>
+      <div id="allGroups"></div>
+    </div>
+    <p><a href="/create">Create your DAO</a> to start your own group.</p>
+  </section>
+
   <section class="stats" id="statsStrip" aria-label="Live numbers">
     <div class="stat"><b id="statMembers">12</b><span>Members in the DAO</span></div>
     <div class="stat"><b id="statEnvelope">5.000 NEAR</b><span>Envelope, round 1</span></div>
@@ -107,20 +121,6 @@
     <div class="stackbar" role="img" aria-label="Four 5 NEAR envelopes, one per settled round"><i class="env" style="width:25%"></i><i class="env2" style="width:25%"></i><i class="env3" style="width:25%"></i><i class="env4" style="width:25%"></i></div>
     <p class="muted">Round 1 · 5.000 NEAR &nbsp; Round 2 · 5.000 NEAR &nbsp; Round 3 · 5.000 NEAR &nbsp; Round 4 · 5.000 NEAR &nbsp; 20.000 NEAR in envelopes, 19.999 NEAR paid out, the rest is dust from integer division.</p>
     <p class="muted" id="dashNote">Read live from the contract and the DAO just now.</p>
-  </section>
-
-  <section class="panel" id="groupsPanel" aria-label="FairShare groups">
-    <h2>Groups</h2>
-    <p class="muted" id="groupsNote">Reading the directory…</p>
-    <div id="myGroupWrap" style="display:none">
-      <h3>My DAO group</h3>
-      <div id="myGroup"></div>
-    </div>
-    <div id="allGroupsWrap">
-      <h3 id="allGroupsHeading" style="display:none">All groups</h3>
-      <div id="allGroups"></div>
-    </div>
-    <p><a href="/create">Create your DAO</a> to start your own group.</p>
   </section>
 
   <section class="links" aria-label="Explore FairShare">
