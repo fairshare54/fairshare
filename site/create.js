@@ -112,7 +112,7 @@ async function runCreate() {
         config: { name: s.slug, purpose: s.name + " — a self-serve FairShare group", metadata: "" },
         policy: [s.creator],
       };
-      await walletCall(FACTORY_ID, "create", { name: s.slug, args: btoa(JSON.stringify(daoArgs)) }, (BigInt(Math.round(s.treasury * 10)) * YOCTO_PER_NEAR / 10n).toString(), WALLET_GAS_150);
+      await walletCall(FACTORY_ID, "create", { name: s.slug, args: b64Utf8(JSON.stringify(daoArgs)) }, (BigInt(Math.round(s.treasury * 10)) * YOCTO_PER_NEAR / 10n).toString(), WALLET_GAS_150);
       const policy = await rpcViewCall(daoIdFor(s.slug), "get_policy", {});
       const council = (policy.roles || []).find((r) => r.name === "council");
       if (!council || (council.kind.Group || []).indexOf(s.creator) < 0) throw new Error("the DAO was created but its council does not list you");

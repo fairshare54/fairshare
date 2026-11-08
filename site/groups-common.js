@@ -33,6 +33,16 @@ function el(id) { return document.getElementById(id); }
 function escapeHtml(s) {
   return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
+// btoa only handles Latin-1, so any string with a character above U+00FF
+// (for example the em dash in a DAO purpose, or a non-ASCII group name)
+// makes it throw "Failed to execute 'btoa' on 'Window'". Encode to UTF-8
+// bytes first, then base64 the binary string. Safe for any Unicode text.
+function b64Utf8(str) {
+  const bytes = new TextEncoder().encode(str);
+  let bin = "";
+  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin);
+}
 function fmtYocto(yocto) {
   const whole = yocto / YOCTO_PER_NEAR;
   const frac = Number((yocto % YOCTO_PER_NEAR) * 1000n / YOCTO_PER_NEAR);
@@ -56,7 +66,7 @@ async function rpcViewCall(accountId, method, args) {
             request_type: "call_function",
             account_id: accountId,
             method_name: method,
-            args_base64: btoa(JSON.stringify(args)),
+            args_base64: b64Utf8(JSON.stringify(args)),
             finality: "final",
           },
         }),
@@ -285,5 +295,5 @@ function nearblocksTxUrl(hash) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { slugify, randomInviteCode, fmtYocto, escapeHtml, FACTORY_ID, REGISTRY_ID, MAIN_CONTRACT_ID, GROUP_DAO_DEPOSIT_NEAR, GROUP_CONTRACT_FUND_NEAR, REGISTER_DEPOSIT_YOCTO, DAO_BOND_YOCTO, TEMPLATES, WALLET_GAS_100, WALLET_GAS_150, YOCTO_PER_NEAR, RPC_ENDPOINTS };
+  module.exports = { slugify, randomInviteCode, fmtYocto, escapeHtml, b64Utf8, FACTORY_ID, REGISTRY_ID, MAIN_CONTRACT_ID, GROUP_DAO_DEPOSIT_NEAR, GROUP_CONTRACT_FUND_NEAR, REGISTER_DEPOSIT_YOCTO, DAO_BOND_YOCTO, TEMPLATES, WALLET_GAS_100, WALLET_GAS_150, YOCTO_PER_NEAR, RPC_ENDPOINTS };
 }

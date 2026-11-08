@@ -442,7 +442,7 @@ async function govProposeRound() {
       if (result) result.textContent = "The DAO holds " + fmtYocto(daoBal) + " NEAR, which is less than the " + near + " NEAR envelope.";
       return;
     }
-    const argsB64 = btoa(JSON.stringify({ round_id: nextId, envelope_yocto: envelopeYocto.toString() }));
+    const argsB64 = b64Utf8(JSON.stringify({ round_id: nextId, envelope_yocto: envelopeYocto.toString() }));
     const kind = { FunctionCall: { receiver_id: GROUP.contract_id, actions: [{ method_name: "create_round", args: argsB64, deposit: envelopeYocto.toString(), gas: "100000000000000" }] } };
     const description = "Fund " + GROUP.name + " round " + nextId + ": " + near + " NEAR envelope via create_round";
     if (status) status.textContent = "Opening your wallet to sign the proposal. The 1 NEAR bond is attached and returned when the council approves.";

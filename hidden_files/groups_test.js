@@ -44,6 +44,18 @@ check("DAO bond 1 NEAR", gc.DAO_BOND_YOCTO === "1000000000000000000000000", gc.D
 check("default create cost is 17.7 NEAR", gc.GROUP_DAO_DEPOSIT_NEAR + gc.GROUP_CONTRACT_FUND_NEAR + 2 === 17.7);
 check("templates are the four named plus other", gc.TEMPLATES.map((t) => t.id).join(",") === "market-traders,grant-team,cooperative,friends,other", gc.TEMPLATES.map((t) => t.id).join(","));
 
+// 4b. b64Utf8: the create page base64-encodes the DAO args, whose purpose
+// carries an em dash. Plain btoa throws on any character above Latin-1,
+// which blocked every group creation on the phone (2026-11-08). The helper
+// must encode and round-trip any Unicode text, including a non-ASCII name.
+function b64RoundTrip(s) { return Buffer.from(gc.b64Utf8(s), "base64").toString("utf8") === s; }
+const daoArgsJson = JSON.stringify({ config: { name: "test-group", purpose: "Test Group — a self-serve FairShare group", metadata: "" }, policy: ["clearsite587.testnet"] });
+check("b64Utf8 encodes the DAO args with the em dash", b64RoundTrip(daoArgsJson));
+check("b64Utf8 handles a non-ASCII group name", b64RoundTrip(JSON.stringify({ config: { name: "café", purpose: "Café Traders — a self-serve FairShare group", metadata: "" }, policy: ["a.testnet"] })));
+check("b64Utf8 matches btoa on plain ASCII", gc.b64Utf8("hello") === btoa("hello"));
+check("create.js uses b64Utf8 for the DAO args", fs.readFileSync("/home/hatch/workspace/egbe/site/create.js", "utf8").includes("b64Utf8(JSON.stringify(daoArgs))"));
+check("no bare btoa(JSON call left in the group pages", !/btoa\(JSON\.stringify/.test(fs.readFileSync("/home/hatch/workspace/egbe/site/groups-common.js", "utf8")) && !/btoa\(JSON\.stringify/.test(fs.readFileSync("/home/hatch/workspace/egbe/site/create.js", "utf8")) && !/btoa\(JSON\.stringify/.test(fs.readFileSync("/home/hatch/workspace/egbe/site/group.js", "utf8")));
+
 // 5. Structural check: every id the page scripts look up exists in the HTML.
 function idsIn(html) {
   return new Set([...html.matchAll(/id="([^"]+)"/g)].map((m) => m[1]));

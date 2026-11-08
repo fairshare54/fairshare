@@ -282,6 +282,16 @@ function fmtYocto(yocto) {
   return whole.toString() + "." + String(frac).padStart(3, "0");
 }
 
+// btoa only handles Latin-1, so any string with a character above U+00FF
+// makes it throw "Failed to execute 'btoa' on 'Window'". Encode to UTF-8
+// bytes first, then base64 the binary string. Safe for any Unicode text.
+function b64Utf8(str) {
+  const bytes = new TextEncoder().encode(str);
+  let bin = "";
+  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin);
+}
+
 function fmt(n, digits) {
   return n.toFixed(digits === undefined ? 3 : digits);
 }
@@ -1185,7 +1195,7 @@ async function rpcViewCall(accountId, method, args) {
             request_type: "call_function",
             account_id: accountId,
             method_name: method,
-            args_base64: btoa(JSON.stringify(args)),
+            args_base64: b64Utf8(JSON.stringify(args)),
             finality: "final",
           },
         }),
@@ -2173,7 +2183,7 @@ async function govProposeRound() {
       if (result) result.textContent = "The DAO holds " + fmtYocto(daoBal) + " NEAR, which is less than the " + near + " NEAR envelope.";
       return;
     }
-    const argsB64 = btoa(JSON.stringify({ round_id: nextId, envelope_yocto: envelopeYocto.toString() }));
+    const argsB64 = b64Utf8(JSON.stringify({ round_id: nextId, envelope_yocto: envelopeYocto.toString() }));
     const kind = { FunctionCall: { receiver_id: CONTRACT_ID, actions: [{ method_name: "create_round", args: argsB64, deposit: envelopeYocto.toString(), gas: "100000000000000" }] } };
     const description = "Fund FairShare live round " + nextId + ": " + near + " NEAR envelope via create_round";
     if (status) status.textContent = "Opening your wallet to sign the proposal. The 1 NEAR bond is attached and returned when the council approves.";
@@ -2384,5 +2394,5 @@ if (typeof document !== "undefined") {
 }
 
 if (typeof module !== "undefined") {
-  module.exports = { PARAMS, MEMBERS, ALLOCATIONS, ENVELOPE_NEAR, settle, effectivePoints, isqrt, fmtYocto, LAB_MEMBERS, LAB_TRIO, LAB_RING, LAB_HONEST, LAB_ENVELOPE_NEAR, LIVE_ROUND1, LIVE_ROUND2, LIVE_ROUND3, LIVE_ROUND4, STANDINGS_HISTORY, HOME_DASHBOARD_FALLBACK, CONTRACT_ID, DAO_ID, standingAfter, STRESS_MEMBERS, STRESS_NAMES, STRESS_SCENARIOS, STRESS_ENVELOPE_NEAR, runStressScenario, MONITOR_THRESHOLD, MONITOR_SYNCS, MONITOR_ADDS, MONITOR_REMOVALS, MONITOR_ACTIVITY, MONITOR_ALLOCATIONS, monitorMutualPairs, renderMonitorStatic, RPC_ENDPOINTS, rpcViewCall, payoutChartHtml, renderPayoutCharts, standingsChartHtml, renderStandingsChart, stressCompareData, stressCompareHtml, renderStressCompare, walletPointsBarHtml, renderWalletDashboard, openDashboardFromHeader, highlightWalletPanel, renderHomeDashboard, rpcAccountBalance };
+  module.exports = { PARAMS, MEMBERS, ALLOCATIONS, ENVELOPE_NEAR, settle, effectivePoints, isqrt, fmtYocto, b64Utf8, LAB_MEMBERS, LAB_TRIO, LAB_RING, LAB_HONEST, LAB_ENVELOPE_NEAR, LIVE_ROUND1, LIVE_ROUND2, LIVE_ROUND3, LIVE_ROUND4, STANDINGS_HISTORY, HOME_DASHBOARD_FALLBACK, CONTRACT_ID, DAO_ID, standingAfter, STRESS_MEMBERS, STRESS_NAMES, STRESS_SCENARIOS, STRESS_ENVELOPE_NEAR, runStressScenario, MONITOR_THRESHOLD, MONITOR_SYNCS, MONITOR_ADDS, MONITOR_REMOVALS, MONITOR_ACTIVITY, MONITOR_ALLOCATIONS, monitorMutualPairs, renderMonitorStatic, RPC_ENDPOINTS, rpcViewCall, payoutChartHtml, renderPayoutCharts, standingsChartHtml, renderStandingsChart, stressCompareData, stressCompareHtml, renderStressCompare, walletPointsBarHtml, renderWalletDashboard, openDashboardFromHeader, highlightWalletPanel, renderHomeDashboard, rpcAccountBalance };
 }
