@@ -16,6 +16,8 @@
   header nav a:hover { color:var(--text); }
   header nav a.active { color:var(--gold); }
   .logo { font-size:22px; font-weight:800; text-decoration:none; color:var(--text); } .logo svg { vertical-align:-4px; margin-right:6px; }
+  #connectBtn { background:var(--gold); color:#111; border:0; border-radius:8px; padding:8px 12px; font-weight:700; cursor:pointer; font-size:14px; white-space:nowrap; }
+  #connectBtn:disabled { opacity:.55; cursor:default; }
   .net { color:var(--muted); font-size:13px; }
   main { max-width:960px; margin:0 auto; padding:20px; }
   .hero { padding:28px 0 8px; }
@@ -65,6 +67,7 @@
     <a href="/how" class="active">How it works</a>
     <a href="/lab">Attack Lab</a>
   </nav>
+  <button id="connectBtn" onclick="toggleWallet()">Connect wallet</button>
   <div class="net">NEAR testnet · Social Money</div>
 </header>
 <main>
@@ -139,7 +142,7 @@
 
   <section class="panel" id="governance">
     <h2>Governance: who is a member</h2>
-    <p>Sybil resistance comes from DAO member curation. The contract cannot tell a real member from a second account. The DAO decides who is a member. Membership is a Sputnik DAO role, read live across contracts. The contract mirrors the DAO council into its member set with sync_dao_members, and get_dao_role checks one account live against the DAO policy. A new member joins the council by proposal. The council votes, and the proposal executes. Sputnik decides approval by proposal kind and role, never by amount. A small proposal from the wrong role still fails, and a large proposal from the right role still passes. The live DAO is fairshare-dao.testnet, council of 6, policy 1 of 2 vote to pass, 1 NEAR proposal bond, 7 day proposal period. Full detail, with transactions, is on the <a href="/rounds">live rounds</a> page.</p>
+    <p>Sybil resistance comes from DAO member curation. The contract cannot tell a real member from a second account. The DAO decides who is a member. Membership is a Sputnik DAO role, read live across contracts. The contract mirrors the DAO council into its member set with sync_dao_members, and get_dao_role checks one account live against the DAO policy. A new member joins the council by proposal. The council votes, and the proposal executes. Sputnik decides approval by proposal kind and role, never by amount. A small proposal from the wrong role still fails, and a large proposal from the right role still passes. The live DAO is fairshare-dao.testnet, council of 18, policy 1 of 2 vote to pass, 1 NEAR proposal bond, 7 day proposal period. Full detail, with transactions, is on the <a href="/rounds">live rounds</a> page.</p>
   </section>
 
   <section class="panel" id="methods">
@@ -168,7 +171,8 @@
         <tr><td><code>get_params()</code></td><td>view</td><td>Round rules: 100 points, at least 3 recipients, cap 25%, discount 50%, 7 day round, standing starts at 100, gain +2 per distinct giver capped at +10, minus 5 for no allocation, floor 50, cap 200, propose at 100, close early at 150</td></tr>
       </tbody>
     </table>
-    <p class="muted">Payouts leave the contract by ordinary Transfer from the round envelope. Trezu manages the DAO, and the local testnet view was verified: the Trezu frontend run locally shows all 8 DAO proposals Executed, all 12 council members, and the 6 of 12 voting policy. Trezu production is mainnet only, so there is no live Trezu testnet payout, and none is claimed here. The full record is on the <a href="/rounds#trezu">live rounds</a> page and in TREZU.md in the repo.</p>
+    <p class="muted">Members allocate through the site: connect a testnet wallet with the button in the header, and the live rounds page shows your standing and your allocate form when a round is open.</p>
+    <p class="muted">Payouts leave the contract by ordinary Transfer from the round envelope. Trezu manages the DAO, and the local testnet view was verified: the Trezu frontend run locally shows all 15 DAO proposals Executed, all 18 council members, and the 10 of 18 voting policy. Trezu production is mainnet only, so there is no live Trezu testnet payout, and none is claimed here. The full record is on the <a href="/rounds#trezu">live rounds</a> page and in TREZU.md in the repo.</p>
   </section>
 
   <section class="panel" id="limits-short">
@@ -182,6 +186,7 @@
   <a href="https://testnet.nearblocks.io/address/fairshare-contract.testnet">Contract on Nearblocks</a> ·
   <a href="https://testnet.nearblocks.io/address/fairshare-dao.testnet">DAO on Nearblocks</a>
 </footer>
+<script src="fastnear-wallet.bundle.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

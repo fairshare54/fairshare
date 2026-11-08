@@ -16,6 +16,8 @@
   header nav a:hover { color:var(--text); }
   header nav a.active { color:var(--gold); }
   .logo { font-size:22px; font-weight:800; text-decoration:none; color:var(--text); } .logo svg { vertical-align:-4px; margin-right:6px; }
+  #connectBtn { background:var(--gold); color:#111; border:0; border-radius:8px; padding:8px 12px; font-weight:700; cursor:pointer; font-size:14px; white-space:nowrap; }
+  #connectBtn:disabled { opacity:.55; cursor:default; }
   .net { color:var(--muted); font-size:13px; }
   main { max-width:960px; margin:0 auto; padding:20px; }
   .hero { padding:28px 0 8px; }
@@ -69,6 +71,7 @@
     <a href="/how">How it works</a>
     <a href="/lab">Attack Lab</a>
   </nav>
+  <button id="connectBtn" onclick="toggleWallet()">Connect wallet</button>
 </header>
 <main>
   <section class="hero">
@@ -78,13 +81,24 @@
   </section>
 
   <section class="stats" aria-label="Live numbers">
-    <div class="stat"><b id="statMembers">12</b><span>Members in the DAO</span></div>
+    <div class="stat"><b id="statMembers">18</b><span>Members in the DAO</span></div>
     <div class="stat"><b id="statEnvelope">5.000 NEAR</b><span>Envelope, round 1</span></div>
     <div class="stat"><b id="statPaid">4.999 NEAR</b><span>Paid out, round 1</span></div>
     <div class="stat"><b>130468</b><span>Total score, round 1</span></div>
     <div class="stat"><b>3 yocto</b><span>Dust left in the contract</span></div>
   </section>
   <p class="muted" id="statsNote">Numbers above are the last verified onchain state. The page reads fresh state from the contract when it loads; if the chain cannot be reached it says so below.</p>
+
+  <section class="panel" id="walletPanel">
+    <h2>Your wallet</h2>
+    <p class="muted" id="walletStatus">Connect your testnet wallet above to see your membership and standing, and to allocate in an open round.</p>
+    <div id="walletMember" style="display:none"></div>
+    <div id="walletAllocate" style="display:none">
+      <h3 id="walletRoundTitle">Allocate in the open round</h3>
+      <p class="muted">Give your 100 points to at least 3 members, with a reason for each. Sending replaces any earlier submission you made in this round. The call is signed in your wallet; the site never sees your keys.</p>
+      <div id="walletAllocateForm"></div>
+    </div>
+  </section>
 
   <section class="panel" id="live">
     <h2>Round 1 <span class="badge live">SETTLED ONCHAIN</span></h2>
@@ -112,7 +126,6 @@
   <section class="panel" id="round2">
     <h2>Round 2 <span class="badge live" id="round2Badge">SETTLED ONCHAIN</span></h2>
     <p class="muted" id="round2Note">Round 2 settled onchain with a 5 NEAR envelope and 6 new members. Payouts add to 4.999 NEAR, 3 yocto of dust stays in the contract. Two members hit the 25% cap and were paid exactly 1.250 NEAR each, with the excess flowing to the other four. This is the cap working live, not in a test. Settle: <code>6FsBf9r42Ji8afF8G6rebq2GqChmpUQW41cCpTuaodJF</code></p>
-    <p class="muted">Honest note: the six new members are script operated test accounts, not real people. A round with real humans still needs 5 to 8 people brought in, and that is a human step, not a code step.</p>
     <h3>Members and payouts</h3>
     <table>
       <thead><tr><th>Member</th><th>Score</th><th>Share of envelope</th><th>Capped?</th><th>Payout</th></tr></thead>
@@ -156,10 +169,33 @@
     <p class="muted">Before the settle, Ada, standing 100, tried to close the round early. The call was rejected: closing early needs standing 150. After the settle, Tunde, standing 95, tried to propose a round. The call was rejected: proposing needs standing 100. No round 4 was created. Both rejections are failed receipts onchain; the contract code is built to abort on a failed check, so the receipt carries no message text, only the failed call and the unchanged state.</p>
   </section>
 
+  <section class="panel" id="round4">
+    <h2>Round 4 <span class="badge live">SETTLED ONCHAIN</span></h2>
+    <p class="muted">Round 4 added six new members to the council, taking it from 12 to 18, and only the six new members allocated. Each gained 6 standing, from 100 to 106, and the 12 existing members each lost 5 for submitting nothing. Payouts add to 4.999 NEAR, 3 yocto of dust stays in the contract. No member hit the 25% cap; the highest raw share was 17.58%. Settle: <code>AXBjLUKBCBL4NcVAFhcQPRqEyEsSFA6cB4UtLMbKCWjR</code> · Close: <code>EpKcSvvB3t4eh7oVFe3bVLkGXHtQ2dHbi3pWLySo1DFg</code> · Funding proposal #14: <code>Dxx62Dnwa9NSRnwbU2TF1aPDxf22WTqonCNFUnLxnJ4R</code></p>
+    <h3>Members, payouts, and standing</h3>
+    <table>
+      <thead><tr><th>Member</th><th>Score</th><th>Payout</th><th>Standing before</th><th>Standing after</th></tr></thead>
+      <tbody>
+        <tr><td>Kemi<br><span class="muted">kemi-fairshare.testnet</span></td><td>20736</td><td>0.8791 NEAR</td><td>100</td><td>106</td></tr>
+        <tr><td>Zainab<br><span class="muted">zainab-fairshare.testnet</span></td><td>20736</td><td>0.8791 NEAR</td><td>100</td><td>106</td></tr>
+        <tr><td>Tobi<br><span class="muted">tobi-fairshare.testnet</span></td><td>19881</td><td>0.8428 NEAR</td><td>100</td><td>106</td></tr>
+        <tr><td>Amara<br><span class="muted">amara-fairshare.testnet</span></td><td>19600</td><td>0.8309 NEAR</td><td>100</td><td>106</td></tr>
+        <tr><td>Chidi<br><span class="muted">chidi-fairshare.testnet</span></td><td>18496</td><td>0.7841 NEAR</td><td>100</td><td>106</td></tr>
+        <tr><td>Segun<br><span class="muted">segun-fairshare.testnet</span></td><td>18496</td><td>0.7841 NEAR</td><td>100</td><td>106</td></tr>
+      </tbody>
+    </table>
+    <p class="muted">Total score 117945. Worked check, Kemi: Segun gave 40 points, discount 15, effective 25, root part 50. Zainab gave 35 points, discount 15, effective 20, root part 44. Chidi gave 25 points, no discount, effective 25, root part 50. Root parts add to 144. 144 squared is 20736, which is Kemi score. Her payout is 20736 divided by 117945 of 5 NEAR, which is 0.879 NEAR. Every score was checked against an independent integer model before the settle was accepted.</p>
+    <h3>Transactions</h3>
+    <p class="muted">Council adds, one proposal per person, each passed by strict majority: #8 Chidi <code>59GMPavYKdtpZE5ojfnbdVck8m3x5eSKeaeDWn8w2m3x</code> · #9 Amara <code>4sWyFWFxPfXNu3B6XbQgPE4eTnZ1zvGbcMGWYeSdW1LR</code> · #10 Segun <code>G8JRHXUgfSD3FZi8SS8HxAfhov3qxi3JcWqxAvwYoeNn</code> · #11 Kemi <code>HVxT35ryJhfDVHGDXji8gX3CjJtB8TBWUPSX4rSut6NH</code> · #12 Tobi <code>86Eq4QdkiwoWrjpUbKWqDpjUKi7tRKEYSfAtCtLPK5Py</code> · #13 Zainab <code>CsqEGAvSxQj61hDdPBvggSpWhMSTkzY2mmVwJv4RyxgC</code></p>
+    <p class="muted">Funding proposal #14: <code>Dxx62Dnwa9NSRnwbU2TF1aPDxf22WTqonCNFUnLxnJ4R</code> · Sync DAO members: <code>8xekwzk8c9qFSvDSMVEDMAmynuCt3boTKG7kgB3U3mjw</code></p>
+    <p class="muted">Allocations: Chidi <code>CYiorX3cLcrzMGL7RUYcJ4hJrskyHkbH1hcfAAXmVMed</code> · Amara <code>nSuTjYmWtqdTV6uYYUi6ukEbnmmQ9dGGYz3qnvDwu61</code> · Segun <code>62V4NdwSACMuigFjim77y6sTK5ByiMQC5imdV95a7QBG</code> · Kemi <code>HReBHJpRQpeT1VBj6JeLSUD4AhThqN7zb9pzeWQjtSJD</code> · Tobi <code>AG7CFbzp7gCpboVuX7nWANVKfx7VRBoiPJJnHZgRFU24</code> · Zainab <code>3qDLEUvNtKixiZ2tuhCjobASgTMCaZP3rHBvsjHXgrhS</code></p>
+    <p class="muted">Close: <code>EpKcSvvB3t4eh7oVFe3bVLkGXHtQ2dHbi3pWLySo1DFg</code> · Settle: <code>AXBjLUKBCBL4NcVAFhcQPRqEyEsSFA6cB4UtLMbKCWjR</code></p>
+  </section>
+
   <section class="panel" id="dao">
     <h2>The DAO and governance</h2>
     <p>Membership in FairShare is a Sputnik DAO role, read live across contracts. The contract mirrors the DAO council into its member set with sync_dao_members, and get_dao_role checks one account live against the DAO policy. The DAO is the source of truth. The local member set is a synced mirror.</p>
-    <p class="muted">DAO: <code>fairshare-dao.testnet</code> · Name: fairshare · Council: 12 members, the 6 demo members plus the 6 round 2 crew · Policy: 1 of 2 vote to pass, 1 NEAR proposal bond, 7 day proposal period</p>
+    <p class="muted">DAO: <code>fairshare-dao.testnet</code> · Name: fairshare · Council: 18 members, the 6 demo members plus the 6 round 2 crew plus the 6 round 4 crew · Policy: 1 of 2 vote to pass, 1 NEAR proposal bond, 7 day proposal period</p>
     <p class="muted">DAO deploy: <code>23KcWfmQD2cu6nBJkx1yAoWk8istBR75omCzXVfZUDnv</code> · DAO init: <code>DV39wdiRmhgLAwZ2TCtZncR8RVMhQQ8iPy7jHd2YyYug</code></p>
     <ol class="steps">
       <li><b>Join.</b> A new member joins the DAO council by proposal. The council votes, and the proposal executes. Sputnik decides approval by proposal kind and role, never by amount.</li>
@@ -173,7 +209,7 @@
   <section class="panel" id="trezu">
     <h2>Trezu manages this DAO</h2>
     <p>Trezu is the treasury app for Sputnik DAOs. This DAO is a standard Sputnik DAO, so it is the kind of DAO Trezu manages: council members propose, vote and execute through it, and the contract reads membership live from it.</p>
-    <p class="muted">The honest limit: Trezu production is mainnet only, so there is no live Trezu testnet payout, and none is claimed here. What was verified is the local testnet view: the Trezu frontend run locally with the mock backend from the Trezu repo, opening fairshare-dao.testnet, shows the real onchain data. Requests, Executed tab: all 8 proposals, each Executed, including the round 2 and round 3 funding proposals. Members: all 12 council members. Settings, Voting: 6 of 12 threshold, 7 day vote duration. Assets and recent transactions stay empty, because there is no indexer for testnet DAOs. The exact steps and screenshots are in the repo, TREZU.md.</p>
+    <p class="muted">The honest limit: Trezu production is mainnet only, so there is no live Trezu testnet payout, and none is claimed here. What was verified is the local testnet view: the Trezu frontend run locally with the mock backend from the Trezu repo, opening fairshare-dao.testnet, shows the real onchain data. Requests, Executed tab: all 15 proposals, each Executed, including the round 2, round 3, and round 4 funding proposals. Members: all 18 council members. Settings, Voting: 10 of 18 threshold, 7 day vote duration. Assets and recent transactions stay empty, because there is no indexer for testnet DAOs. The exact steps and screenshots are in the repo, TREZU.md.</p>
   </section>
 
   <section class="panel" id="verify">
@@ -184,7 +220,7 @@
       <li><code>get_dao_info</code> returns the DAO id, the member role, the member count, and the last sync time.</li>
       <li><code>get_round</code> with round id 1 returns the 5 NEAR envelope, closed true, settled true, total payout 4999999999999999999999997 yocto.</li>
       <li><code>get_payouts</code> with round id 1 returns all six payouts. <code>explain_payout</code> with round id 1 and any member returns their score broken down by giver.</li>
-      <li><code>get_policy</code> on <code>fairshare-dao.testnet</code> shows the council role with 12 members, the 6 demo members plus the 6 round 2 crew.</li>
+      <li><code>get_policy</code> on <code>fairshare-dao.testnet</code> shows the council role with 18 members, the 6 demo members plus the 6 round 2 crew plus the 6 round 4 crew.</li>
     </ol>
     <p class="muted">If the page cannot reach the public RPC, it says so plainly and keeps showing the last verified state, labelled as such. It never invents numbers.</p>
   </section>
@@ -194,8 +230,9 @@
   <a href="https://github.com/fairshare54/fairshare">Repo</a> ·
   <a href="https://testnet.nearblocks.io/address/fairshare-contract.testnet">Contract on Nearblocks</a> ·
   <a href="https://testnet.nearblocks.io/address/fairshare-dao.testnet">DAO on Nearblocks</a><br>
-  <span>Round 1, 2 and 3 are settled onchain.</span>
+  <span>Round 1, 2, 3 and 4 are settled onchain.</span>
 </footer>
+<script src="fastnear-wallet.bundle.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

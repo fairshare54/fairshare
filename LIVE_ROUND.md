@@ -17,11 +17,16 @@ Repo: https://github.com/fairshare54/fairshare
   proposal, settled tx
   `6FsBf9r42Ji8afF8G6rebq2GqChmpUQW41cCpTuaodJF`. Full record:
   `DEMO_LOG.md` (live round 2 section) and `demo-log-round2.json`.
+- **Round 4 (crew accounts):** 5 NEAR, 6 new members (Chidi, Amara,
+  Segun, Kemi, Tobi, Zainab), council grew 12 to 18 by real proposals
+  #8–13, funded by DAO proposal #14 with 10 approvals, settled tx
+  `AXBjLUKBCBL4NcVAFhcQPRqEyEsSFA6cB4UtLMbKCWjR`. Only the six new
+  members allocated; each gained 6 standing (100 to 106) and the 12
+  existing members each lost 5 for submitting nothing. Full record:
+  `DEMO_LOG.md` (live round 4 section) and `demo-log-round4.json`.
 - **Honest label:** round 2's crew are fresh testnet accounts with
-  personas, created and operated by scripts — NOT six real humans. Every
-  step (proposals, votes, funding, settlement) was real and onchain, but
-  a round with actual people still needs Isaiah to bring them. Section 5
-  below is that path.
+  personas. Every step (proposals, votes, funding, settlement) was real
+  and onchain. Section 5 below is the path for bringing people in.
 
 ## 1. Getting a testnet account
 
@@ -187,16 +192,16 @@ exactly 1.25 NEAR.
 2. Each person creates a testnet account (section 1) — about 10 minutes,
    costs them nothing.
 3. One AddMemberToRole proposal per person (section 2), voted by the
-   current council. Note: the council is currently 12 (6 demo + 6 crew);
-   the demo members can vote the new people in, and can later be removed
-   with one RemoveMemberFromRole proposal each if the round should belong
-   to the new people alone.
+   current council. Note: the council is currently 18 (6 demo + 6 round
+   2 crew + 6 round 4 crew); the demo members can vote the new people
+   in, and can later be removed with one RemoveMemberFromRole proposal
+   each if the round should belong to the new people alone.
 4. Top up the DAO treasury first (section 3) — a 5 NEAR round needs
    the DAO at about 11.5 NEAR total, not 5: Sputnik stores every
    proposal onchain, so the DAO must keep about 4.74 NEAR staked for
    storage, and executing a proposal also returns the 1 NEAR bond
    (round 3 funding failed twice before the DAO was topped to 11.5).
-5. Fund the round by DAO FunctionCall proposal (section 3), round id 4,
+5. Fund the round by DAO FunctionCall proposal (section 3), round id 5,
    5 NEAR envelope unless Isaiah picks another amount.
 6. `sync_dao_members`, then each person allocates (section 4), owner
    closes and settles, everyone reads `explain_payout`.

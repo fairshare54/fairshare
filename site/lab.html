@@ -16,6 +16,8 @@
   header nav a:hover { color:var(--text); }
   header nav a.active { color:var(--gold); }
   .logo { font-size:22px; font-weight:800; text-decoration:none; color:var(--text); } .logo svg { vertical-align:-4px; margin-right:6px; }
+  #connectBtn { background:var(--gold); color:#111; border:0; border-radius:8px; padding:8px 12px; font-weight:700; cursor:pointer; font-size:14px; white-space:nowrap; }
+  #connectBtn:disabled { opacity:.55; cursor:default; }
   .net { color:var(--muted); font-size:13px; }
   main { max-width:960px; margin:0 auto; padding:20px; }
   .hero { padding:28px 0 8px; }
@@ -61,6 +63,7 @@
     <a href="/how">How it works</a>
     <a href="/lab" class="active">Attack Lab</a>
   </nav>
+  <button id="connectBtn" onclick="toggleWallet()">Connect wallet</button>
   <div class="net">NEAR testnet · Social Money</div>
 </header>
 <main>
@@ -131,6 +134,7 @@
   <a href="https://testnet.nearblocks.io/address/fairshare-contract.testnet">Contract on Nearblocks</a> ·
   <a href="https://testnet.nearblocks.io/address/fairshare-dao.testnet">DAO on Nearblocks</a>
 </footer>
+<script src="fastnear-wallet.bundle.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

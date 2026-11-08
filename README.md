@@ -60,18 +60,22 @@ against the DAO policy. The DAO is the source of truth.
 | 1 | 5 NEAR | 130468 | 4.999 NEAR | `2MUqHsLbbMcZGsneNnBBTinUfPXXJwdoRnJjwzxhpJYu` |
 | 2 | 5 NEAR | 125923 | 4.999 NEAR | `6FsBf9r42Ji8afF8G6rebq2GqChmpUQW41cCpTuaodJF` |
 | 3 | 5 NEAR | 429829 | 4.999 NEAR | `7ZbAQganvPJKGHsQkUGYXE56tdvqLm9UM1CGRwcCkMWG` |
+| 4 | 5 NEAR | 117945 | 4.999 NEAR | `AXBjLUKBCBL4NcVAFhcQPRqEyEsSFA6cB4UtLMbKCWjR` |
 
 Payouts in each round add to the envelope minus a few yocto of dust (3 in
-rounds 1 and 2, 5 in round 3). Round 2 was the first live round where the
+rounds 1, 2, and 4, 5 in round 3). Round 2 was the first live round where the
 25% cap triggered: Ada and Ibrahim were each capped at exactly 1.25 NEAR,
 and the surplus went to the rest. Round 3 was the reputation round: the
 first settle under the standing rule. Ada received points from 9 distinct
 givers and went from 100 to 110, the capped gain. Tunde submitted nothing
 and went from 100 to 95, even though 3 members gave to him. Both gates
 were proved live in round 3: Ada at 100 could not close the round early,
-and Tunde at 95 could not propose a round afterwards. The DAO council is
-now 12 members. All three rounds ran through real DAO proposals, with test
-accounts, not real people yet.
+and Tunde at 95 could not propose a round afterwards. Round 4 added six
+new members to the council, taking it from 12 to 18, and only the six new
+members allocated. Each gained 6 standing, from 100 to 106, and the 12
+existing members each lost 5 for submitting nothing. The DAO council is
+now 18 members. All four rounds ran through real DAO proposals, with real
+testnet wallets.
 
 ## How to verify it onchain
 

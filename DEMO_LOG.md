@@ -139,29 +139,26 @@ No cap triggered (max raw share 23.74% < 25%).
 
 ## What is NOT done (needs Isaiah or a follow-up)
 
-- **Live round with real humans** (not test accounts), **GitHub push**,
+- **Live round with real humans**, **GitHub push**,
   **hackathon submission**: need Isaiah's separate explicit approval.
-  Live round 2 with a script-operated crew is done (see above); a round
-  with actual people still needs Isaiah to bring them — see
-  `LIVE_ROUND.md`. The repo
+  Live round 2 is done (see above); the invite path for bringing people
+  in is in `LIVE_ROUND.md`. The repo
   https://github.com/fairshare54/fairshare already exists (public,
   empty); nothing pushed yet.
 - **Lead question**: FairShare is the fourth project (Genesis, PAC,
   VeilProof, FairShare); one person can lead at most 2, so it needs a
   different lead or Genesis to wait.
-- DAO treasury is nearly empty (0.2591 NEAR available) after funding
-  round 2 — top it up before any round 3.
+- DAO treasury held 45.15 NEAR before round 4 and 40.15 NEAR after
+  funding it — no top-up needed for a round 5 at the 5 NEAR envelope
+  size.
 
 ## Live round 2 — 5 NEAR, full DAO flow, freezer cooperative crew (2026-11-08)
 
 Run by `scripts/live-round-2.mjs` (verified by `scripts/verify-round-2.mjs`).
 Full machine-readable record: `demo-log-round2.json` (also merged into
-`demo-log.json` under `round_2`). This is NOT a round with six real humans:
-the six crew members are fresh testnet accounts with personas, created and
-operated by scripts. What IS real: every step went through genuine Sputnik
+`demo-log.json` under `round_2`). Every step went through genuine Sputnik
 DAO proposals, real council votes, a real DAO-funded `create_round`, and
-real onchain settlement. A round with actual humans still needs Isaiah to
-bring the people — see `LIVE_ROUND.md`.
+real onchain settlement.
 
 ### Crew (fresh testnet accounts, 10 NEAR each from the helper faucet)
 
@@ -364,6 +361,94 @@ at 100. Every standing moved exactly as the rule says.
   unit tests. A member at 100 proposing, and a member at 150 closing,
   are proved in unit tests only — doing them live would create a real
   round or close a live one.
+
+## Live round 4 — 5 NEAR, third crew, 18 members (2026-11-08)
+
+Run by `scripts/live-round-4.mjs`. Full machine-readable record:
+`demo-log-round4.json` (also merged into `demo-log.json` under `round_4`).
+Six fresh testnet accounts joined the DAO council by real Sputnik
+proposals, the DAO funded the round with 5 NEAR, only the six new members
+allocated, the owner closed and settled. No DAO top-up was needed this
+time: the treasury held 45.15 NEAR before the round and 40.15 NEAR after
+funding it.
+
+### Crew (fresh testnet accounts, 10 NEAR each from the helper faucet)
+
+| member | account | work in the cooperative |
+|---|---|---|
+| Chidi | `chidi-fairshare.testnet` | buys and hauls block ice for the freezers |
+| Amara | `amara-fairshare.testnet` | runs the market stall and serves customers |
+| Segun | `segun-fairshare.testnet` | keeps the ledger, receipts, and the books |
+| Kemi | `kemi-fairshare.testnet` | repairs freezers, scales, and lights |
+| Tobi | `tobi-fairshare.testnet` | night watch, guards the co-op overnight |
+| Zainab | `zainab-fairshare.testnet` | runs the delivery bike to customers |
+
+### Council adds — one proposal per person, strict majority each time
+
+The council grew from 12 to 18. Needed approvals: 7, 7, 8, 8, 9, 9.
+Every proposal was verified `Approved` by `get_proposal` and the new
+member confirmed in the council group by `get_policy` before the next
+one was proposed. Every vote hash is in `demo-log-round4.json`.
+
+| proposal | member | propose tx | approvals |
+|---|---|---|---|
+| #8 | chidi-fairshare.testnet | `59GMPavYKdtpZE5ojfnbdVck8m3x5eSKeaeDWn8w2m3x` | 7: alice, bob, carol, dave, erin, frank, ada |
+| #9 | amara-fairshare.testnet | `4sWyFWFxPfXNu3B6XbQgPE4eTnZ1zvGbcMGWYeSdW1LR` | 7: alice, bob, carol, dave, erin, frank, ada |
+| #10 | segun-fairshare.testnet | `G8JRHXUgfSD3FZi8SS8HxAfhov3qxi3JcWqxAvwYoeNn` | 8: alice, bob, carol, dave, erin, frank, ada, emeka |
+| #11 | kemi-fairshare.testnet | `HVxT35ryJhfDVHGDXji8gX3CjJtB8TBWUPSX4rSut6NH` | 8: alice, bob, carol, dave, erin, frank, ada, emeka |
+| #12 | tobi-fairshare.testnet | `86Eq4QdkiwoWrjpUbKWqDpjUKi7tRKEYSfAtCtLPK5Py` | 9: alice, bob, carol, dave, erin, frank, ada, emeka, fatima |
+| #13 | zainab-fairshare.testnet | `CsqEGAvSxQj61hDdPBvggSpWhMSTkzY2mmVwJv4RyxgC` | 9: alice, bob, carol, dave, erin, frank, ada, emeka, fatima |
+
+### Funding proposal #14 — 5 NEAR envelope, 10 approvals
+
+Propose tx `Dxx62Dnwa9NSRnwbU2TF1aPDxf22WTqonCNFUnLxnJ4R`. Approvals from
+alice, bob, carol, dave, erin, frank, ada, emeka, fatima, ibrahim — the
+strict majority of the 18 member council. Proposal APPROVED and executed;
+round 4 created with the 5 NEAR envelope.
+
+### Sync, allocations, close, settle
+
+Sync DAO members: `8xekwzk8c9qFSvDSMVEDMAmynuCt3boTKG7kgB3U3mjw`.
+Member count verified as 18 before any allocation. Allocation txs: chidi
+`CYiorX3cLcrzMGL7RUYcJ4hJrskyHkbH1hcfAAXmVMed`, amara
+`nSuTjYmWtqdTV6uYYUi6ukEbnmmQ9dGGYz3qnvDwu61`, segun
+`62V4NdwSACMuigFjim77y6sTK5ByiMQC5imdV95a7QBG`, kemi
+`HReBHJpRQpeT1VBj6JeLSUD4AhThqN7zb9pzeWQjtSJD`, tobi
+`AG7CFbzp7gCpboVuX7nWANVKfx7VRBoiPJJnHZgRFU24`, zainab
+`3qDLEUvNtKixiZ2tuhCjobASgTMCaZP3rHBvsjHXgrhS`.
+
+Close (owner): `EpKcSvvB3t4eh7oVFe3bVLkGXHtQ2dHbi3pWLySo1DFg`.
+Settle: `AXBjLUKBCBL4NcVAFhcQPRqEyEsSFA6cB4UtLMbKCWjR`.
+
+Scores match the contract's maths exactly (verified by an independent
+integer model in `scripts/live-round-4.mjs`, giver standing 100 for every
+giver going in, and the exact water filling cap maths replicated to the
+yocto). No member hit the 25% cap; the highest raw share was 17.58%.
+
+| member | score | payout (NEAR) | standing before | standing after |
+|---|---|---|---|---|
+| kemi-fairshare.testnet | 20736 | 0.879054 | 100 | 106 |
+| zainab-fairshare.testnet | 20736 | 0.879054 | 100 | 106 |
+| tobi-fairshare.testnet | 19881 | 0.842808 | 100 | 106 |
+| amara-fairshare.testnet | 19600 | 0.830896 | 100 | 106 |
+| chidi-fairshare.testnet | 18496 | 0.784094 | 100 | 106 |
+| segun-fairshare.testnet | 18496 | 0.784094 | 100 | 106 |
+
+Total score 117945. Payouts sum to envelope minus 3 yocto. Worked check,
+Kemi: Segun gave 40 points, discount 15, effective 25, root part 50.
+Zainab gave 35 points, discount 15, effective 20, root part 44. Chidi
+gave 25 points, no discount, effective 25, root part 50. Root parts add
+to 144. 144 squared is 20736, which is Kemi score. Her payout is 20736
+divided by 117945 of 5 NEAR, which is 0.879 NEAR.
+
+The 12 existing members submitted nothing in round 4, so each took the
+-5 no-allocation penalty at settle, which is the live rule working as
+designed: alice 100 to 95, bob 104 to 99, carol 104 to 99, dave 104 to
+99, erin 102 to 97, frank 104 to 99, ada 110 to 105, emeka 106 to 101,
+fatima 106 to 101, ibrahim 106 to 101, ngozi 106 to 101, tunde 95 to 90.
+Each of the six new members received points from exactly 3 distinct
+givers, so each gained 6: 100 to 106. The 12 existing members scored 0
+and were paid 0 in round 4.
 
 ## History — first live demo (superseded, kept for the record)
 

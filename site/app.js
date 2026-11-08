@@ -693,10 +693,286 @@ async function fetchLiveState() {
     }
   } catch (e) {
     if (box) box.textContent =
-      "Live state could not be read from this browser. The numbers on this page are the last verified onchain state: round 1, 5.000 NEAR envelope, 4.999 NEAR paid out, 12 members in the DAO. The contract is still live at " +
+      "Live state could not be read from this browser. The numbers on this page are the last verified onchain state: round 1, 5.000 NEAR envelope, 4.999 NEAR paid out, 18 members in the DAO. The contract is still live at " +
       CONTRACT_ID + "; read it with the command line check in the README.";
     if (statsNote) statsNote.textContent =
       "Numbers above are the last verified onchain state. The live read failed just now, so they were not refreshed.";
+  }
+}
+
+// ---- Wallet connect (FastNEAR wallet 2.5.0, same pattern as the PAC site) ----
+// The library opens a wallet selector, and on mobile it deep links into the
+// installed Meteor app, where the account already lives. Testnet only.
+// A connected member sees their standing here, and can allocate their 100
+// points in an open round through the site with a signed allocate call.
+// With no wallet connected, the page stays read only and the live stats
+// above keep working exactly as before.
+const NETWORK = "testnet";
+const WALLET_GAS_100 = "100000000000000";
+let walletAccountId = null;
+let walletOpenRound = null;
+let walletMembers = [];
+
+function fastnear() {
+  if (typeof window.nearWallet === "undefined") {
+    throw new Error("FastNear wallet library not loaded. Check the script tag.");
+  }
+  return window.nearWallet;
+}
+function currentAccountId(nw) {
+  try {
+    const id = nw.accountId({ network: NETWORK });
+    return typeof id === "string" && id ? id : null;
+  } catch (_) {
+    return null;
+  }
+}
+function getWalletAccountId() { return walletAccountId; }
+function walletStatus(msg) {
+  const s = el("walletStatus");
+  if (s) s.textContent = msg;
+}
+async function contractView(method, args) {
+  const res = await fetch("https://rpc.testnet.near.org", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      jsonrpc: "2.0", id: method, method: "query",
+      params: {
+        request_type: "call_function",
+        account_id: CONTRACT_ID,
+        method_name: method,
+        args_base64: btoa(JSON.stringify(args)),
+        finality: "final",
+      },
+    }),
+  });
+  const d = await res.json();
+  if (d.error) throw new Error("RPC error");
+  return JSON.parse(new TextDecoder().decode(new Uint8Array(d.result.result)));
+}
+async function initWallet() {
+  if (typeof window === "undefined") return; // no browser, no wallet
+  try {
+    const nw = fastnear();
+    const restored = await nw.restore({ network: NETWORK });
+    const id = (restored && typeof restored.accountId === "string" && restored.accountId) || currentAccountId(nw);
+    if (id) walletAccountId = id;
+  } catch (e) { console.warn("wallet restore failed", e); }
+  // Clean the wallet return params off the URL, keeping the page and
+  // its query string.
+  try {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("transactionHashes")) {
+      const hashes = params.get("transactionHashes").split(",");
+      walletStatus("Allocation sent. Transaction " + hashes[0] + " is onchain; check it on Nearblocks.");
+      window.history.replaceState({}, "", window.location.pathname + window.location.search + window.location.hash);
+    }
+  } catch (_) { /* ignore */ }
+  refreshWalletBtn();
+  refreshWalletPanel();
+}
+function refreshWalletBtn() {
+  const btn = el("connectBtn");
+  if (!btn) return;
+  let libOk = true;
+  try { fastnear(); } catch (_) { libOk = false; }
+  if (!libOk) { btn.textContent = "Wallet unavailable"; btn.disabled = true; return; }
+  const id = walletAccountId;
+  btn.textContent = id ? id + " (sign out)" : "Connect wallet";
+  btn.disabled = false;
+}
+async function toggleWallet() {
+  let nw;
+  try { nw = fastnear(); } catch (_) { walletStatus("Wallet library did not load. Check your connection and reload."); return; }
+  try {
+    if (walletAccountId) {
+      try { await nw.disconnect({ network: NETWORK }); } catch (_) {}
+      walletAccountId = null;
+      walletOpenRound = null;
+      refreshWalletBtn();
+      refreshWalletPanel();
+      walletStatus("Signed out. Connect your testnet wallet to see your membership and standing.");
+      return;
+    }
+    walletStatus("Opening wallet selector…");
+    const result = await nw.connect({ network: NETWORK });
+    const id = (result && typeof result.accountId === "string" && result.accountId) || currentAccountId(nw);
+    if (typeof id !== "string" || !id) { walletStatus("Could not determine the connected account. Try again."); return; }
+    walletAccountId = id;
+    refreshWalletBtn();
+    refreshWalletPanel();
+  } catch (e) { walletStatus("Wallet error: " + String(e.message).slice(0, 160)); }
+}
+async function walletCall(contractId, method, args, depositYocto, gas) {
+  const nw = fastnear();
+  return nw.sendTransaction({
+    receiverId: contractId,
+    network: NETWORK,
+    actions: [{
+      type: "FunctionCall",
+      methodName: method,
+      args: args,
+      gas: (gas || WALLET_GAS_100).toString(),
+      deposit: depositYocto.toString(),
+    }],
+  });
+}
+
+// Find the open round, if any: the highest round id that is neither closed
+// nor settled. Returns null when no round is open.
+async function findOpenRound() {
+  for (let id = 20; id >= 1; id--) {
+    try {
+      const r = await contractView("get_round", { round_id: id });
+      if (r && !r.closed && !r.settled) return r;
+    } catch (_) { /* a missing round id is not an error */ }
+  }
+  return null;
+}
+
+function walletRowHtml(members, selected, points, reason) {
+  const opts = members.map((m) =>
+    "<option value=\"" + m + "\"" + (m === selected ? " selected" : "") + ">" + m + "</option>"
+  ).join("");
+  return "<div class=\"walletRow\"><select class=\"walletTo\" aria-label=\"Recipient\">" + opts + "</select> " +
+    "<input type=\"number\" min=\"0\" max=\"100\" value=\"" + points +
+    "\" class=\"walletPoints\" aria-label=\"Points\"> points " +
+    "<input type=\"text\" maxlength=\"200\" value=\"" + String(reason || "").replace(/"/g, "&quot;") +
+    "\" class=\"walletReason\" placeholder=\"Why do they deserve points?\" aria-label=\"Reason\"></div>";
+}
+
+function walletFormTotal() {
+  const form = el("walletAllocateForm");
+  if (!form || typeof form.querySelectorAll !== "function") return 0;
+  return Array.from(form.querySelectorAll(".walletPoints"))
+    .reduce((s, i) => s + (parseInt(i.value, 10) || 0), 0);
+}
+
+function walletUpdateTotal() {
+  const s = el("walletTotal");
+  if (s) s.textContent = "You have given " + walletFormTotal() + " of your 100 points.";
+}
+
+async function refreshWalletPanel() {
+  const panel = el("walletPanel");
+  if (!panel) return;
+  const memberBox = el("walletMember");
+  const allocBox = el("walletAllocate");
+  if (!walletAccountId) {
+    walletStatus("Connect your testnet wallet above to see your membership and standing, and to allocate in an open round.");
+    if (memberBox) memberBox.style.display = "none";
+    if (allocBox) allocBox.style.display = "none";
+    return;
+  }
+  try {
+    walletStatus("Reading your membership from the contract…");
+    const members = await contractView("get_members", {});
+    walletMembers = members || [];
+    const isMember = walletMembers.indexOf(walletAccountId) >= 0;
+    const standing = await contractView("get_standing", { account_id: walletAccountId });
+    if (memberBox) {
+      memberBox.style.display = "block";
+      memberBox.innerHTML = "Connected as <b>" + walletAccountId + "</b> · " +
+        (isMember ? "Member of the DAO council" : "Not a member of the DAO council yet") +
+        " · Standing <b>" + standing + "</b>" +
+        " <button id=\"walletDisconnect\" type=\"button\">Disconnect</button>";
+      const d = el("walletDisconnect");
+      if (d) d.addEventListener("click", toggleWallet);
+    }
+    if (!isMember) {
+      walletStatus("This account is not a member yet, so it cannot allocate. Membership comes from a DAO proposal; see the governance section below.");
+      if (allocBox) allocBox.style.display = "none";
+      return;
+    }
+    const open = await findOpenRound();
+    walletOpenRound = open;
+    if (!open) {
+      walletStatus("No round is open right now. Your standing is " + standing + ". When a round opens, your allocate form appears here.");
+      if (allocBox) allocBox.style.display = "none";
+      return;
+    }
+    if (allocBox) {
+      allocBox.style.display = "block";
+      const title = el("walletRoundTitle");
+      if (title) title.textContent = "Round " + open.id + " is open: " + fmtYocto(BigInt(open.envelope_yocto)) + " NEAR envelope. Give your 100 points to at least 3 members, with a reason for each.";
+      const form = el("walletAllocateForm");
+      if (form && !form.dataset.built) {
+        const others = walletMembers.filter((m) => m !== walletAccountId);
+        // Prefill from an existing submission, if this member already allocated.
+        let mine = [];
+        try {
+          const subs = await contractView("get_allocations", { round_id: open.id });
+          const sub = (subs || []).find((s) => (s.account_id || s.member || s.giver) === walletAccountId);
+          if (sub && sub.allocations) mine = sub.allocations;
+        } catch (_) { /* no submission yet */ }
+        const rows = [];
+        for (let i = 0; i < 3; i++) {
+          const a = mine[i] || {};
+          rows.push(walletRowHtml(others, a.to || others[i % others.length], a.points || 0, a.reason || ""));
+        }
+        form.innerHTML = rows.join("") +
+          "<p><button id=\"walletAddRow\" type=\"button\">Add another recipient</button> " +
+          "<button id=\"walletSubmit\" type=\"button\" class=\"primary\">Send my 100 points</button></p>" +
+          "<p class=\"muted\" id=\"walletTotal\"></p>";
+        form.dataset.built = "1";
+        form.querySelectorAll(".walletPoints").forEach((i) => i.addEventListener("input", walletUpdateTotal));
+        walletUpdateTotal();
+        const add = el("walletAddRow");
+        if (add) add.addEventListener("click", () => {
+          const count = form.querySelectorAll(".walletRow").length;
+          if (count >= 8) return;
+          const others2 = walletMembers.filter((m) => m !== walletAccountId);
+          const used = Array.from(form.querySelectorAll(".walletTo")).map((s) => s.value);
+          const next = others2.find((m) => used.indexOf(m) < 0) || others2[0];
+          const div = document.createElement("div");
+          div.innerHTML = walletRowHtml(others2, next, 0, "");
+          while (div.firstChild) form.insertBefore(div.firstChild, add.parentNode);
+          form.querySelectorAll(".walletPoints").forEach((i) => { i.removeEventListener("input", walletUpdateTotal); i.addEventListener("input", walletUpdateTotal); });
+          walletUpdateTotal();
+        });
+        const submit = el("walletSubmit");
+        if (submit) submit.addEventListener("click", submitWalletAllocate);
+        if (mine.length > 0) walletStatus("You already allocated in round " + open.id + ". Change the rows below and send again to replace your submission.");
+        else walletStatus("Round " + open.id + " is open. Give your 100 points below and send them with your wallet.");
+      }
+    }
+  } catch (e) {
+    walletStatus("Could not read your membership just now: " + String(e.message).slice(0, 120));
+  }
+}
+
+async function submitWalletAllocate() {
+  const form = el("walletAllocateForm");
+  if (!form || !walletOpenRound || !walletAccountId) return;
+  const allocations = [];
+  let error = null;
+  form.querySelectorAll(".walletRow").forEach((row) => {
+    const to = row.querySelector(".walletTo").value;
+    const points = parseInt(row.querySelector(".walletPoints").value, 10) || 0;
+    const reason = row.querySelector(".walletReason").value.trim();
+    if (points < 0 || points > 100) error = "Points for one member must be between 0 and 100.";
+    if (points > 0) {
+      if (!reason) error = "Every gift needs a reason. Add one for " + to + ".";
+      if (to === walletAccountId) error = "You cannot give points to yourself.";
+      allocations.push({ to: to, points: points, reason: reason });
+    }
+  });
+  const seen = {};
+  for (const a of allocations) {
+    if (seen[a.to]) error = "Name each recipient only once.";
+    seen[a.to] = true;
+  }
+  const total = allocations.reduce((s, a) => s + a.points, 0);
+  if (!error && total !== 100) error = "You gave " + total + " points. Give exactly 100.";
+  if (!error && allocations.length < PARAMS.minRecipients) error = "Name at least 3 recipients. You named " + allocations.length + ".";
+  if (error) { walletStatus(error); return; }
+  walletStatus("Opening your wallet to sign the allocate call for round " + walletOpenRound.id + "…");
+  try {
+    await walletCall(CONTRACT_ID, "allocate", { round_id: walletOpenRound.id, allocations: allocations }, "0");
+    walletStatus("Sent to your wallet. Approve the call there; the page confirms it when you return.");
+  } catch (e) {
+    walletStatus("Wallet error: " + String(e.message).slice(0, 160));
   }
 }
 
@@ -714,6 +990,7 @@ if (typeof document !== "undefined") {
     renderLiveRound();
     renderLiveRound2();
     renderLive();
+    initWallet();
     const settleBtn = el("settleBtn");
     if (settleBtn) settleBtn.addEventListener("click", renderSettlement);
     const explainSel = el("explainSelect");
