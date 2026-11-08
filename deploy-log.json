@@ -1,0 +1,25 @@
+{
+  "network": "testnet",
+  "contract_id": "fairshare-contract.testnet",
+  "owner_id": "fairshare-owner.testnet",
+  "dao_id": "fairshare-dao.testnet",
+  "wasm_bytes": 484794,
+  "wasm_sha256": "ac6216949e3e8bf6590d1dc580453d178341b4a13348c2f424e6b23b36c38e08",
+  "deploy_tx": "oSzFtcQUxoV6vYvQAnwEyJgfWcPSk2XYXyhMJw81zFx",
+  "init_tx": "CJfuyLv5J42iuBCMtx4EQh5Cb63BCNxDgTMupZuZHBL7",
+  "params": {
+    "points_per_member": 100,
+    "min_recipients": 3,
+    "cap_bps": 2500,
+    "reciprocity_discount_bps": 5000,
+    "round_duration_ns": 604800000000000,
+    "standing_start": 100
+  },
+  "dao_info": {
+    "dao_id": "fairshare-dao.testnet",
+    "member_role": "council",
+    "member_count": 0,
+    "last_sync_ns": 0
+  },
+  "deployed_at": "2026-11-08T09:22:17.807Z"
+}

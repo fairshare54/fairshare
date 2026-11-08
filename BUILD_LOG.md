@@ -1,0 +1,240 @@
+# FairShare round contract — BUILD LOG
+
+Date: 2026-11-08. Testnet only, never mainnet. No private key is printed
+or committed anywhere in this repo.
+
+Formerly named Egbe; renamed FairShare on 2026-11-08. The first build and
+live demo ran under the Egbe name (contract `egbe-contract.testnet`); that
+deployment is kept as history at the end of this log.
+
+## What was built
+
+`contract/` — Rust contract (`near-sdk` 5.5, resolves to 5.30.1), package
+`fairshare-round` v0.1.0, in `contract/src/lib.rs` (single file, ~1900
+lines including tests). Built wasm copied to `fairshare_round.wasm` at
+this directory root for deploy convenience.
+
+### Methods (exact interface — the site is built against these names)
+
+- `new(owner_id: AccountId, dao_id: AccountId)` — init. Member role
+  defaults to "council".
+- `sync_dao_members()` — anyone may call it. Reads the DAO's `get_policy`
+  live cross-contract and mirrors that role's group into the member set.
+  The DAO is the source of truth; the local set is a synced mirror.
+- `get_dao_role(account_id)` — change call (a view cannot make a
+  cross-contract call). Reads the DAO's `get_policy` live; the callback
+  stores and returns whether the account is in the role right now.
+- `set_dao_id(dao_id)` — owner only; point the contract at another DAO.
+- `set_member_role(role)` — owner only; change which DAO role holds the
+  members (default "council").
+- `add_member(member: AccountId)` — owner only, LOCAL-TESTING FALLBACK
+  ONLY. Production membership comes from `sync_dao_members`; do not rely
+  on this on a live deployment.
+- `create_round(round_id: u64, envelope_yocto: U128)` — payable; attached
+  deposit must equal the envelope exactly; only owner or DAO; deadline =
+  creation + 7 days.
+- `close_round(round_id: u64)` — owner only; lets a round settle early.
+- `allocate(round_id: u64, allocations: Vec<{to, points, reason}>)` —
+  caller must be a member (synced from the DAO role, or seeded via
+  `add_member` in local testing only); validates total <= 100, no
+  self-allocation, >= 3 distinct recipients, each allocation 1..=100
+  points, every reason non-empty and <= 200 chars. Re-submission replaces
+  the previous one before settlement. Rejected after close / settle /
+  deadline.
+- `settle_round(round_id: u64)` — after deadline or owner close; anyone
+  may call. Deterministic scoring, reciprocity discount, 25% cap with
+  water-filling redistribution, stores per-member payout + full
+  explanation, transfers payouts, mints ownership units. Settling twice
+  fails.
+- `distribute_inflow(amount: U128)` — payable, attached == amount; splits
+  the inflow pro-rata to ownership units; returns each share. (Stretch.)
+- Views: `get_round(round_id)`, `get_allocations(round_id)`,
+  `explain_payout(round_id, account_id)`, `get_payouts(round_id)`,
+  `get_members()`, `get_standing(account_id)`, `get_params()`,
+  `get_cached_dao_role(account_id)`, `get_dao_info()`,
+  `get_units(account_id)`.
+
+### DAO membership design (added 2026-11-08, phase 1)
+
+- The contract stores `dao_id` (updatable by the owner) and `member_role`
+  (default "council", updatable by the owner).
+- `sync_dao_members` does a real cross-contract `get_policy` call on the
+  DAO. Its callback parses the policy JSON generically
+  (`serde_json::Value`, only `roles[].name` and `roles[].kind.Group[]`
+  are read, so the contract never depends on the exact Sputnik Policy
+  struct shape) and diff-syncs the local member set: members dropped
+  from the role lose membership, members added gain it, standing is kept
+  for re-added members. A failed DAO call leaves the set untouched.
+- `get_dao_role` does the same live `get_policy` read for one account
+  and caches the answer (`dao_role_cache`), which
+  `get_cached_dao_role` reports together with the last sync time.
+- `add_member` was KEPT as the local-testing fallback (the brief allowed
+  keeping it, and all 24 original tests seed members through it). It is
+  owner-only and documented in the code and README as testing-only; the
+  live demo round used DAO sync, not `add_member`.
+
+### Settlement math (deterministic, on-chain)
+
+- Effective points: for each mutual pair, the smaller of the two
+  allocations is the mutual portion; 50% of it is discounted from BOTH
+  directions before scoring (integer division, floor).
+- Score for a member = (sum over distinct givers of
+  `isqrt(effective_points * giver_weight)`)^2. Giver weight is the
+  giver's standing; every member starts at 100. Standing never changes
+  in this version (no standing-update rule was specified).
+- Payouts are proportional to score, capped at 25% of the envelope per
+  member. Capped surplus is redistributed water-filling style to
+  uncapped members in score order; the payout sum never exceeds the
+  envelope and integer-division dust stays in the contract.
+- Ownership units (stretch): at each settle, existing units decay 10%
+  (x9/10), then new units are minted equal to the payout share in basis
+  points of the envelope (a capped 25% payout mints 2500 units). Units
+  are non-transferable — there is no transfer method.
+
+### Worked settlement example (verified by an independent Python model)
+
+Envelope 100 NEAR, 6 members, no cap triggered. Scores (total 130468):
+
+| member | score | payout (yocto) |
+|---|---|---|
+| alice | 21904 | 16788791121194469141858540 |
+| bob | 16129 | 12362418370788239261734678 |
+| carol | 7569 | 5801422571051905448079222 |
+| dave | 29241 | 22412392310758193580034951 |
+| erin | 24649 | 18892755311647300487475856 |
+| frank | 30976 | 23742220314559892080816752 |
+
+Payouts sum to envelope minus 1 yocto dust. Full contribution table is
+in the `worked_example_settlement_math` test comment in `lib.rs`.
+
+## Tests
+
+`cargo test --offline` in `contract/`: **31 passed, 0 failed** (suite
+takes ~60–80 s, dominated by the 200-round property test). 24 from the
+first build, 7 new DAO membership tests:
+
+- DAO: member can allocate after a policy sync; non-member cannot;
+  role removal blocks allocation in a later round; live role check
+  caches true/false; failed sync keeps the existing set; owner-only
+  `set_dao_id` / `set_member_role` (and non-owner rejected).
+- Validation: self-allocation, <3 recipients, >100 points, empty reason,
+  reason >200 chars, 0 points, duplicate recipient, non-member — all
+  rejected; re-submission replaces.
+- Worked example above, exact scores + exact payouts + explanation
+  spot-checks.
+- Reciprocity: same 50 points one-way scores 4900, mutual scores 2500.
+- 25% cap: an 8-member round where one member's raw share is 79.05%
+  pays exactly 25 NEAR; others below cap; sum = envelope − 2 yocto.
+- Double settle rejected; settle before deadline without close rejected;
+  settle after deadline without close works; allocate after settle
+  rejected; non-owner create/add-member rejected; wrong deposit rejected.
+- Property (a): a 3-person collusion ring earns 3.506716981132075471
+  NEAR each vs the same trio allocating honestly earning 15 NEAR each
+  (capped). Note the model: outsiders give to members who give to them,
+  so the ring starves itself of distinct givers while the honest trio is
+  fed by six. With outsider behaviour held fixed, a ring that only feeds
+  itself would capture more, not less — the anti-collusion property
+  holds under reciprocal outsider behaviour, and the test documents that
+  assumption.
+- Property (b): 200 random rounds (deterministic LCG, fixed seed) —
+  payout sums never exceed the envelope and no payout exceeds the cap.
+- Stretch: units minted on settle (2500 / 2090 / 963 / 428 / 0),
+  10% decay + re-mint on a second settle (a: 4750), `distribute_inflow`
+  pro-rata (10 NEAR over 9997 units).
+
+## Wasm
+
+- Built with `cargo build --target wasm32-unknown-unknown --release`
+  (offline). `cargo near build` was tried first but refuses without a
+  TTY ("The input device is not a TTY"); no ABI file was generated.
+- `fairshare_round.wasm`: **484,794 bytes** (release, `opt-level = "z"`,
+  LTO). Zero build warnings. Larger than the first build's 414,082 bytes
+  because of the DAO policy parsing and promise code. sha256
+  `ac6216949e3e8bf6590d1dc580453d178341b4a13348c2f424e6b23b36c38e08`.
+
+## What is real vs simulated
+
+- Real: escrow (attached deposit == envelope), allocation validation,
+  deterministic settlement math, cap + redistribution, payout transfers,
+  stored explanations, ownership units + inflow distribution, AND DAO
+  membership — `sync_dao_members` / `get_dao_role` read the Sputnik DAO
+  `get_policy` live cross-contract; the demo round used that path, not
+  `add_member`. All proven live on testnet (see below and DEMO_LOG.md).
+- Simulated / local-testing only: `add_member` (owner-seeded members,
+  kept as a testing fallback); the site's simulated demo round and
+  Attack Lab.
+- Standing is stored and readable but never updated (starts 100 for
+  everyone); no standing-update rule was specified.
+- No GitHub push. The repo https://github.com/fairshare54/fairshare
+  exists (public, empty); nothing pushed yet.
+
+## Sputnik DAO — DONE 2026-11-08 (phase 2)
+
+Full record: `dao-log.json`, `DEMO_LOG.md`.
+
+- DAO: `fairshare-dao.testnet`, name `fairshare`, council = the 6 demo
+  members, default policy (everyone can add proposals, council 1/2 vote,
+  1 NEAR proposal bond, 7-day proposal period).
+- Deploy tx `23KcWfmQD2cu6nBJkx1yAoWk8istBR75omCzXVfZUDnv`, init tx
+  `DV39wdiRmhgLAwZ2TCtZncR8RVMhQQ8iPy7jHd2YyYug` — both FINAL.
+- The DAO wasm was read on-chain from `genesis.sputnikv2.testnet`
+  (469,723 bytes, sha256
+  `6e3f1814d40769d8f57b9a7af689d22aaab96d3232cec4d861311829c1d2318f`),
+  because the live testnet factory is `sputnikv2.testnet` and it only
+  creates DAOs as its own subaccounts (`<name>.sputnikv2.testnet`) — it
+  cannot create the top-level name `fairshare-dao.testnet`. Deploying the
+  real Sputnik DAO v2 contract directly to the top-level account is the
+  documented way to get that exact id.
+- `get_policy` verified live: council role group is exactly the 6 demo
+  members; `get_config` name is `fairshare`.
+
+## Testnet deploy + live demo round — DONE 2026-11-08 (phase 2)
+
+Full record: `DEMO_LOG.md`, `deploy-log.json`, `demo-log.json`.
+
+- Contract: `fairshare-contract.testnet`; owner
+  `fairshare-owner.testnet`; DAO `fairshare-dao.testnet`.
+- Deploy tx `oSzFtcQUxoV6vYvQAnwEyJgfWcPSk2XYXyhMJw81zFx`, init tx
+  `CJfuyLv5J42iuBCMtx4EQh5Cb63BCNxDgTMupZuZHBL7` — both FINAL.
+  `get_params` and `get_dao_info` verified live.
+- Demo round 1, 5 NEAR envelope, 6 demo members, membership from the
+  DAO council via `sync_dao_members` (tx
+  `CihwgreGNAYuWyb6pRRbWRy6oUyHRwx5vPWJW3DEBJcs`), live role check via
+  `get_dao_role` (tx
+  `BN2XZU12x2mWvJNfy8WHecRLT48J5ehyrMisL7WD32vX`, alice cached
+  `live_check: true`). Settled: tx
+  `2MUqHsLbbMcZGsneNnBBTinUfPXXJwdoRnJjwzxhpJYu` (FINAL). Scores matched
+  the worked example exactly (total 130468); payouts summed to
+  envelope minus 3 yocto; every member's balance rose by payout minus
+  ~0.0002 NEAR gas — transfers verified onchain.
+- Accounts were fresh, created via the testnet helper faucet (10 NEAR
+  each); keys only in `.testnet-fairshare-accounts.json` (chmod 600,
+  gitignored).
+- fastnear RPC can lag finality a few seconds; the demo script polls
+  views and is resumable/idempotent.
+
+## What remains
+
+- GitHub push and hackathon submission — need Isaiah's separate
+  explicit approval; not done here. Repo exists, empty.
+- A live round with real people — needs Isaiah's approval.
+- Lead question: FairShare is the fourth project (Genesis, PAC,
+  VeilProof, FairShare); one person can lead at most 2, so it needs a
+  different lead or Genesis to wait.
+
+## History — first build as Egbe (superseded, kept for the record)
+
+- Contract `egbe-contract.testnet` (owner `egbe-owner.testnet`,
+  planned DAO id `egbe-dao.testnet`, never created). Wasm
+  `egbe_round.wasm`, 414,082 bytes. Deploy tx
+  `8MgasF8FP1Tv4YebR9Y2ks5RgwffkwnE6dNkmYgZaHy1`, init tx
+  `E7pDbVrhm4sM3PYVStD4uLpgo9N9ah3yF7FvA46ABHkh`. Demo round 1 settled
+  tx `DA2DciS2KXhcsinnHZParpDTRcvZBmgKB4PpKJLdiEMr`, same worked-example
+  scores/payouts. Membership was owner-seeded (`add_member`);
+  `get_dao_role` returned a stored note and made no live Sputnik call.
+  That contract is left untouched on testnet.
+- One burned name: `egbe-round.testnet` (key lost in the first script
+  run before it was written to disk); the contract account was
+  `egbe-contract.testnet` instead. Do not use `egbe-round.testnet`.
+- Old keys remain in `.testnet-accounts.json` (chmod 600, gitignored);
+  new keys are in `.testnet-fairshare-accounts.json`.

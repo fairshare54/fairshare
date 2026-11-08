@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FairShare: Ownership you earn, not buy</title>
+<style>
+  :root { --bg:#0a0e14; --panel:#111827; --line:#1f2937; --text:#e5e7eb; --muted:#9ca3af; --gold:#e3a008; --green:#22c55e; --red:#ef4444; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,sans-serif; line-height:1.5; }
+  header { padding:16px 20px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; }
+  .logo { font-size:22px; font-weight:800; } .logo span { color:var(--gold); }
+  .net { color:var(--muted); font-size:13px; }
+  main { max-width:900px; margin:0 auto; padding:20px; }
+  .hero h1 { font-size:30px; margin:8px 0; }
+  .kicker { color:var(--gold); font-size:13px; letter-spacing:.08em; text-transform:uppercase; margin:0; }
+  .lede { color:var(--muted); }
+  .panel { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:16px; margin:18px 0; }
+  .panel h2 { margin:0 0 8px; font-size:18px; }
+  .panel h3 { margin:14px 0 6px; font-size:15px; }
+  .badge { display:inline-block; background:#7c2d12; color:#fdba74; border-radius:6px; padding:2px 8px; font-size:12px; font-weight:700; letter-spacing:.05em; }
+  .badge.live { background:#14532d; color:#86efac; }
+  button { background:var(--gold); color:#111; border:0; border-radius:8px; padding:10px 14px; font-weight:700; cursor:pointer; margin:4px 4px 4px 0; }
+  button.secondary { background:#1f2937; color:var(--text); }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  select { background:#0d1420; color:var(--text); border:1px solid var(--line); border-radius:8px; padding:10px; margin:4px 4px 4px 0; max-width:320px; }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  th, td { text-align:left; padding:8px 6px; border-bottom:1px solid var(--line); }
+  .ok { color:var(--green); } .bad { color:var(--red); }
+  .muted { color:var(--muted); font-size:13px; }
+  code { background:#0d1420; padding:2px 6px; border-radius:6px; font-size:13px; }
+  footer { color:var(--muted); font-size:12px; padding:20px; text-align:center; }
+  ol.steps li { margin:6px 0; }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">FairShare <span>◆</span></div>
+  <div class="net">NEAR testnet · Social Money · <span id="modeLabel">SIMULATED demo</span></div>
+</header>
+<main>
+  <div class="hero">
+    <p class="kicker">Peer allocation of credit</p>
+    <h1>FairShare: ownership you earn, not buy</h1>
+    <p class="lede">Bounties pay for work you can specify in advance. Communities run on work you cannot specify in advance: hosting, moderating, mentoring, showing up. FairShare lets a group fund that work together. A Sputnik DAO funds a round, members give each other points for the work they saw, and the contract settles payouts onchain, with every payout explainable.</p>
+    <p class="muted">Testnet only. This page runs in simulated demo mode until a real testnet contract is linked below. No wallet is connected here and no funds can move from this page.</p>
+  </div>
+
+  <section class="panel">
+    <h2>How it works</h2>
+    <ol class="steps">
+      <li><b>Shared budget.</b> A Sputnik DAO funds a round with one envelope. In the demo the envelope is 10 NEAR.</li>
+      <li><b>Peer allocation.</b> Every member gets 100 points and gives them to at least 3 other members, with a short reason for each gift. You cannot point at yourself, and you cannot spend points you do not have. One submission per member; sending again replaces the old one.</li>
+      <li><b>Settlement.</b> The contract turns points into payouts. A score rewards breadth: points from many distinct givers count for more than the same points from one giver. Each giver's weight is their standing, which starts at 100 for everyone. Mutual giving is discounted by half, and nobody takes more than 25% of the envelope. A round settles only after 7 days, or after the owner closes it early.</li>
+      <li><b>Explain.</b> Anyone can ask the contract why a member was paid what they were paid, giver by giver, discount by discount.</li>
+      <li><b>Ownership.</b> Settling mints ownership units in proportion to each payout, and older units fade by 10% each round. When rental income lands in the treasury, distribute_inflow shares it out in proportion to units. Ownership grows out of work, not out of buying in.</li>
+    </ol>
+    <p class="muted">Round rules: 100 points per member · at least 3 recipients · cap 25% of the envelope · reciprocity discount 50% · giver weight is standing, starting at 100 · round lasts 7 days unless the owner closes it early.</p>
+  </section>
+
+  <section class="panel" id="demoPanel">
+    <h2>Demo round: the freezer cooperative <span class="badge">SIMULATED</span></h2>
+    <p>Five members run one shared chest freezer. Rental income lands in the treasury as a plain deposit. This round pays them for running it. The allocations below are already in. Press Settle to run the same settlement maths the contract runs.</p>
+    <h3>Members</h3>
+    <table><thead><tr><th>Member</th><th>Role</th><th>Points</th></tr></thead><tbody id="memberBody"></tbody></table>
+    <h3>Allocations in this round</h3>
+    <table><thead><tr><th>From</th><th>To</th><th>Points</th><th>Reason</th></tr></thead><tbody id="allocBody"></tbody></table>
+    <div style="margin-top:12px;">
+      <button id="settleBtn">Settle this round</button>
+    </div>
+    <div id="settleResult" style="display:none;">
+      <h3>Settlement: envelope 10 NEAR</h3>
+      <table><thead><tr><th>Member</th><th>Score</th><th>Raw payout</th><th>Capped?</th><th>Payout</th></tr></thead><tbody id="settleBody"></tbody></table>
+      <p class="muted" id="settleNote"></p>
+    </div>
+    <div id="explainPanel" style="display:none;">
+      <h3>Explain my payout</h3>
+      <select id="explainSelect"></select>
+      <table><thead><tr><th>From</th><th>Points</th><th>Discount</th><th>Effective</th><th>Root part</th><th>Reason</th></tr></thead><tbody id="explainBody"></tbody></table>
+      <p class="muted" id="explainNote"></p>
+    </div>
+  </section>
+
+  <section class="panel" id="labPanel">
+    <h2>Attack Lab <span class="badge">SIMULATED</span></h2>
+    <p>What happens when three people form a collusion ring and point only at each other? Run it and see. This is the contract property test property_collusion_ring_earns_less_than_honest, run here with the same settlement maths as the demo round.</p>
+    <p class="muted">The two rounds share the same 9 people and the same 60 NEAR envelope. In the ring round Ada, Ben and Cara help only each other, so the other six point at each other, because the trio did no work for them. In the honest round the same three people help distinct outsiders, and every outsider points back at the trio, so the trio is fed by six distinct givers.</p>
+    <div><button id="labBtn">Run the ring vs honest comparison</button></div>
+    <div id="labResult" style="display:none;">
+      <h3>Ring round</h3>
+      <table><thead><tr><th>Member</th><th>Score</th><th>Payout</th></tr></thead><tbody id="labRingBody"></tbody></table>
+      <h3>Honest round</h3>
+      <table><thead><tr><th>Member</th><th>Score</th><th>Payout</th></tr></thead><tbody id="labHonestBody"></tbody></table>
+      <div id="labVerdict"></div>
+    </div>
+  </section>
+
+  <section class="panel" id="livePanel">
+    <h2>Live mode <span class="badge" id="liveBadge">OFF</span></h2>
+    <p id="liveStatus">Live mode is off. No contract is linked yet, so the page runs in simulated demo mode only. Nothing here can move funds.</p>
+    <p class="muted">Live contract: <code id="liveContractId">not deployed yet</code></p>
+    <p class="muted" id="liveState"></p>
+    <h3>The live flow, when a contract is linked</h3>
+    <ol class="steps">
+      <li><b>Connect a NEAR wallet.</b> Testnet only. The wallet connection is not wired in this build, so this step cannot run from this page yet.</li>
+      <li><b>Create and fund a round.</b> A Sputnik DAO proposes a FunctionCall to <code>create_round</code> with the envelope attached. Only the owner or the DAO can call it. The DAO votes, and the proposal executes.</li>
+      <li><b>Allocate.</b> Each member calls <code>allocate</code> with their points and reasons. One submission per member; sending again replaces the old one.</li>
+      <li><b>Settle.</b> Anyone calls <code>settle_round</code> once the 7 day deadline passes or the owner closes the round early. The contract pays each member from the envelope and the round closes.</li>
+    </ol>
+    <h3>Contract methods</h3>
+    <table>
+      <thead><tr><th>Method</th><th>Kind</th><th>What it does</th></tr></thead>
+      <tbody>
+        <tr><td><code>new(owner_id, dao_id)</code></td><td>init</td><td>Sets the owner and the Sputnik DAO that funds rounds</td></tr>
+        <tr><td><code>create_round(round_id, envelope_yocto)</code></td><td>call, payable</td><td>Opens a round with the attached envelope; only the owner or the DAO can call it</td></tr>
+        <tr><td><code>allocate(round_id, allocations)</code></td><td>call</td><td>Records one member's points, each with a to, points and reason</td></tr>
+        <tr><td><code>close_round(round_id)</code></td><td>call</td><td>Owner closes a round early so it can settle before the deadline</td></tr>
+        <tr><td><code>settle_round(round_id)</code></td><td>call</td><td>Settles the round and pays each member from the envelope</td></tr>
+        <tr><td><code>distribute_inflow(amount)</code></td><td>call, payable</td><td>Shares an inflow, like freezer rent, in proportion to ownership units</td></tr>
+        <tr><td><code>sync_dao_members()</code></td><td>call</td><td>Reads the DAO council live and mirrors it into the member set; anyone can call it</td></tr>
+        <tr><td><code>get_dao_role(account)</code></td><td>call</td><td>Live check: reads the DAO policy and returns whether the account is in the role right now</td></tr>
+        <tr><td><code>get_cached_dao_role(account)</code></td><td>view</td><td>The last synced DAO membership state for one account</td></tr>
+        <tr><td><code>get_dao_info()</code></td><td>view</td><td>The DAO id, the member role, the member count, and the last sync time</td></tr>
+        <tr><td><code>add_member(member)</code></td><td>call</td><td>Owner seeds a member for local testing only; production membership comes from the DAO</td></tr>
+        <tr><td><code>get_round(round_id)</code></td><td>view</td><td>Round state, envelope and status</td></tr>
+        <tr><td><code>get_allocations(round_id)</code></td><td>view</td><td>Every allocation in the round</td></tr>
+        <tr><td><code>explain_payout(round_id, account)</code></td><td>view</td><td>One member's payout broken down by giver</td></tr>
+        <tr><td><code>get_payouts(round_id)</code></td><td>view</td><td>Every payout in the round</td></tr>
+        <tr><td><code>get_members()</code></td><td>view</td><td>Members of the round</td></tr>
+        <tr><td><code>get_standing(account)</code></td><td>view</td><td>One member's standing, which is their giver weight</td></tr>
+        <tr><td><code>get_units(account)</code></td><td>view</td><td>Ownership units held by one member</td></tr>
+        <tr><td><code>get_params()</code></td><td>view</td><td>Round rules: 100 points, at least 3 recipients, cap 25%, discount 50%, 7 day round, standing starts at 100</td></tr>
+      </tbody>
+    </table>
+    <p class="muted">Payouts leave the contract by ordinary Transfer from the round envelope. Trezu was not verified to drive payouts, so no Trezu step is claimed here. The fallback is ordinary Transfer proposals through the DAO.</p>
+  </section>
+
+  <section class="panel">
+    <h2>Honest limits</h2>
+    <ol class="steps">
+      <li>Peer allocation is not new. Coordinape did a version of it, and square root weighting comes from quadratic funding. FairShare adds deterministic onchain settlement, an explainable payout, and a cap.</li>
+      <li>Collusion is made costly, not impossible. The Attack Lab shows a closed ring earning less. If the whole round colludes, the maths cannot save it.</li>
+      <li>Popularity bias remains. Well liked members attract points. The cap and the square root soften it. They do not remove it.</li>
+      <li>Sybil resistance comes from DAO member curation. The contract cannot tell a real member from a second account. The DAO decides who is a member.</li>
+      <li>Membership in production is a Sputnik DAO role read across contracts. The contract mirrors the DAO council into its member set with sync_dao_members, and get_dao_role checks one account live against the DAO policy.</li>
+      <li>Whole number division leaves a few yocto in the contract after each settle. That dust stays there.</li>
+      <li>Sputnik decides approval by proposal kind and role, never by amount. A small proposal from the wrong role still fails, and a large proposal from the right role still passes.</li>
+      <li>The contract cannot see physical work. It never claims to verify that a freezer was cleaned or a stall was run. It settles what members said about each other, nothing more.</li>
+    </ol>
+  </section>
+</main>
+<footer>FairShare · NEAR testnet only · Social Money, NEAR Hackathon 2026 · Demo numbers on this page are simulated. Live state appears here only after a testnet contract is linked.</footer>
+<script src="app.js"></script>
+</body>
+</html>
