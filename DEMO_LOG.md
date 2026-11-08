@@ -655,6 +655,59 @@ every scenario, and no payout passes the 1.250 NEAR cap.
   with no error message; error message appears only when both fail.
   Existing `dom_test.js` suite still passes unchanged.
 
+## Charts and Your dashboard (2026-11-08)
+
+- Plain HTML bars, no chart library, dark theme, same as the rest of the
+  site. Every value comes from the recorded onchain numbers
+  (`demo-log.json`, the `LIVE_ROUND1` to `LIVE_ROUND4` records in
+  `site/app.js`) or a live RPC read; nothing is invented.
+- Rounds page, one payout bar chart per settled round (rounds 1 to 4):
+  a horizontal bar per member, scaled to 1.500 NEAR, with a dashed line
+  at the 1.250 NEAR cap. Capped bars are green and marked capped. Bars
+  in each chart sum to that round's payout total, checked by test.
+- Rounds page, standing chart: the 12 members on the council for rounds
+  2, 3, and 4, standing after round 3 (teal) and after round 4 (amber)
+  against the 100 line. The six round 4 members joined at 100 and stand
+  at 106 after round 4; clearsite587.testnet joined after round 4 at 100.
+- Attack Lab, scenario comparison: highest and lowest payout in each of
+  the five Fairness Stress Test scenarios, computed on page load with the
+  same `settle()` the scenario buttons use. Ring 0.527 to 1.139 NEAR,
+  popular 0.410 to 1.250, newcomer 0.469 to 1.250, all collude 0.833 to
+  0.833, unpopular 0.428 to 1.250. Values match the verified demo log.
+- Home page, FairShare at a glance: total paid 19.999 NEAR, 19 members,
+  4 rounds settled, DAO balance 40.150 NEAR, read live from the contract
+  and the DAO when the page loads, with the last verified numbers as
+  fallback. Stacked bar of the four 5 NEAR envelopes, 20.000 NEAR in
+  envelopes, 19.999 NEAR paid out.
+- Your dashboard (rounds page, wallet panel): for the connected member,
+  standing read live, total payouts across the settled rounds read live
+  with `get_payouts` per round, soulbound badge with standing at mint,
+  and, when a round is open, a stacked bar of the member's 100 points
+  split into assigned and unassigned, plus the list of who they gave
+  points to and why. When no round is open it says so and shows
+  standing, payouts, and badge. When not connected it shows the connect
+  prompt as before.
+- The header account button is now the profile button: when connected,
+  clicking it scrolls to the Your dashboard panel and highlights it; on
+  other pages it goes to `/rounds#walletPanel`. When not connected it
+  still starts the connect flow. Disconnecting is done from the
+  Disconnect button in the wallet panel.
+- Badge images: Isaiah changed his mind during this build and the images
+  stay. Every `<img>` that loads `/badge-3d.png` is untouched (large one
+  in the Council badges panel, small ones in the badge list rows, the one
+  in the Your wallet panel, and the one in Your dashboard). The PNG file
+  itself is being put into the repo separately.
+- Headless tests (`hidden_files/charts_test.js`): 31/31 pass — payout
+  bars sum to each round total, capped marks match the record, standings
+  match the round records, stress comparison matches the demo log,
+  home fallback totals, wallet points bar splits. Existing `dom_test.js`
+  suite still passes unchanged.
+- Caveat: no live browser check on a real phone was possible from this
+  session (headless Chromium refuses to start in the sandbox). Mobile
+  layout is by construction: chart rows are flex rows with fixed width
+  labels and a flexible track, so at 390px the track still has room and
+  nothing overflows. A real phone look is still worth one glance.
+
 ## History — first live demo (superseded, kept for the record)
 
 - Contract `egbe-contract.testnet`, owner `egbe-owner.testnet`,

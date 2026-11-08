@@ -48,6 +48,30 @@
   .govProp h3 { margin:0 0 4px; font-size:16px; }
   .govProp .votes { font-weight:700; }
   input[type="text"] { background:#0d1420; color:var(--text); border:1px solid var(--line); border-radius:8px; padding:10px; margin:4px 4px 4px 0; max-width:320px; width:100%; }
+  .prow, .srow { display:flex; align-items:center; gap:8px; margin:6px 0; }
+  .pname { width:64px; flex:none; font-size:14px; overflow-wrap:break-word; }
+  .ptrack, .strack { flex:1; height:14px; background:#1f2937; border-radius:7px; overflow:hidden; position:relative; }
+  .ptrack i { display:block; height:100%; background:var(--gold); }
+  .ptrack i.capped { background:var(--green); }
+  .captick { position:absolute; left:83.3%; top:0; bottom:0; border-left:2px dashed var(--green); }
+  .pval { width:150px; flex:none; text-align:right; font-size:13px; }
+  .strack { height:auto; background:none; overflow:visible; }
+  .sbar { display:block; height:8px; border-radius:4px; margin:2px 0; }
+  .sbar.r3 { background:#2dd4bf; }
+  .sbar.r4 { background:#f59e0b; }
+  .smark { position:absolute; left:50%; top:-2px; bottom:-2px; border-left:2px dashed var(--muted); }
+  .stackbar { display:flex; height:22px; border-radius:6px; overflow:hidden; margin:10px 0 4px; }
+  .stackbar i { display:block; height:100%; }
+  .stackbar i.assigned { background:#2dd4bf; }
+  .stackbar i.unassigned { background:#374151; }
+  .stackbar i.env { background:var(--gold); }
+  .stackbar i.env2 { background:#2dd4bf; }
+  .stackbar i.env3 { background:#22c55e; }
+  .stackbar i.env4 { background:#f59e0b; }
+  @media (max-width:640px) {
+    .pname { width:52px; font-size:13px; }
+    .pval { width:104px; font-size:12px; }
+  }
   @media (max-width:640px) {
     header { padding:12px 14px; gap:8px; }
     .logo { font-size:19px; }
@@ -102,6 +126,7 @@
       <p class="muted">Give your 100 points to at least 3 members, with a reason for each. Sending replaces any earlier submission you made in this round. The call is signed in your wallet; the site never sees your keys.</p>
       <div id="walletAllocateForm"></div>
     </div>
+    <div id="walletDashboard" style="display:none"></div>
   </section>
 
   <section class="panel" id="badgePanel">
@@ -123,6 +148,8 @@
       <thead><tr><th>Member</th><th>Score</th><th>Share of envelope</th><th>Payout</th></tr></thead>
       <tbody id="liveRoundBody"></tbody>
     </table>
+    <h3>Payout chart</h3>
+    <div id="chartRound1"><p class="muted">Loading the payout chart…</p></div>
     <p class="muted">Total score 130468. Payouts add to 4.999 NEAR. 3 yocto of dust stays in the contract. Frank earned the most, 1.187 NEAR, from 3 givers. Carol earned the least, 0.290 NEAR, from 3 givers. No member hit the 25% cap in this round; the highest raw share was 23.74%.</p>
     <h3>Explain my payout</h3>
     <p class="muted">Pick a member and see exactly how their score was built, giver by giver, from the contract record. This is the SourceCred idea applied to a round: click a person and see where every point of their score came from.</p>
@@ -143,6 +170,8 @@
       <thead><tr><th>Member</th><th>Score</th><th>Share of envelope</th><th>Capped?</th><th>Payout</th></tr></thead>
       <tbody id="liveRound2Body"></tbody>
     </table>
+    <h3>Payout chart</h3>
+    <div id="chartRound2"><p class="muted">Loading the payout chart…</p></div>
     <p class="muted">Total score 125923. Ibrahim earned the most by score, 36100, and Ada was second, 33489. Both were capped at 1.250 NEAR. Tunde earned the least, 0.298 NEAR, from 2 givers. The new members are Ibrahim, Fatima, Ada, Ngozi, Tunde, and Emeka, all on fairshare.testnet accounts.</p>
     <h3>Explain my payout, round 2</h3>
     <select id="liveExplain2Select"></select>
@@ -177,6 +206,8 @@
       </tbody>
     </table>
     <p class="muted">Total score 429829. Ada received points from 9 distinct givers, so she gained the capped +10. Tunde received points from 3 givers but submitted nothing, so he lost 5. Alice received points from nobody and submitted, so she stayed at 100. Every score was checked against an independent integer model before the settle was accepted.</p>
+    <h3>Payout chart</h3>
+    <div id="chartRound3"><p class="muted">Loading the payout chart…</p></div>
     <h3>The gates, proved live</h3>
     <p class="muted">Before the settle, Ada, standing 100, tried to close the round early. The call was rejected: closing early needs standing 150. After the settle, Tunde, standing 95, tried to propose a round. The call was rejected: proposing needs standing 100. No round 4 was created. Both rejections are failed receipts onchain; the contract code is built to abort on a failed check, so the receipt carries no message text, only the failed call and the unchanged state.</p>
   </section>
@@ -197,11 +228,19 @@
       </tbody>
     </table>
     <p class="muted">Total score 117945. Worked check, Kemi: Segun gave 40 points, discount 15, effective 25, root part 50. Zainab gave 35 points, discount 15, effective 20, root part 44. Chidi gave 25 points, no discount, effective 25, root part 50. Root parts add to 144. 144 squared is 20736, which is Kemi score. Her payout is 20736 divided by 117945 of 5 NEAR, which is 0.879 NEAR. Every score was checked against an independent integer model before the settle was accepted.</p>
+    <h3>Payout chart</h3>
+    <div id="chartRound4"><p class="muted">Loading the payout chart…</p></div>
     <h3>Transactions</h3>
     <p class="muted">Council adds, one proposal per person, each passed by strict majority: #8 Chidi <code>59GMPavYKdtpZE5ojfnbdVck8m3x5eSKeaeDWn8w2m3x</code> · #9 Amara <code>4sWyFWFxPfXNu3B6XbQgPE4eTnZ1zvGbcMGWYeSdW1LR</code> · #10 Segun <code>G8JRHXUgfSD3FZi8SS8HxAfhov3qxi3JcWqxAvwYoeNn</code> · #11 Kemi <code>HVxT35ryJhfDVHGDXji8gX3CjJtB8TBWUPSX4rSut6NH</code> · #12 Tobi <code>86Eq4QdkiwoWrjpUbKWqDpjUKi7tRKEYSfAtCtLPK5Py</code> · #13 Zainab <code>CsqEGAvSxQj61hDdPBvggSpWhMSTkzY2mmVwJv4RyxgC</code></p>
     <p class="muted">Funding proposal #14: <code>Dxx62Dnwa9NSRnwbU2TF1aPDxf22WTqonCNFUnLxnJ4R</code> · Sync DAO members: <code>8xekwzk8c9qFSvDSMVEDMAmynuCt3boTKG7kgB3U3mjw</code></p>
     <p class="muted">Allocations: Chidi <code>CYiorX3cLcrzMGL7RUYcJ4hJrskyHkbH1hcfAAXmVMed</code> · Amara <code>nSuTjYmWtqdTV6uYYUi6ukEbnmmQ9dGGYz3qnvDwu61</code> · Segun <code>62V4NdwSACMuigFjim77y6sTK5ByiMQC5imdV95a7QBG</code> · Kemi <code>HReBHJpRQpeT1VBj6JeLSUD4AhThqN7zb9pzeWQjtSJD</code> · Tobi <code>AG7CFbzp7gCpboVuX7nWANVKfx7VRBoiPJJnHZgRFU24</code> · Zainab <code>3qDLEUvNtKixiZ2tuhCjobASgTMCaZP3rHBvsjHXgrhS</code></p>
     <p class="muted">Close: <code>EpKcSvvB3t4eh7oVFe3bVLkGXHtQ2dHbi3pWLySo1DFg</code> · Settle: <code>AXBjLUKBCBL4NcVAFhcQPRqEyEsSFA6cB4UtLMbKCWjR</code></p>
+  </section>
+
+  <section class="panel" id="standings">
+    <h2>Standing across the rounds</h2>
+    <p>Standing is reputation that moves: plus 2 per distinct giver, capped at plus 10 a round, minus 5 for submitting nothing, floored at 50 and capped at 200. The chart shows the 12 members who were on the council for rounds 2, 3, and 4. Everyone stood at 100 after round 2, when the rule went live.</p>
+    <div id="standingsChart"><p class="muted">Loading the standing chart…</p></div>
   </section>
 
   <section class="panel" id="dao">

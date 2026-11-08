@@ -36,6 +36,18 @@
   footer { color:var(--muted); font-size:12px; padding:20px; text-align:center; }
   ol.steps li { margin:8px 0; }
   .verdict { background:var(--panel2); border:1px solid var(--line); border-radius:10px; padding:14px; margin-top:12px; }
+  .crow { display:flex; align-items:center; gap:8px; margin:6px 0; }
+  .cname { width:130px; flex:none; font-size:14px; overflow-wrap:break-word; }
+  .ctrack { flex:1; height:14px; background:#1f2937; border-radius:7px; overflow:hidden; position:relative; }
+  .ctrack i { display:block; height:100%; background:var(--gold); }
+  .ctrack i.hi { background:var(--green); }
+  .ctrack i.lo { background:#60a5fa; }
+  .cval { width:130px; flex:none; text-align:right; font-size:13px; }
+  .cgroup { margin:14px 0; }
+  @media (max-width:640px) {
+    .cname { width:104px; font-size:12px; }
+    .cval { width:104px; font-size:12px; }
+  }
   @media (max-width:640px) {
     header { padding:12px 14px; gap:8px; }
     .logo { font-size:19px; }
@@ -104,6 +116,9 @@
       <table><thead><tr><th>Member</th><th>Givers</th><th>Points received</th><th>Score</th><th>Raw payout</th><th>Capped</th><th>Payout</th><th>Standing</th></tr></thead><tbody id="stressResultBody"></tbody></table>
       <div id="stressVerdict" class="verdict"></div>
     </div>
+    <h3>All five scenarios, compared</h3>
+    <p class="muted">Highest and lowest payout in each scenario, same 5 NEAR envelope, same contract maths. The chart is computed when the page loads, so it always matches the tables above.</p>
+    <div id="stressCompare"><p class="muted">Loading the scenario comparison…</p></div>
   </section>
 
   <section class="panel" id="why">

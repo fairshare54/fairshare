@@ -35,6 +35,14 @@
   .linkcard h2 { margin:0 0 6px; font-size:18px; }
   .linkcard p { margin:0 0 10px; color:var(--muted); font-size:14px; }
   .muted { color:var(--muted); font-size:13px; }
+  .stackbar { display:flex; height:22px; border-radius:6px; overflow:hidden; margin:10px 0 4px; }
+  .stackbar i { display:block; height:100%; }
+  .stackbar i.env { background:var(--gold); }
+  .stackbar i.env2 { background:#2dd4bf; }
+  .stackbar i.env3 { background:#22c55e; }
+  .stackbar i.env4 { background:#f59e0b; }
+  .panel { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:16px; margin:18px 0; }
+  .panel h2 { margin:0 0 8px; font-size:20px; }
   footer { color:var(--muted); font-size:12px; padding:20px; text-align:center; }
   @media (max-width:640px) {
     header { padding:12px 14px; gap:8px; }
@@ -86,10 +94,23 @@
   </section>
   <p class="muted" id="statsNote">Numbers above are the last verified onchain state. The page reads fresh state from the contract when it loads; if the chain cannot be reached it says so below.</p>
 
+  <section class="panel" id="dashboard" aria-label="FairShare at a glance">
+    <h2>FairShare at a glance</h2>
+    <div class="stats">
+      <div class="stat"><b id="dashTotalPaid">19.999 NEAR</b><span>Total paid across all rounds</span></div>
+      <div class="stat"><b id="dashMembers">19</b><span>Members in the DAO</span></div>
+      <div class="stat"><b id="dashRounds">4</b><span>Rounds settled</span></div>
+      <div class="stat"><b id="dashDaoBalance">40.150 NEAR</b><span>DAO balance</span></div>
+    </div>
+    <div class="stackbar" role="img" aria-label="Four 5 NEAR envelopes, one per settled round"><i class="env" style="width:25%"></i><i class="env2" style="width:25%"></i><i class="env3" style="width:25%"></i><i class="env4" style="width:25%"></i></div>
+    <p class="muted">Round 1 · 5.000 NEAR &nbsp; Round 2 · 5.000 NEAR &nbsp; Round 3 · 5.000 NEAR &nbsp; Round 4 · 5.000 NEAR &nbsp; 20.000 NEAR in envelopes, 19.999 NEAR paid out, the rest is dust from integer division.</p>
+    <p class="muted" id="dashNote">Read live from the contract and the DAO just now.</p>
+  </section>
+
   <section class="links" aria-label="Explore FairShare">
     <div class="linkcard">
       <h2>Live rounds</h2>
-      <p>Round 1, round 2, and round 3, settled onchain, with every member, score, payout, and standing.</p>
+      <p>Four rounds settled onchain, with every member, score, payout, and standing.</p>
       <a href="/rounds">See the live rounds</a>
     </div>
     <div class="linkcard">

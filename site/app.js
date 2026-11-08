@@ -183,6 +183,86 @@ const LIVE_ROUND2 = {
   },
 };
 
+// ---- Live round 3, real onchain result ----
+// First round settled under the standing rule. Total score 429829,
+// payouts sum to the envelope minus 5 yocto. Ada capped at 1.250 NEAR.
+// Settle tx 7ZbAQganvPJKGHsQkUGYXE56tdvqLm9UM1CGRwcCkMWG, runbook
+// LIVE_ROUND.md.
+const LIVE_ROUND3 = {
+  roundId: 3,
+  envelopeYocto: "5000000000000000000000000",
+  totalPayoutYocto: "4999999999999999999999995",
+  totalScore: 429829,
+  settleTx: "7ZbAQganvPJKGHsQkUGYXE56tdvqLm9UM1CGRwcCkMWG",
+  members: [
+    { id: "ada-fairshare.testnet", name: "Ada", score: 272484, payoutYocto: "1250000000000000000000000", capped: true, standingBefore: 100, standingAfter: 110 },
+    { id: "emeka-fairshare.testnet", name: "Emeka", score: 29241, payoutYocto: "696900123931488131176713", capped: false, standingBefore: 100, standingAfter: 106 },
+    { id: "tunde-fairshare.testnet", name: "Tunde", score: 26244, payoutYocto: "625472687406654167593504", capped: false, standingBefore: 100, standingAfter: 95 },
+    { id: "fatima-fairshare.testnet", name: "Fatima", score: 21316, payoutYocto: "508023769423877466713273", capped: false, standingBefore: 100, standingAfter: 106 },
+    { id: "ibrahim-fairshare.testnet", name: "Ibrahim", score: 21316, payoutYocto: "508023769423877466713273", capped: false, standingBefore: 100, standingAfter: 106 },
+    { id: "ngozi-fairshare.testnet", name: "Ngozi", score: 21316, payoutYocto: "508023769423877466713273", capped: false, standingBefore: 100, standingAfter: 106 },
+    { id: "bob-fairshare.testnet", name: "Bob", score: 9604, payoutYocto: "228891925386888684101814", capped: false, standingBefore: 100, standingAfter: 104 },
+    { id: "carol-fairshare.testnet", name: "Carol", score: 8464, payoutYocto: "201722329911976866122215", capped: false, standingBefore: 100, standingAfter: 104 },
+    { id: "dave-fairshare.testnet", name: "Dave", score: 8464, payoutYocto: "201722329911976866122215", capped: false, standingBefore: 100, standingAfter: 104 },
+    { id: "frank-fairshare.testnet", name: "Frank", score: 8464, payoutYocto: "201722329911976866122215", capped: false, standingBefore: 100, standingAfter: 104 },
+    { id: "erin-fairshare.testnet", name: "Erin", score: 2916, payoutYocto: "69496965267406018621500", capped: false, standingBefore: 100, standingAfter: 102 },
+    { id: "alice-fairshare.testnet", name: "Alice", score: 0, payoutYocto: "0", capped: false, standingBefore: 100, standingAfter: 100 },
+  ],
+};
+
+// ---- Live round 4, real onchain result ----
+// Six new members, 5 NEAR envelope, total score 117945, payouts sum to
+// the envelope minus 3 yocto. No member hit the 25% cap; the highest raw
+// share was 17.58%. Settle tx AXBjLUKBCBL4NcVAFhcQPRqEyEsSFA6cB4UtLMbKCWjR.
+const LIVE_ROUND4 = {
+  roundId: 4,
+  envelopeYocto: "5000000000000000000000000",
+  totalPayoutYocto: "4999999999999999999999997",
+  totalScore: 117945,
+  settleTx: "AXBjLUKBCBL4NcVAFhcQPRqEyEsSFA6cB4UtLMbKCWjR",
+  members: [
+    { id: "kemi-fairshare.testnet", name: "Kemi", score: 20736, payoutYocto: "879053796260969095764975", capped: false, standingBefore: 100, standingAfter: 106 },
+    { id: "zainab-fairshare.testnet", name: "Zainab", score: 20736, payoutYocto: "879053796260969095764975", capped: false, standingBefore: 100, standingAfter: 106 },
+    { id: "tobi-fairshare.testnet", name: "Tobi", score: 19881, payoutYocto: "842808088515833651278138", capped: false, standingBefore: 100, standingAfter: 106 },
+    { id: "amara-fairshare.testnet", name: "Amara", score: 19600, payoutYocto: "830895756496672177709949", capped: false, standingBefore: 100, standingAfter: 106 },
+    { id: "chidi-fairshare.testnet", name: "Chidi", score: 18496, payoutYocto: "784094281232777989740980", capped: false, standingBefore: 100, standingAfter: 106 },
+    { id: "segun-fairshare.testnet", name: "Segun", score: 18496, payoutYocto: "784094281232777989740980", capped: false, standingBefore: 100, standingAfter: 106 },
+  ],
+};
+
+// Standing after each settled round, from the round records. The standing
+// rule went live with the fine tune, so rounds 1 and 2 left everyone at
+// 100. Round 3 moved the 12 members then on the council; round 4 moved
+// the six new members to 106 and cost the older twelve 5 each for
+// submitting nothing. The six round 4 members joined at 100, and
+// clearsite587.testnet joined after round 4 at 100.
+const STANDINGS_HISTORY = [
+  { id: "alice-fairshare.testnet", name: "Alice", after: { 2: 100, 3: 100, 4: 95 } },
+  { id: "bob-fairshare.testnet", name: "Bob", after: { 2: 100, 3: 104, 4: 99 } },
+  { id: "carol-fairshare.testnet", name: "Carol", after: { 2: 100, 3: 104, 4: 99 } },
+  { id: "dave-fairshare.testnet", name: "Dave", after: { 2: 100, 3: 104, 4: 99 } },
+  { id: "erin-fairshare.testnet", name: "Erin", after: { 2: 100, 3: 102, 4: 97 } },
+  { id: "frank-fairshare.testnet", name: "Frank", after: { 2: 100, 3: 104, 4: 99 } },
+  { id: "ada-fairshare.testnet", name: "Ada", after: { 2: 100, 3: 110, 4: 105 } },
+  { id: "emeka-fairshare.testnet", name: "Emeka", after: { 2: 100, 3: 106, 4: 101 } },
+  { id: "fatima-fairshare.testnet", name: "Fatima", after: { 2: 100, 3: 106, 4: 101 } },
+  { id: "ibrahim-fairshare.testnet", name: "Ibrahim", after: { 2: 100, 3: 106, 4: 101 } },
+  { id: "ngozi-fairshare.testnet", name: "Ngozi", after: { 2: 100, 3: 106, 4: 101 } },
+  { id: "tunde-fairshare.testnet", name: "Tunde", after: { 2: 100, 3: 95, 4: 90 } },
+];
+
+// Last verified totals for the home dashboard, used only when the live
+// read fails. Total paid is the sum of the four settled rounds
+// (4999999999999999999999997 + 4999999999999999999999997 +
+// 4999999999999999999999995 + 4999999999999999999999997 yocto).
+// DAO balance is the live total read 2026-11-08, 40.15 NEAR.
+const HOME_DASHBOARD_FALLBACK = {
+  totalPaidYocto: "19999999999999999999999986",
+  members: 19,
+  roundsSettled: 4,
+  daoBalanceYocto: "40150000000000000000000000",
+};
+
 // Integer square root (floor), same Newton iteration as the contract.
 function isqrt(n) {
   if (n <= 0) return 0;
@@ -831,6 +911,222 @@ function renderLiveExplain2() {
     " This explanation is the contract record for round 2, copied exactly from the onchain explain_payout result.";
 }
 
+// ---- Charts ----
+// Plain HTML bars, no chart library: they must work offline and on a
+// phone. Every value comes from the recorded onchain numbers above
+// (LIVE_ROUND1 to LIVE_ROUND4), the standing records, or the stress
+// test settle() results. Nothing here is invented.
+// Payout bars scale to 1.500 NEAR, so the 1.250 NEAR cap sits at 83.3%
+// of the track and is marked with a dashed tick in every row.
+const PAYOUT_CHART_SCALE_NEAR = 1.5;
+function payoutChartHtml(round) {
+  const rows = round.members.map((m) => {
+    const payout = BigInt(m.payoutYocto);
+    const pct = (Number(payout) / 1e24 / PAYOUT_CHART_SCALE_NEAR) * 100;
+    return "<div class=\"prow\" data-payout-yocto=\"" + m.payoutYocto + "\"><span class=\"pname\">" + m.name + "</span>" +
+      "<span class=\"ptrack\"><i style=\"width:" + pct.toFixed(1) + "%\" class=\"" + (m.capped ? "capped" : "") + "\"></i><span class=\"captick\"></span></span>" +
+      "<span class=\"pval\">" + fmtYocto(payout) + " NEAR" + (m.capped ? " · capped" : "") + "</span></div>";
+  }).join("");
+  return "<div class=\"pchart\" data-round=\"" + round.roundId + "\">" + rows + "</div>" +
+    "<p class=\"muted\">Bars scale to 1.500 NEAR. The dashed line is the 1.250 NEAR cap, the most any member can take from a 5 NEAR envelope. A green bar that reaches the line was capped; the excess flowed to the members below the cap. Payouts in this round add to " + fmtYocto(BigInt(round.totalPayoutYocto)) + " NEAR.</p>";
+}
+function renderPayoutCharts() {
+  const rounds = [LIVE_ROUND1, LIVE_ROUND2, LIVE_ROUND3, LIVE_ROUND4];
+  for (const r of rounds) {
+    const box = el("chartRound" + r.roundId);
+    if (box) box.innerHTML = payoutChartHtml(r);
+  }
+}
+
+// Standing across rounds 1 to 4, for the 12 members who were on the
+// council for rounds 2, 3, and 4. The standing rule went live with the
+// fine tune, so everyone stood at 100 after round 2; the chart shows
+// after round 3 (teal) and after round 4 (amber) against the 100 line.
+// The six round 4 members joined at 100 and stand at 106 after round 4;
+// clearsite587.testnet joined after round 4 at 100.
+function standingsChartHtml() {
+  const min = 85, max = 115;
+  const rows = STANDINGS_HISTORY.map((m) => {
+    const w3 = ((m.after[3] - min) / (max - min)) * 100;
+    const w4 = ((m.after[4] - min) / (max - min)) * 100;
+    return "<div class=\"srow\" data-member=\"" + m.id + "\" data-after-r3=\"" + m.after[3] + "\" data-after-r4=\"" + m.after[4] + "\"><span class=\"pname\">" + m.name + "</span>" +
+      "<span class=\"strack\"><span class=\"smark\"></span>" +
+      "<span class=\"sbar r3\" style=\"width:" + w3.toFixed(1) + "%\"></span>" +
+      "<span class=\"sbar r4\" style=\"width:" + w4.toFixed(1) + "%\"></span></span>" +
+      "<span class=\"pval\">" + m.after[3] + " to " + m.after[4] + "</span></div>";
+  }).join("");
+  return "<div class=\"schart\">" + rows + "</div>" +
+    "<p class=\"muted\">Teal: standing after round 3. Amber: standing after round 4. The dashed line is 100, the standing every member starts at. The six round 4 members joined at 100 and stand at 106 after round 4; clearsite587.testnet joined after round 4 at 100.</p>";
+}
+function renderStandingsChart() {
+  const box = el("standingsChart");
+  if (box) box.innerHTML = standingsChartHtml();
+}
+
+// Stress test comparison: highest and lowest payout in each of the five
+// scenarios, computed here with the same settle() the scenario buttons
+// use, so the chart can never disagree with the tables.
+function stressCompareData() {
+  return STRESS_SCENARIOS.map((sc) => {
+    const r = settle(sc.allocations, STRESS_MEMBERS, STRESS_ENVELOPE_NEAR, sc.standings);
+    let hi = null, lo = null;
+    for (const id of STRESS_MEMBERS) {
+      const p = r.per[id];
+      if (!hi || p.payoutYocto > hi.payoutYocto) hi = { id: id, payoutYocto: p.payoutYocto };
+      if (!lo || p.payoutYocto < lo.payoutYocto) lo = { id: id, payoutYocto: p.payoutYocto };
+    }
+    return { id: sc.id, title: sc.title, hi: hi, lo: lo };
+  });
+}
+function stressCompareHtml() {
+  const rows = stressCompareData().map((d) => {
+    const hiPct = (Number(d.hi.payoutYocto) / 1e24 / PAYOUT_CHART_SCALE_NEAR) * 100;
+    const loPct = (Number(d.lo.payoutYocto) / 1e24 / PAYOUT_CHART_SCALE_NEAR) * 100;
+    return "<div class=\"cgroup\" data-scenario=\"" + d.id + "\" data-hi-yocto=\"" + d.hi.payoutYocto.toString() + "\" data-lo-yocto=\"" + d.lo.payoutYocto.toString() + "\">" +
+      "<p><b>" + d.title + "</b></p>" +
+      "<div class=\"crow\"><span class=\"cname\">Highest · " + stressName(d.hi.id) + "</span>" +
+      "<span class=\"ctrack\"><i class=\"hi\" style=\"width:" + hiPct.toFixed(1) + "%\"></i></span>" +
+      "<span class=\"cval\">" + fmtYocto(d.hi.payoutYocto) + " NEAR</span></div>" +
+      "<div class=\"crow\"><span class=\"cname\">Lowest · " + stressName(d.lo.id) + "</span>" +
+      "<span class=\"ctrack\"><i class=\"lo\" style=\"width:" + loPct.toFixed(1) + "%\"></i></span>" +
+      "<span class=\"cval\">" + fmtYocto(d.lo.payoutYocto) + " NEAR</span></div></div>";
+  }).join("");
+  return rows + "<p class=\"muted\">Highest and lowest payout in each scenario, same 5 NEAR envelope, same contract maths. Bars scale to 1.500 NEAR. In the full collusion scenario the highest and the lowest are the same, 0.833 NEAR, because the ring keeps the whole envelope split evenly.</p>";
+}
+function renderStressCompare() {
+  const box = el("stressCompare");
+  if (box) box.innerHTML = stressCompareHtml();
+}
+
+// Home dashboard: totals read live from the contract and the DAO, with
+// the last verified numbers as fallback when the read fails.
+async function rpcAccountBalance(accountId) {
+  for (const url of RPC_ENDPOINTS) {
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jsonrpc: "2.0", id: "view_account", method: "query",
+          params: { request_type: "view_account", account_id: accountId, finality: "final" },
+        }),
+      });
+      if (!res.ok) throw new Error("RPC HTTP " + res.status);
+      const d = await res.json();
+      if (d.error) throw new Error("RPC error");
+      return BigInt(d.result.amount);
+    } catch (e) { /* try the next endpoint */ }
+  }
+  throw new Error("RPC read failed");
+}
+async function renderHomeDashboard() {
+  const total = el("dashTotalPaid");
+  if (!total) return; // only the home page has the dashboard
+  const note = el("dashNote");
+  try {
+    let paid = 0n, settled = 0;
+    for (let id = 1; id <= 4; id++) {
+      const r = await contractView("get_round", { round_id: id });
+      if (r && r.settled) { paid += BigInt(r.total_payout_yocto); settled++; }
+    }
+    const members = await contractView("get_members", {});
+    const daoBal = await rpcAccountBalance(DAO_ID);
+    total.textContent = fmtYocto(paid) + " NEAR";
+    el("dashMembers").textContent = String(members.length);
+    el("dashRounds").textContent = String(settled);
+    el("dashDaoBalance").textContent = fmtYocto(daoBal) + " NEAR";
+    if (note) note.textContent = "Read live from the contract and the DAO just now.";
+  } catch (e) {
+    total.textContent = fmtYocto(BigInt(HOME_DASHBOARD_FALLBACK.totalPaidYocto)) + " NEAR";
+    el("dashMembers").textContent = String(HOME_DASHBOARD_FALLBACK.members);
+    el("dashRounds").textContent = String(HOME_DASHBOARD_FALLBACK.roundsSettled);
+    el("dashDaoBalance").textContent = fmtYocto(BigInt(HOME_DASHBOARD_FALLBACK.daoBalanceYocto)) + " NEAR";
+    if (note) note.textContent = "The live read failed just now; these are the last verified numbers.";
+  }
+}
+
+// Your dashboard: the connected member's own numbers. Standing and badge
+// are read live; total payouts are the sum of this account's payouts in
+// the four settled rounds, read live with get_payouts. When a round is
+// open, the stacked bar shows the member's 100 points split into
+// assigned and unassigned, from their current submission, and the list
+// shows who they gave points to and why. The badge picture is shown
+// with the badge line, as in the wallet panel.
+function walletPointsBarHtml(assigned) {
+  const a = Math.max(0, Math.min(100, assigned || 0));
+  return "<div class=\"stackbar\" role=\"img\" aria-label=\"" + a + " of 100 points assigned\"><i class=\"assigned\" style=\"width:" + a + "%\"></i><i class=\"unassigned\" style=\"width:" + (100 - a) + "%\"></i></div>" +
+    "<p class=\"muted\">" + a + " points assigned · " + (100 - a) + " points unassigned.</p>";
+}
+async function renderWalletDashboard() {
+  const box = el("walletDashboard");
+  if (!box || !walletAccountId) { if (box) box.style.display = "none"; return; }
+  if (walletMembers.indexOf(walletAccountId) < 0) { box.style.display = "none"; return; }
+  box.style.display = "block";
+  let standing = "?";
+  try { standing = await contractView("get_standing", { account_id: walletAccountId }); } catch (_) { /* keep ? */ }
+  let badge = null;
+  try { badge = await badgeView("get_badge", { account_id: walletAccountId }); } catch (_) { badge = null; }
+  let total = 0n;
+  const perRound = [];
+  let payoutsOk = true;
+  for (let id = 1; id <= 4; id++) {
+    try {
+      const ps = await contractView("get_payouts", { round_id: id });
+      const mine = (ps || []).find((p) => p.account_id === walletAccountId);
+      const y = mine ? BigInt(mine.payout_yocto) : 0n;
+      perRound.push({ round: id, yocto: y });
+      total += y;
+    } catch (_) { payoutsOk = false; perRound.push({ round: id, yocto: null }); }
+  }
+  const open = walletOpenRound;
+  let allocHtml = "";
+  let assigned = 0;
+  if (open) {
+    let mine = [];
+    try {
+      const subs = await contractView("get_allocations", { round_id: open.id });
+      const sub = (subs || []).find((s) => (s.account_id || s.member || s.giver) === walletAccountId);
+      if (sub && sub.allocations) mine = sub.allocations;
+    } catch (_) { /* no submission yet */ }
+    assigned = mine.reduce((s, a) => s + (a.points || 0), 0);
+    allocHtml = mine.length === 0
+      ? "<p class=\"muted\">You have not assigned any points in round " + open.id + " yet. Use the allocate form below.</p>"
+      : "<h3>Your allocations in round " + open.id + "</h3>" + mine.map((a) =>
+        "<p><b>" + a.to + "</b> · " + a.points + " points · &ldquo;" + escapeHtml(a.reason || "") + "&rdquo;</p>"
+      ).join("");
+  }
+  box.innerHTML = "<h3>Your dashboard</h3>" +
+    "<p>Connected as <b>" + walletAccountId + "</b> · Standing <b>" + standing + "</b>" +
+    (badge ? "<br><img src=\"/badge-3d.png\" alt=\"FairShare council badge\" style=\"width:80px;height:80px;margin-top:8px;border-radius:10px\"> Council badge, soulbound, standing <b>" + badge.standing + "</b> at mint." : "") + "</p>" +
+    "<p>Total payouts across the settled rounds: <b>" + (payoutsOk ? fmtYocto(total) + " NEAR" : "could not be read just now") + "</b></p>" +
+    (payoutsOk ? "<p class=\"muted\">" + perRound.map((r) => "Round " + r.round + ": " + fmtYocto(r.yocto) + " NEAR").join(" · ") + "</p>" : "") +
+    (open
+      ? "<h3>Your 100 points, round " + open.id + "</h3><div id=\"walletDashBar\">" + walletPointsBarHtml(assigned) + "</div>" + allocHtml
+      : "<p class=\"muted\">No round is open right now, so no points are available to assign. Your standing, payouts, and badge above are current.</p>");
+}
+function updateWalletDashBar() {
+  const bar = el("walletDashBar");
+  if (bar) bar.innerHTML = walletPointsBarHtml(walletFormTotal());
+}
+function highlightWalletPanel() {
+  const panel = el("walletPanel");
+  if (!panel || !panel.style) return;
+  panel.style.outline = "2px solid #e3a008";
+  panel.style.outlineOffset = "2px";
+  if (typeof setTimeout !== "undefined") {
+    setTimeout(() => { panel.style.outline = ""; panel.style.outlineOffset = ""; }, 3000);
+  }
+}
+function openDashboardFromHeader() {
+  const panel = el("walletPanel");
+  if (panel) {
+    if (typeof panel.scrollIntoView === "function") panel.scrollIntoView();
+    highlightWalletPanel();
+  } else if (typeof window !== "undefined" && window.location) {
+    window.location.href = "/rounds#walletPanel";
+  }
+}
+
 function runAttackLab() {
   const ring = settle(LAB_RING, LAB_MEMBERS, LAB_ENVELOPE_NEAR);
   const honest = settle(LAB_HONEST, LAB_MEMBERS, LAB_ENVELOPE_NEAR);
@@ -1047,23 +1343,18 @@ function refreshWalletBtn() {
   try { fastnear(); } catch (_) { libOk = false; }
   if (!libOk) { btn.textContent = "Wallet unavailable"; btn.disabled = true; return; }
   const id = walletAccountId;
-  btn.textContent = id ? id + " (sign out)" : "Connect wallet";
+  btn.textContent = id ? id : "Connect wallet";
+  if (btn.title !== undefined) btn.title = id ? "Open your dashboard" : "";
   btn.disabled = false;
 }
 async function toggleWallet() {
   let nw;
   try { nw = fastnear(); } catch (_) { walletStatus("Wallet library did not load. Check your connection and reload."); return; }
+  // When connected, this button is the profile button: it opens the
+  // member's dashboard. Disconnecting is done from the Disconnect button
+  // in the wallet panel. When not connected, it starts the connect flow.
+  if (walletAccountId) { openDashboardFromHeader(); return; }
   try {
-    if (walletAccountId) {
-      try { await nw.disconnect({ network: NETWORK }); } catch (_) {}
-      walletAccountId = null;
-      walletOpenRound = null;
-      refreshWalletBtn();
-      refreshWalletPanel();
-      refreshGovPanel();
-      walletStatus("Signed out. Connect your testnet wallet to see your membership and standing.");
-      return;
-    }
     walletStatus("Opening wallet selector…");
     const result = await nw.connect({ network: NETWORK });
     const id = (result && typeof result.accountId === "string" && result.accountId) || currentAccountId(nw);
@@ -1122,6 +1413,7 @@ function walletFormTotal() {
 function walletUpdateTotal() {
   const s = el("walletTotal");
   if (s) s.textContent = "You have given " + walletFormTotal() + " of your 100 points.";
+  updateWalletDashBar();
 }
 
 async function refreshWalletPanel() {
@@ -1158,6 +1450,7 @@ async function refreshWalletPanel() {
     if (!isMember) {
       walletStatus("This account is not a member yet, so it cannot allocate. Membership comes from a DAO proposal; see the governance section below.");
       if (allocBox) allocBox.style.display = "none";
+      renderWalletDashboard();
       return;
     }
     const open = await findOpenRound();
@@ -1165,6 +1458,7 @@ async function refreshWalletPanel() {
     if (!open) {
       walletStatus("No round is open right now. Your standing is " + standing + ". When a round opens, your allocate form appears here.");
       if (allocBox) allocBox.style.display = "none";
+      renderWalletDashboard();
       return;
     }
     if (allocBox) {
@@ -1212,6 +1506,7 @@ async function refreshWalletPanel() {
         else walletStatus("Round " + open.id + " is open. Give your 100 points below and send them with your wallet.");
       }
     }
+    renderWalletDashboard();
   } catch (e) {
     walletStatus("Could not read your membership just now: " + String(e.message).slice(0, 120));
   }
@@ -1913,12 +2208,23 @@ if (typeof document !== "undefined") {
     renderTryForm();
     renderLiveRound();
     renderLiveRound2();
+    renderPayoutCharts();
+    renderStandingsChart();
+    renderStressCompare();
+    renderHomeDashboard();
     renderLive();
     initWallet();
     refreshGovPanel();
     refreshBadgePanel();
     renderMonitorStatic();
     refreshMonitorPanel();
+    if (typeof window !== "undefined" && window.location && window.location.hash === "#walletPanel") {
+      const p = el("walletPanel");
+      if (p) {
+        if (typeof p.scrollIntoView === "function") p.scrollIntoView();
+        highlightWalletPanel();
+      }
+    }
     const govBtn = el("govProposeBtn");
     if (govBtn) govBtn.addEventListener("click", govProposeAdd);
     const settleBtn = el("settleBtn");
@@ -1939,5 +2245,5 @@ if (typeof document !== "undefined") {
 }
 
 if (typeof module !== "undefined") {
-  module.exports = { PARAMS, MEMBERS, ALLOCATIONS, ENVELOPE_NEAR, settle, effectivePoints, isqrt, fmtYocto, LAB_MEMBERS, LAB_TRIO, LAB_RING, LAB_HONEST, LAB_ENVELOPE_NEAR, LIVE_ROUND1, LIVE_ROUND2, CONTRACT_ID, DAO_ID, standingAfter, STRESS_MEMBERS, STRESS_NAMES, STRESS_SCENARIOS, STRESS_ENVELOPE_NEAR, runStressScenario, MONITOR_THRESHOLD, MONITOR_SYNCS, MONITOR_ADDS, MONITOR_REMOVALS, MONITOR_ACTIVITY, MONITOR_ALLOCATIONS, monitorMutualPairs, renderMonitorStatic, RPC_ENDPOINTS, rpcViewCall };
+  module.exports = { PARAMS, MEMBERS, ALLOCATIONS, ENVELOPE_NEAR, settle, effectivePoints, isqrt, fmtYocto, LAB_MEMBERS, LAB_TRIO, LAB_RING, LAB_HONEST, LAB_ENVELOPE_NEAR, LIVE_ROUND1, LIVE_ROUND2, LIVE_ROUND3, LIVE_ROUND4, STANDINGS_HISTORY, HOME_DASHBOARD_FALLBACK, CONTRACT_ID, DAO_ID, standingAfter, STRESS_MEMBERS, STRESS_NAMES, STRESS_SCENARIOS, STRESS_ENVELOPE_NEAR, runStressScenario, MONITOR_THRESHOLD, MONITOR_SYNCS, MONITOR_ADDS, MONITOR_REMOVALS, MONITOR_ACTIVITY, MONITOR_ALLOCATIONS, monitorMutualPairs, renderMonitorStatic, RPC_ENDPOINTS, rpcViewCall, payoutChartHtml, renderPayoutCharts, standingsChartHtml, renderStandingsChart, stressCompareData, stressCompareHtml, renderStressCompare, walletPointsBarHtml, renderWalletDashboard, openDashboardFromHeader, highlightWalletPanel, renderHomeDashboard, rpcAccountBalance };
 }
