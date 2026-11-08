@@ -259,7 +259,7 @@
 
   <section class="panel" id="gov">
     <h2>Governance, from this site</h2>
-    <p>Membership comes from a DAO proposal and a council majority. A connected council member can propose a new member and vote on open proposals right here. Anyone can read the proposals, connected or not. The list below is read live from the DAO every time this page loads.</p>
+    <p>Membership comes from a DAO proposal and a council majority. A connected council member can propose a new member, start a round, and vote on open proposals right here. Anyone can read the proposals, connected or not. The list below is read live from the DAO every time this page loads.</p>
     <p class="muted" id="govStatus">Reading open proposals from the DAO…</p>
     <div id="govProposals"></div>
     <div id="govPropose" style="display:none">
@@ -268,6 +268,11 @@
       <input type="text" id="govNewMember" maxlength="64" placeholder="newmember.testnet" aria-label="Account to add">
       <button id="govProposeBtn" type="button">Propose adding this member</button>
       <p class="muted" id="govProposeResult"></p>
+      <h3>Start a round</h3>
+      <p class="muted" id="govRoundNote">Reading the next round…</p>
+      <label>Envelope (NEAR) <input type="number" id="govRoundEnvelope" value="5" min="1" step="1" aria-label="Round envelope in NEAR"></label>
+      <button id="govRoundBtn" type="button">Propose starting the next round</button>
+      <p class="muted" id="govRoundResult"></p>
     </div>
   </section>
 
@@ -326,6 +331,6 @@
   <span>Round 1, 2, 3 and 4 are settled onchain.</span>
 </footer>
 <script src="fastnear-wallet.bundle.js"></script>
-<script src="app.js?v=7"></script>
+<script src="app.js?v=8"></script>
 </body>
 </html>

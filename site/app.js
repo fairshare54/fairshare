@@ -2049,6 +2049,34 @@ async function refreshGovPanel() {
       ? "No open proposals. The list above is fresh from the DAO."
       : open.length + " open proposal" + (open.length > 1 ? "s" : "") + ", fresh from the DAO. Threshold is " + govThreshold + " approvals.";
     if (form) form.style.display = govIsCouncilMember() ? "block" : "none";
+    // Start a round: show the next round number and the DAO balance, and
+    // disable the button while a round is open.
+    const roundNote = el("govRoundNote");
+    const roundBtn = el("govRoundBtn");
+    if (roundNote && roundBtn) {
+      try {
+        const openRound = await findOpenRound();
+        let nextId = 1;
+        for (let id = 20; id >= 1; id--) {
+          try {
+            const r = await contractView("get_round", { round_id: id });
+            if (r) { nextId = id + 1; break; }
+          } catch (_) { /* no round at this id */ }
+        }
+        const daoBal = await rpcAccountBalance(DAO_ID);
+        if (openRound) {
+          roundNote.textContent = "Round " + openRound.id + " is open. A new round can start after it closes or settles.";
+          roundBtn.disabled = true;
+        } else {
+          roundNote.textContent = "Next round: " + nextId + ". The DAO holds " + fmtYocto(daoBal) + " NEAR. The envelope comes from the DAO treasury; proposing costs a 1 NEAR bond, returned when the council approves.";
+          roundBtn.disabled = false;
+          roundBtn.textContent = "Propose starting round " + nextId;
+        }
+      } catch (_) {
+        roundNote.textContent = "Could not read the next round just now. Reload to try again.";
+        roundBtn.disabled = true;
+      }
+    }
   } catch (e) {
     if (status) status.textContent = "Could not read proposals just now: " + String(e.message).slice(0, 120) + ". Reload to try again.";
     if (form) form.style.display = "none";
@@ -2092,6 +2120,52 @@ async function govProposeAdd() {
   try {
     await walletCall(DAO_ID, "add_proposal", { proposal: { description: description, kind: kind } }, DAO_BOND_YOCTO, WALLET_GAS_100);
     if (result) result.textContent = "Sent to your wallet. Approve the call there; the new proposal appears in the list above when you return.";
+    setTimeout(refreshGovPanel, 3000);
+  } catch (e) {
+    if (result) result.textContent = "Wallet error: " + String(e.message).slice(0, 160);
+  }
+}
+
+async function govProposeRound() {
+  const input = el("govRoundEnvelope");
+  const result = el("govRoundResult");
+  if (!input || !walletAccountId) return;
+  const near = parseInt(input.value, 10);
+  if (!near || near < 1) {
+    if (result) result.textContent = "Enter a whole number of NEAR for the envelope, at least 1.";
+    return;
+  }
+  if (!govIsCouncilMember()) {
+    if (result) result.textContent = "Only council members can propose a round.";
+    return;
+  }
+  const status = el("govStatus");
+  if (status) status.textContent = "Checking the round and the DAO balance…";
+  try {
+    const openRound = await findOpenRound();
+    if (openRound) {
+      if (result) result.textContent = "Round " + openRound.id + " is still open. A new round can start after it closes or settles.";
+      return;
+    }
+    let nextId = 1;
+    for (let id = 20; id >= 1; id--) {
+      try {
+        const r = await contractView("get_round", { round_id: id });
+        if (r) { nextId = id + 1; break; }
+      } catch (_) { /* no round at this id */ }
+    }
+    const envelopeYocto = BigInt(near) * 1000000000000000000000000n;
+    const daoBal = await rpcAccountBalance(DAO_ID);
+    if (envelopeYocto > daoBal) {
+      if (result) result.textContent = "The DAO holds " + fmtYocto(daoBal) + " NEAR, which is less than the " + near + " NEAR envelope.";
+      return;
+    }
+    const argsB64 = btoa(JSON.stringify({ round_id: nextId, envelope_yocto: envelopeYocto.toString() }));
+    const kind = { FunctionCall: { receiver_id: CONTRACT_ID, actions: [{ method_name: "create_round", args: argsB64, deposit: envelopeYocto.toString(), gas: "100000000000000" }] } };
+    const description = "Fund FairShare live round " + nextId + ": " + near + " NEAR envelope via create_round";
+    if (status) status.textContent = "Opening your wallet to sign the proposal. The 1 NEAR bond is attached and returned when the council approves.";
+    await walletCall(DAO_ID, "add_proposal", { proposal: { description: description, kind: kind } }, DAO_BOND_YOCTO, WALLET_GAS_100);
+    if (result) result.textContent = "Sent to your wallet. Approve the call there; the new proposal appears in the list above when you return, and " + govThreshold + " approvals start the round.";
     setTimeout(refreshGovPanel, 3000);
   } catch (e) {
     if (result) result.textContent = "Wallet error: " + String(e.message).slice(0, 160);
@@ -2277,6 +2351,8 @@ if (typeof document !== "undefined") {
     }
     const govBtn = el("govProposeBtn");
     if (govBtn) govBtn.addEventListener("click", govProposeAdd);
+    const govRoundBtn = el("govRoundBtn");
+    if (govRoundBtn) govRoundBtn.addEventListener("click", govProposeRound);
     const settleBtn = el("settleBtn");
     if (settleBtn) settleBtn.addEventListener("click", renderSettlement);
     const explainSel = el("explainSelect");
