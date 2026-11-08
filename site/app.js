@@ -771,6 +771,7 @@ async function initWallet() {
   } catch (_) { /* ignore */ }
   refreshWalletBtn();
   refreshWalletPanel();
+  refreshGovPanel();
 }
 function refreshWalletBtn() {
   const btn = el("connectBtn");
@@ -792,6 +793,7 @@ async function toggleWallet() {
       walletOpenRound = null;
       refreshWalletBtn();
       refreshWalletPanel();
+      refreshGovPanel();
       walletStatus("Signed out. Connect your testnet wallet to see your membership and standing.");
       return;
     }
@@ -802,6 +804,7 @@ async function toggleWallet() {
     walletAccountId = id;
     refreshWalletBtn();
     refreshWalletPanel();
+    refreshGovPanel();
   } catch (e) { walletStatus("Wallet error: " + String(e.message).slice(0, 160)); }
 }
 async function walletCall(contractId, method, args, depositYocto, gas) {
@@ -976,6 +979,166 @@ async function submitWalletAllocate() {
   }
 }
 
+// ---- DAO governance, from this site ----
+// Open proposals are read live from the DAO. A connected council member
+// can vote on them and propose a new member, with signed calls to the
+// DAO. Everyone else reads them. Testnet only. The DAO decides by
+// strict majority: floor(council / 2) + 1 approvals. Proposing an
+// AddMemberToRole costs a 1 NEAR bond, returned when approved.
+// The act_proposal call carries the full proposal kind, which Sputnik
+// v2 requires since its #217 change.
+const DAO_BOND_YOCTO = "1000000000000000000000000";
+const WALLET_GAS_150 = "150000000000000";
+let govCouncil = [];
+let govThreshold = 0;
+
+async function daoView(method, args) {
+  const res = await fetch("https://rpc.testnet.near.org", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      jsonrpc: "2.0", id: method, method: "query",
+      params: {
+        request_type: "call_function",
+        account_id: DAO_ID,
+        method_name: method,
+        args_base64: btoa(JSON.stringify(args)),
+        finality: "final",
+      },
+    }),
+  });
+  const d = await res.json();
+  if (d.error) throw new Error("RPC error");
+  return JSON.parse(new TextDecoder().decode(new Uint8Array(d.result.result)));
+}
+
+function govKindLabel(kind) {
+  if (!kind || typeof kind !== "object") return "Proposal";
+  if (kind.AddMemberToRole) return "Add " + kind.AddMemberToRole.member_id + " to the council";
+  if (kind.RemoveMemberFromRole) return "Remove " + kind.RemoveMemberFromRole.member_id + " from " + kind.RemoveMemberFromRole.role;
+  if (kind.FunctionCall) {
+    const f = kind.FunctionCall;
+    const dep = f.deposit && f.deposit !== "0" ? " with " + fmtYocto(BigInt(f.deposit)) + " NEAR attached" : "";
+    return "Call " + f.receiver_id + ", " + f.method_name + dep;
+  }
+  if (kind.Transfer) return "Transfer " + fmtYocto(BigInt(kind.Transfer.amount)) + " NEAR to " + kind.Transfer.receiver_id;
+  if (kind.ChangePolicy) return "Change the DAO policy";
+  if (kind.ChangeConfig) return "Change the DAO config";
+  if (kind.SetStakingContract) return "Set the staking contract";
+  if (kind.Bounty) return "Bounty: " + (kind.Bounty.description || "");
+  if (kind.BountyDone) return "Mark a bounty done";
+  if (kind.Vote) return "Vote on an earlier proposal";
+  return Object.keys(kind)[0];
+}
+
+function govIsCouncilMember() {
+  return !!walletAccountId && govCouncil.indexOf(walletAccountId) >= 0;
+}
+
+async function refreshGovPanel() {
+  const list = el("govProposals");
+  if (!list) return;
+  const status = el("govStatus");
+  const form = el("govPropose");
+  try {
+    if (status) status.textContent = "Reading open proposals from the DAO…";
+    const policy = await daoView("get_policy", {});
+    const councilRole = (policy.roles || []).find((r) => r.name === "council");
+    govCouncil = (councilRole && councilRole.kind && councilRole.kind.Group) || [];
+    govThreshold = Math.floor(govCouncil.length / 2) + 1;
+    const proposals = await daoView("get_proposals", { from_index: 0, limit: 50 });
+    const open = (proposals || []).filter((p) => p.status === "InProgress");
+    const total = (proposals || []).length;
+    if (open.length === 0) {
+      list.innerHTML = "<p class=\"muted\">No open proposals right now. " + total +
+        " proposals have run so far, and every one of them was decided by the council.</p>";
+    } else {
+      list.innerHTML = open.map((p) => {
+        const counts = (p.vote_counts && p.vote_counts.council) || [0, 0, 0];
+        const approve = counts[0] || 0;
+        const reject = counts[1] || 0;
+        const myVote = walletAccountId && p.votes ? p.votes[walletAccountId] : null;
+        let actions = "";
+        if (govIsCouncilMember()) {
+          if (myVote) {
+            actions = "<p class=\"muted\">You voted " + myVote + " on this proposal.</p>";
+          } else {
+            actions = "<p><button type=\"button\" data-gov-vote=\"VoteApprove\" data-gov-id=\"" + p.id +
+              "\">Approve</button> <button type=\"button\" data-gov-vote=\"VoteReject\" data-gov-id=\"" + p.id +
+              "\">Reject</button></p>";
+          }
+        } else if (walletAccountId) {
+          actions = "<p class=\"muted\">Only council members can vote. This account is not on the council.</p>";
+        } else {
+          actions = "<p class=\"muted\">Connect your wallet above to vote. Only council members can vote.</p>";
+        }
+        return "<div class=\"govProp\"><h3>Proposal #" + p.id + " · " + govKindLabel(p.kind) + "</h3>" +
+          "<p class=\"muted\">" + escapeHtml(p.description || "") + " · Proposed by " + p.proposer + "</p>" +
+          "<p><span class=\"votes\">" + approve + " approve · " + reject + " reject</span> · Needs " +
+          govThreshold + " approvals out of " + govCouncil.length + " council members</p>" +
+          actions + "</div>";
+      }).join("");
+      list.querySelectorAll("[data-gov-vote]").forEach((b) =>
+        b.addEventListener("click", () => govVote(
+          parseInt(b.getAttribute("data-gov-id"), 10),
+          b.getAttribute("data-gov-vote"),
+          open.find((p) => p.id === parseInt(b.getAttribute("data-gov-id"), 10))
+        ))
+      );
+    }
+    if (status) status.textContent = open.length === 0
+      ? "No open proposals. The list above is fresh from the DAO."
+      : open.length + " open proposal" + (open.length > 1 ? "s" : "") + ", fresh from the DAO. Threshold is " + govThreshold + " approvals.";
+    if (form) form.style.display = govIsCouncilMember() ? "block" : "none";
+  } catch (e) {
+    if (status) status.textContent = "Could not read proposals just now: " + String(e.message).slice(0, 120) + ". Reload to try again.";
+    if (form) form.style.display = "none";
+  }
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+async function govVote(proposalId, action, proposal) {
+  const status = el("govStatus");
+  if (!proposal || !walletAccountId) return;
+  if (status) status.textContent = "Opening your wallet to sign the " + (action === "VoteApprove" ? "Approve" : "Reject") + " vote on proposal #" + proposalId + "…";
+  try {
+    await walletCall(DAO_ID, "act_proposal", { id: proposalId, action: action, proposal: proposal.kind, memo: null }, "0", WALLET_GAS_150);
+    if (status) status.textContent = "Sent to your wallet. Approve the call there; the list refreshes when you return.";
+    setTimeout(refreshGovPanel, 3000);
+  } catch (e) {
+    if (status) status.textContent = "Wallet error: " + String(e.message).slice(0, 160);
+  }
+}
+
+async function govProposeAdd() {
+  const input = el("govNewMember");
+  const result = el("govProposeResult");
+  if (!input || !walletAccountId) return;
+  const id = input.value.trim();
+  if (!/^[a-z0-9._-]+\.testnet$/.test(id)) {
+    if (result) result.textContent = "That does not look like a testnet account. Use the full name, like newmember.testnet.";
+    return;
+  }
+  if (govCouncil.indexOf(id) >= 0) {
+    if (result) result.textContent = id + " is already on the council.";
+    return;
+  }
+  const kind = { AddMemberToRole: { member_id: id, role: "council" } };
+  const description = "Add " + id + " to the FairShare council";
+  const status = el("govStatus");
+  if (status) status.textContent = "Opening your wallet to sign the proposal. The 1 NEAR bond is attached and returned when the council approves.";
+  try {
+    await walletCall(DAO_ID, "add_proposal", { proposal: { description: description, kind: kind } }, DAO_BOND_YOCTO, WALLET_GAS_100);
+    if (result) result.textContent = "Sent to your wallet. Approve the call there; the new proposal appears in the list above when you return.";
+    setTimeout(refreshGovPanel, 3000);
+  } catch (e) {
+    if (result) result.textContent = "Wallet error: " + String(e.message).slice(0, 160);
+  }
+}
+
 function renderLive() {
   const cid = el("liveContractId");
   if (cid) cid.textContent = CONTRACT_ID || "not deployed yet";
@@ -991,6 +1154,9 @@ if (typeof document !== "undefined") {
     renderLiveRound2();
     renderLive();
     initWallet();
+    refreshGovPanel();
+    const govBtn = el("govProposeBtn");
+    if (govBtn) govBtn.addEventListener("click", govProposeAdd);
     const settleBtn = el("settleBtn");
     if (settleBtn) settleBtn.addEventListener("click", renderSettlement);
     const explainSel = el("explainSelect");

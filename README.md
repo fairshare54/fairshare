@@ -74,7 +74,8 @@ and Tunde at 95 could not propose a round afterwards. Round 4 added six
 new members to the council, taking it from 12 to 18, and only the six new
 members allocated. Each gained 6 standing, from 100 to 106, and the 12
 existing members each lost 5 for submitting nothing. The DAO council is
-now 18 members. All four rounds ran through real DAO proposals, with real
+now 19 members: clearsite587.testnet joined by proposal #15 after the
+round, so the owner can allocate in round 5 from the site. All four rounds ran through real DAO proposals, with real
 testnet wallets.
 
 ## How to verify it onchain
@@ -109,8 +110,10 @@ browser. It moves no funds.
   whole round colludes, the maths cannot save it.
 - Standing moves at each settle under the rule above, proved live in
   round 3, and the gates on proposing and closing are enforced onchain.
-- The site has no wallet connected. Creating a round, allocating, and
-  settling live are manual steps for now, not buttons on the page.
+- The site has wallet connect on testnet. A connected member can
+  allocate in an open round and can propose and vote on DAO proposals
+  from the governance section of the rounds page. Creating a round and
+  settling it live are still manual steps, not buttons on the page.
 - Trezu manages the DAO, and the local testnet view was verified (see
   `TREZU.md`): all 8 proposals Executed, 12 council members, 6 of 12
   voting policy. Trezu production is mainnet only, so there is no live

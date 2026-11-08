@@ -44,6 +44,10 @@
   ol.steps li { margin:8px 0; }
   .bar { height:8px; background:#1f2937; border-radius:4px; overflow:hidden; }
   .bar i { display:block; height:100%; background:var(--gold); }
+  .govProp { border:1px solid var(--line); border-radius:10px; padding:12px; margin:10px 0; }
+  .govProp h3 { margin:0 0 4px; font-size:16px; }
+  .govProp .votes { font-weight:700; }
+  input[type="text"] { background:#0d1420; color:var(--text); border:1px solid var(--line); border-radius:8px; padding:10px; margin:4px 4px 4px 0; max-width:320px; width:100%; }
   @media (max-width:640px) {
     header { padding:12px 14px; gap:8px; }
     .logo { font-size:19px; }
@@ -195,7 +199,7 @@
   <section class="panel" id="dao">
     <h2>The DAO and governance</h2>
     <p>Membership in FairShare is a Sputnik DAO role, read live across contracts. The contract mirrors the DAO council into its member set with sync_dao_members, and get_dao_role checks one account live against the DAO policy. The DAO is the source of truth. The local member set is a synced mirror.</p>
-    <p class="muted">DAO: <code>fairshare-dao.testnet</code> · Name: fairshare · Council: 18 members, the 6 demo members plus the 6 round 2 crew plus the 6 round 4 crew · Policy: 1 of 2 vote to pass, 1 NEAR proposal bond, 7 day proposal period</p>
+    <p class="muted">DAO: <code>fairshare-dao.testnet</code> · Name: fairshare · Council: 19 members, the 6 demo members plus the 6 round 2 crew plus the 6 round 4 crew plus clearsite587.testnet, who joined by proposal #15 · Policy: 1 of 2 vote to pass, 1 NEAR proposal bond, 7 day proposal period</p>
     <p class="muted">DAO deploy: <code>23KcWfmQD2cu6nBJkx1yAoWk8istBR75omCzXVfZUDnv</code> · DAO init: <code>DV39wdiRmhgLAwZ2TCtZncR8RVMhQQ8iPy7jHd2YyYug</code></p>
     <ol class="steps">
       <li><b>Join.</b> A new member joins the DAO council by proposal. The council votes, and the proposal executes. Sputnik decides approval by proposal kind and role, never by amount.</li>
@@ -206,10 +210,24 @@
     <p class="muted">One fact worth knowing: the live testnet factory only creates DAOs as its own subaccounts, so it cannot create the top level name fairshare-dao.testnet. The real Sputnik v2 contract was deployed directly to that account instead, with the wasm read onchain from genesis.sputnikv2.testnet.</p>
   </section>
 
+  <section class="panel" id="gov">
+    <h2>Governance, from this site</h2>
+    <p>Membership comes from a DAO proposal and a council majority. A connected council member can propose a new member and vote on open proposals right here. Anyone can read the proposals, connected or not. The list below is read live from the DAO every time this page loads.</p>
+    <p class="muted" id="govStatus">Reading open proposals from the DAO…</p>
+    <div id="govProposals"></div>
+    <div id="govPropose" style="display:none">
+      <h3>Propose adding a member</h3>
+      <p class="muted">The new member joins the council role. Proposing costs a 1 NEAR bond, returned when the proposal is approved.</p>
+      <input type="text" id="govNewMember" maxlength="64" placeholder="newmember.testnet" aria-label="Account to add">
+      <button id="govProposeBtn" type="button">Propose adding this member</button>
+      <p class="muted" id="govProposeResult"></p>
+    </div>
+  </section>
+
   <section class="panel" id="trezu">
     <h2>Trezu manages this DAO</h2>
     <p>Trezu is the treasury app for Sputnik DAOs. This DAO is a standard Sputnik DAO, so it is the kind of DAO Trezu manages: council members propose, vote and execute through it, and the contract reads membership live from it.</p>
-    <p class="muted">The honest limit: Trezu production is mainnet only, so there is no live Trezu testnet payout, and none is claimed here. What was verified is the local testnet view: the Trezu frontend run locally with the mock backend from the Trezu repo, opening fairshare-dao.testnet, shows the real onchain data. Requests, Executed tab: all 15 proposals, each Executed, including the round 2, round 3, and round 4 funding proposals. Members: all 18 council members. Settings, Voting: 10 of 18 threshold, 7 day vote duration. Assets and recent transactions stay empty, because there is no indexer for testnet DAOs. The exact steps and screenshots are in the repo, TREZU.md.</p>
+    <p class="muted">The honest limit: Trezu production is mainnet only, so there is no live Trezu testnet payout, and none is claimed here. What was verified is the local testnet view: the Trezu frontend run locally with the mock backend from the Trezu repo, opening fairshare-dao.testnet, shows the real onchain data. Requests, Executed tab: all 16 proposals, each Executed, including the round 2, round 3, and round 4 funding proposals and the proposal that added clearsite587.testnet to the council. Members: all 19 council members. Settings, Voting: 10 of 19 threshold, 7 day vote duration. Assets and recent transactions stay empty, because there is no indexer for testnet DAOs. The exact steps and screenshots are in the repo, TREZU.md.</p>
   </section>
 
   <section class="panel" id="verify">
@@ -220,7 +238,7 @@
       <li><code>get_dao_info</code> returns the DAO id, the member role, the member count, and the last sync time.</li>
       <li><code>get_round</code> with round id 1 returns the 5 NEAR envelope, closed true, settled true, total payout 4999999999999999999999997 yocto.</li>
       <li><code>get_payouts</code> with round id 1 returns all six payouts. <code>explain_payout</code> with round id 1 and any member returns their score broken down by giver.</li>
-      <li><code>get_policy</code> on <code>fairshare-dao.testnet</code> shows the council role with 18 members, the 6 demo members plus the 6 round 2 crew plus the 6 round 4 crew.</li>
+      <li><code>get_policy</code> on <code>fairshare-dao.testnet</code> shows the council role with 19 members, the 6 demo members plus the 6 round 2 crew plus the 6 round 4 crew plus clearsite587.testnet.</li>
     </ol>
     <p class="muted">If the page cannot reach the public RPC, it says so plainly and keeps showing the last verified state, labelled as such. It never invents numbers.</p>
   </section>
