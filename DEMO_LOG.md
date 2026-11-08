@@ -624,6 +624,15 @@ every scenario, and no payout passes the 1.250 NEAR cap.
   refuses to start in this sandbox); verified by serving the page
   locally and confirming the section and exact text in the served HTML.
 
+- Updated 2026-11-08 ~13:56 WAT: added the removal paragraph, user's
+  exact text — when a member is removed from the DAO council, their
+  FairShare allocation permission is revoked at the next successful
+  membership synchronisation, and the contract records the last
+  synchronisation time. Wording verified against the contract source
+  before publishing: `allocate()` asserts the caller is in the synced
+  member set, and the sync callback removes dropped members, but only
+  when a sync runs.
+
 ## History — first live demo (superseded, kept for the record)
 
 - Contract `egbe-contract.testnet`, owner `egbe-owner.testnet`,

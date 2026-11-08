@@ -255,6 +255,7 @@
     <h3>Governance-Controlled Membership</h3>
     <p>Connecting a NEAR wallet does not automatically grant FairShare membership.</p>
     <p>Every member must first be approved through a strict-majority Sputnik DAO proposal. Once approved, the council membership is synchronised with the FairShare contract, granting the wallet permission to participate in allocations.</p>
+    <p>When a member is removed from the DAO council, their FairShare allocation permission is revoked at the next successful membership synchronisation. The contract records the last synchronisation time.</p>
     <p>FairShare uses governance-based Sybil resistance, not cryptographic identity verification. Multiple wallets belonging to one person could still be admitted if the council approves them.</p>
     <p><strong>Membership is governed by the community, not granted automatically by wallet connection.</strong></p>
   </section>
