@@ -9,9 +9,7 @@ every payout explainable giver by giver.
 this repo.**
 
 Submitted to the NEAR Hackathon, Social Money track, lead Christian
-(fairshare085@gmail.com), payout crist54.near. The lead also leads Public
-Agent Coin (PAC), a memecoin arena. That is the lead's other hackathon
-project.
+(fairshare085@gmail.com), payout crist54.near.
 
 ## How it works
 
