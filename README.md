@@ -47,6 +47,10 @@ FairShare does not grant membership merely because a wallet connects.
 
 Membership is controlled through Sputnik DAO governance. A wallet must first be approved for the council role through a strict-majority proposal. Following approval, a synchronisation process updates the FairShare contract's authorised membership list. Only synchronised council members can participate in allocation.
 
+The contract checks its synchronised member list on every allocation. It does not perform a live DAO role check during the allocation transaction.
+
+When a wallet is removed from the Sputnik DAO council, its FairShare allocation permission remains active until the next successful membership synchronisation. The contract records the last synchronisation time, making this delay visible.
+
 This creates a governance-controlled admission barrier against arbitrary wallet creation and unauthorised participation.
 
 However, FairShare does not claim cryptographic proof of unique human identity. Multiple wallets controlled by one individual could still become members if the governing council approves them.
@@ -58,9 +62,10 @@ FairShare therefore uses **governance-based membership control rather than ident
 1. A wallet connects to the application.
 2. A Sputnik DAO proposal requests council admission.
 3. Existing council members vote on the proposal.
-4. A strict majority must approve the proposal.
-5. The council membership is synchronised with the FairShare contract.
+4. Sputnik DAO enforces its own on-chain voting policy.
+5. After approval, membership is synchronised with the FairShare contract.
 6. The contract authorises the synchronised member to participate in allocations.
+7. If a member is removed from the DAO, the next successful synchronisation removes their allocation permission.
 
 ## Live
 
