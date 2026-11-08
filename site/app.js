@@ -1060,7 +1060,7 @@ function walletPointsBarHtml(assigned) {
 async function renderWalletDashboard() {
   const box = el("walletDashboard");
   if (!box || !walletAccountId) { if (box) box.style.display = "none"; return; }
-  if (walletMembers.indexOf(walletAccountId) < 0) { box.style.display = "none"; return; }
+  if (walletMembers.indexOf(walletAccountId) < 0 && walletMembersKnown) { box.style.display = "none"; return; }
   box.style.display = "block";
   let standing = "?";
   try { standing = await contractView("get_standing", { account_id: walletAccountId }); } catch (_) { /* keep ? */ }
@@ -1096,6 +1096,7 @@ async function renderWalletDashboard() {
       ).join("");
   }
   box.innerHTML = "<h3>Your dashboard</h3>" +
+    (walletMembersKnown ? "" : "<p class=\"muted\">Membership could not be read just now, so these are best-effort numbers. Tap your profile button to try again.</p>") +
     "<p>Connected as <b>" + walletAccountId + "</b> · Standing <b>" + standing + "</b>" +
     (badge ? "<br><img src=\"/badge-3d.png\" alt=\"FairShare council badge\" style=\"width:80px;height:80px;margin-top:8px;border-radius:10px\"> Council badge, soulbound, standing <b>" + badge.standing + "</b> at mint." : "") + "</p>" +
     "<p>Total payouts across the settled rounds: <b>" + (payoutsOk ? fmtYocto(total) + " NEAR" : "could not be read just now") + "</b></p>" +
@@ -1118,6 +1119,7 @@ function highlightWalletPanel() {
   }
 }
 function openDashboardFromHeader() {
+  refreshWalletPanel();
   const panel = el("walletPanel");
   if (panel) {
     if (typeof panel.scrollIntoView === "function") panel.scrollIntoView();
@@ -1266,6 +1268,7 @@ const WALLET_GAS_100 = "100000000000000";
 let walletAccountId = null;
 let walletOpenRound = null;
 let walletMembers = [];
+let walletMembersKnown = false;
 
 function fastnear() {
   if (typeof window.nearWallet === "undefined") {
@@ -1346,6 +1349,14 @@ function refreshWalletBtn() {
   btn.textContent = id ? id : "Connect wallet";
   if (btn.title !== undefined) btn.title = id ? "Open your dashboard" : "";
   btn.disabled = false;
+}
+async function disconnectWallet() {
+  try {
+    const nw = fastnear();
+    try { await nw.disconnect({ network: NETWORK }); } catch (_) { /* wallet already signed out */ }
+  } catch (_) { /* library missing, clear local state anyway */ }
+  walletAccountId = null; walletMembers = []; walletMembersKnown = false; walletOpenRound = null;
+  refreshWalletBtn(); refreshWalletPanel(); refreshGovPanel();
 }
 async function toggleWallet() {
   let nw;
@@ -1431,6 +1442,7 @@ async function refreshWalletPanel() {
     walletStatus("Reading your membership from the contract…");
     const members = await contractView("get_members", {});
     walletMembers = members || [];
+    walletMembersKnown = true;
     const isMember = walletMembers.indexOf(walletAccountId) >= 0;
     const standing = await contractView("get_standing", { account_id: walletAccountId });
     let badge = null;
@@ -1445,7 +1457,7 @@ async function refreshWalletPanel() {
         (badge ? "<br><img src=\"/badge-3d.png\" alt=\"FairShare council badge\" style=\"width:120px;height:120px;margin-top:10px;border-radius:12px\"> Council badge, soulbound, standing <b>" + badge.standing + "</b> at mint." : "") +
         " <button id=\"walletDisconnect\" type=\"button\">Disconnect</button>";
       const d = el("walletDisconnect");
-      if (d) d.addEventListener("click", toggleWallet);
+      if (d) d.addEventListener("click", disconnectWallet);
     }
     if (!isMember) {
       walletStatus("This account is not a member yet, so it cannot allocate. Membership comes from a DAO proposal; see the governance section below.");
@@ -1508,7 +1520,15 @@ async function refreshWalletPanel() {
     }
     renderWalletDashboard();
   } catch (e) {
-    walletStatus("Could not read your membership just now: " + String(e.message).slice(0, 120));
+    walletStatus("Could not read your membership just now: " + String(e.message).slice(0, 120) + " Tap your profile button to try again.");
+    if (memberBox) {
+      memberBox.style.display = "block";
+      memberBox.innerHTML = "Connected as <b>" + walletAccountId + "</b> · membership could not be read just now." +
+        " <button id=\"walletDisconnect\" type=\"button\">Disconnect</button>";
+      const d = el("walletDisconnect");
+      if (d) d.addEventListener("click", disconnectWallet);
+    }
+    renderWalletDashboard();
   }
 }
 
