@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FairShare Attack Lab: does the maths stop collusion?</title>
+<meta name="description" content="The FairShare Attack Lab: a three person collusion ring against honest members, run with the exact settlement maths from the contract, plus the test vectors that prove the site matches the contract.">
+<style>
+  :root { --bg:#0a0e14; --panel:#111827; --panel2:#0d1420; --line:#1f2937; --text:#e5e7eb; --muted:#9ca3af; --gold:#e3a008; --green:#22c55e; --red:#ef4444; --blue:#60a5fa; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,sans-serif; line-height:1.5; }
+  a { color:var(--blue); }
+  header { padding:16px 20px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; position:sticky; top:0; background:var(--bg); z-index:10; }
+  header nav a { color:var(--muted); text-decoration:none; margin-left:16px; font-size:14px; }
+  header nav a:hover { color:var(--text); }
+  header nav a.active { color:var(--gold); }
+  .logo { font-size:22px; font-weight:800; text-decoration:none; color:var(--text); } .logo span { color:var(--gold); }
+  .net { color:var(--muted); font-size:13px; }
+  main { max-width:960px; margin:0 auto; padding:20px; }
+  .hero { padding:28px 0 8px; }
+  .hero h1 { font-size:34px; line-height:1.15; margin:10px 0; max-width:640px; }
+  .kicker { color:var(--gold); font-size:13px; letter-spacing:.08em; text-transform:uppercase; margin:0; }
+  .lede { color:var(--muted); font-size:18px; max-width:680px; }
+  .panel { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:16px; margin:18px 0; }
+  .panel h2 { margin:0 0 8px; font-size:20px; }
+  .panel h3 { margin:14px 0 6px; font-size:15px; }
+  .badge { display:inline-block; background:#7c2d12; color:#fdba74; border-radius:6px; padding:2px 8px; font-size:12px; font-weight:700; letter-spacing:.05em; }
+  button { background:var(--gold); color:#111; border:0; border-radius:8px; padding:10px 14px; font-weight:700; cursor:pointer; margin:4px 4px 4px 0; }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  th, td { text-align:left; padding:8px 6px; border-bottom:1px solid var(--line); }
+  .muted { color:var(--muted); font-size:13px; }
+  code { background:#0d1420; padding:2px 6px; border-radius:6px; font-size:13px; }
+  footer { color:var(--muted); font-size:12px; padding:20px; text-align:center; }
+  ol.steps li { margin:8px 0; }
+  .verdict { background:var(--panel2); border:1px solid var(--line); border-radius:10px; padding:14px; margin-top:12px; }
+</style>
+</head>
+<body>
+<header>
+  <a class="logo" href="/">FairShare <span>◆</span></a>
+  <nav>
+    <a href="/">Home</a>
+    <a href="/rounds">Live rounds</a>
+    <a href="/how">How it works</a>
+    <a href="/lab" class="active">Attack Lab</a>
+  </nav>
+  <div class="net">NEAR testnet · Social Money</div>
+</header>
+<main>
+  <section class="hero">
+    <p class="kicker">Proof, not promises</p>
+    <h1>Attack Lab: try to break it.</h1>
+    <p class="lede">Any peer allocation system can be gamed. The honest question is how much gaming costs. This page runs the attack FairShare is built to resist: three people form a collusion ring and point only at each other. It runs with the exact settlement maths from the contract, and the numbers are the contract property test property_collusion_ring_earns_less_than_honest.</p>
+  </section>
+
+  <section class="panel" id="lab">
+    <h2>The ring against the honest round <span class="badge">SIMULATED</span></h2>
+    <p>The two rounds share the same 9 people and the same 60 NEAR envelope. In the ring round Ada, Ben and Cara help only each other, so the other six point at each other, because the trio did no work for them. In the honest round the same three people help distinct outsiders, and every outsider points back at the trio, so the trio is fed by six distinct givers.</p>
+    <div><button id="labBtn">Run the ring vs honest comparison</button></div>
+    <div id="labResult" style="display:none;">
+      <h3>Ring round</h3>
+      <table><thead><tr><th>Member</th><th>Score</th><th>Payout</th></tr></thead><tbody id="labRingBody"></tbody></table>
+      <h3>Honest round</h3>
+      <table><thead><tr><th>Member</th><th>Score</th><th>Payout</th></tr></thead><tbody id="labHonestBody"></tbody></table>
+      <div id="labVerdict" class="verdict"></div>
+    </div>
+  </section>
+
+  <section class="panel" id="why">
+    <h2>Why the ring earns less</h2>
+    <p>Two forces work against the ring. First, breadth. The square root rewards points that arrive from many distinct givers. 100 points arriving from 2 givers scores 19600. The same 100 points arriving from 5 givers scores 48400. The trio in the ring round is fed by 2 givers each. The same trio in the honest round is fed by 6 givers each. Second, the reciprocity discount. Every mutual leg in the ring is cut by half of the shared amount, so the loop keeps less of what it passes around. A one way gift of 50 points scores 4900. The same 50 points given mutually scores 2500.</p>
+    <p>The result, from the property test: the ring trio earns 3.506 NEAR each on average, while the other six earn 8.246 NEAR each in the same round. In the honest round the same three people earn 15.000 NEAR each, capped, while the other six earn 2.499 NEAR each. Honest giving earns the trio 11.493 NEAR more per person than the ring did.</p>
+  </section>
+
+  <section class="panel" id="honest">
+    <h2>The honest limit of this test</h2>
+    <p>This is a simulation, not a proof that collusion is impossible. The test holds outsider behaviour under reciprocal behaviour: in the ring round the trio does no work for the outsiders, so the outsiders point at each other; in the honest round the trio helps outsiders, so the outsiders point back at them. With outsider behaviour held fixed, a ring that only feeds itself would capture more, not less. If the whole round colludes, the maths cannot save it. The maths makes closed loop giving costly. It does not make it impossible. Coordinape said the same about its own model: it could be gamed and had blind spots, and worked best where a circle had already built trust. FairShare says the same, in plain sight.</p>
+    <p>Popularity bias remains too. Well liked members attract points. The cap and the square root soften it. They do not remove it. Sybil resistance comes from DAO member curation, not from the maths: the contract cannot tell a real member from a second account, and the DAO decides who is a member.</p>
+  </section>
+
+  <section class="panel" id="vectors">
+    <h2>Test vectors: the site matches the contract</h2>
+    <p>The settlement maths on this site is not a rounded copy of the contract. It is the same integer arithmetic, and it reproduces the contract test vectors exactly, to the yocto.</p>
+    <table>
+      <thead><tr><th>Vector</th><th>Expected</th><th>Site result</th></tr></thead>
+      <tbody>
+        <tr><td>Worked example, total score</td><td>130468</td><td>130468</td></tr>
+        <tr><td>Worked example, Alice payout of 5 NEAR</td><td>0.839 NEAR</td><td>0.839 NEAR</td></tr>
+        <tr><td>Worked example, Frank payout of 5 NEAR</td><td>1.187 NEAR</td><td>1.187 NEAR</td></tr>
+        <tr><td>Worked example, dust</td><td>3 yocto</td><td>3 yocto</td></tr>
+        <tr><td>Reciprocity, 50 points one way</td><td>Score 4900</td><td>Score 4900</td></tr>
+        <tr><td>Reciprocity, 50 points mutual</td><td>Score 2500</td><td>Score 2500</td></tr>
+        <tr><td>Cap test, raw share 79.05%</td><td>Pays exactly 25 NEAR</td><td>Pays exactly 25 NEAR</td></tr>
+        <tr><td>Collusion property, ring trio each</td><td>3506716981132075471698113 yocto</td><td>3506716981132075471698113 yocto</td></tr>
+        <tr><td>Collusion property, honest trio each</td><td>Exactly 15 NEAR</td><td>Exactly 15 NEAR</td></tr>
+      </tbody>
+    </table>
+    <p class="muted">Contract suite: cargo test, 31 passed, 0 failed, including a 200 round property test where payout sums never exceed the envelope and no payout exceeds the cap. One failure was found and fixed during the first build: the property test asserted a ring payout from a Python model that used float square roots; the Rust code and the site JS both give 3506716981132075471698113 yocto, and the literal was corrected to that value.</p>
+    <p class="muted">Run the check yourself: in the repo, node hidden_files/dom_test.js exercises the site buttons without a browser and prints the settle rows, the explain rows, and the lab verdict.</p>
+  </section>
+
+  <section class="panel" id="more">
+    <h2>Go deeper</h2>
+    <ol class="steps">
+      <li><a href="/rounds">Live rounds</a>: round 1 with real members, scores, and payouts, plus the DAO and governance.</li>
+      <li><a href="/how">How it works</a>: the mechanism in full, with four worked examples and the contract methods.</li>
+      <li><a href="/">Home</a>: the promise, the live numbers, and the allocation try out.</li>
+    </ol>
+  </section>
+</main>
+<footer>
+  FairShare · NEAR testnet only · Social Money, NEAR Hackathon 2026<br>
+  <a href="https://github.com/fairshare54/fairshare">Repo</a> ·
+  <a href="https://testnet.nearblocks.io/address/fairshare-contract.testnet">Contract on Nearblocks</a> ·
+  <a href="https://testnet.nearblocks.io/address/fairshare-dao.testnet">DAO on Nearblocks</a>
+</footer>
+<script src="app.js"></script>
+</body>
+</html>

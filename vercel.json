@@ -1,1 +1,1 @@
-{"rewrites":[{"destination":"/site/index.html","source":"/"},{"destination":"/site/app.js","source":"/app.js"}]}
+{"rewrites":[{"destination":"/site/index.html","source":"/"},{"destination":"/site/rounds.html","source":"/rounds"},{"destination":"/site/how.html","source":"/how"},{"destination":"/site/lab.html","source":"/lab"},{"destination":"/site/app.js","source":"/app.js"}]}

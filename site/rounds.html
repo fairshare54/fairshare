@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FairShare live rounds: real payouts on NEAR testnet</title>
+<meta name="description" content="Every FairShare round, with real members, real scores, and real payouts from the contract on NEAR testnet.">
+<style>
+  :root { --bg:#0a0e14; --panel:#111827; --panel2:#0d1420; --line:#1f2937; --text:#e5e7eb; --muted:#9ca3af; --gold:#e3a008; --green:#22c55e; --red:#ef4444; --blue:#60a5fa; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,sans-serif; line-height:1.5; }
+  a { color:var(--blue); }
+  header { padding:16px 20px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; position:sticky; top:0; background:var(--bg); z-index:10; }
+  header nav a { color:var(--muted); text-decoration:none; margin-left:16px; font-size:14px; }
+  header nav a:hover { color:var(--text); }
+  header nav a.active { color:var(--gold); }
+  .logo { font-size:22px; font-weight:800; text-decoration:none; color:var(--text); } .logo span { color:var(--gold); }
+  .net { color:var(--muted); font-size:13px; }
+  main { max-width:960px; margin:0 auto; padding:20px; }
+  .hero { padding:28px 0 8px; }
+  .hero h1 { font-size:34px; line-height:1.15; margin:10px 0; max-width:640px; }
+  .kicker { color:var(--gold); font-size:13px; letter-spacing:.08em; text-transform:uppercase; margin:0; }
+  .lede { color:var(--muted); font-size:18px; max-width:680px; }
+  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin:22px 0; }
+  .stat { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px; }
+  .stat b { display:block; font-size:24px; }
+  .stat span { color:var(--muted); font-size:13px; }
+  .panel { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:16px; margin:18px 0; }
+  .panel h2 { margin:0 0 8px; font-size:20px; }
+  .panel h3 { margin:14px 0 6px; font-size:15px; }
+  .badge { display:inline-block; background:#7c2d12; color:#fdba74; border-radius:6px; padding:2px 8px; font-size:12px; font-weight:700; letter-spacing:.05em; }
+  .badge.live { background:#14532d; color:#86efac; }
+  .badge.soon { background:#1e3a5f; color:#93c5fd; }
+  button { background:var(--gold); color:#111; border:0; border-radius:8px; padding:10px 14px; font-weight:700; cursor:pointer; margin:4px 4px 4px 0; }
+  select { background:#0d1420; color:var(--text); border:1px solid var(--line); border-radius:8px; padding:10px; margin:4px 4px 4px 0; max-width:320px; }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  th, td { text-align:left; padding:8px 6px; border-bottom:1px solid var(--line); }
+  .muted { color:var(--muted); font-size:13px; }
+  code { background:#0d1420; padding:2px 6px; border-radius:6px; font-size:13px; }
+  footer { color:var(--muted); font-size:12px; padding:20px; text-align:center; }
+  ol.steps li { margin:8px 0; }
+  .bar { height:8px; background:#1f2937; border-radius:4px; overflow:hidden; }
+  .bar i { display:block; height:100%; background:var(--gold); }
+</style>
+</head>
+<body>
+<header>
+  <a class="logo" href="/">FairShare <span>◆</span></a>
+  <nav>
+    <a href="/">Home</a>
+    <a href="/rounds" class="active">Live rounds</a>
+    <a href="/how">How it works</a>
+    <a href="/lab">Attack Lab</a>
+  </nav>
+  <div class="net">NEAR testnet · <span id="modeLabel">Live contract linked</span></div>
+</header>
+<main>
+  <section class="hero">
+    <p class="kicker">Onchain proof, not screenshots</p>
+    <h1>Live rounds: real members, real payouts.</h1>
+    <p class="lede">Every round below ran on NEAR testnet through the FairShare contract. The envelope, the scores, and the payouts are the onchain record. You can check each one yourself with the transaction links and the view calls at the bottom of this page.</p>
+  </section>
+
+  <section class="stats" aria-label="Live numbers">
+    <div class="stat"><b id="statMembers">12</b><span>Members in the DAO</span></div>
+    <div class="stat"><b id="statEnvelope">5.000 NEAR</b><span>Envelope, round 1</span></div>
+    <div class="stat"><b id="statPaid">4.999 NEAR</b><span>Paid out, round 1</span></div>
+    <div class="stat"><b>130468</b><span>Total score, round 1</span></div>
+    <div class="stat"><b>3 yocto</b><span>Dust left in the contract</span></div>
+  </section>
+  <p class="muted" id="statsNote">Numbers above are the last verified onchain state. The page reads fresh state from the contract when it loads; if the chain cannot be reached it says so below.</p>
+
+  <section class="panel" id="live">
+    <h2>Round 1 <span class="badge live">SETTLED ONCHAIN</span></h2>
+    <p>Round 1 ran with a 5 NEAR envelope and 6 members from the DAO council. It used the worked example allocations from the contract tests, so its payouts are the worked example scaled to 5 NEAR. Every member balance rose by their payout minus gas, so the transfers really landed.</p>
+    <p class="muted">Contract: <code>fairshare-contract.testnet</code> · DAO: <code>fairshare-dao.testnet</code></p>
+    <p class="muted">Create round: <code>4GUrEhckeFgBCUV718MMT3oPgaopt23drWqYkqhHhS9s</code> · Sync DAO members: <code>CihwgreGNAYuWyb6pRRbWRy6oUyHRwx5vPWJW3DEBJcs</code> · Settle: <code>2MUqHsLbbMcZGsneNnBBTinUfPXXJwdoRnJjwzxhpJYu</code></p>
+    <p class="muted" id="liveState">Live state is being read from the contract…</p>
+    <h3>Members and payouts</h3>
+    <table>
+      <thead><tr><th>Member</th><th>Score</th><th>Share of envelope</th><th>Payout</th></tr></thead>
+      <tbody id="liveRoundBody"></tbody>
+    </table>
+    <p class="muted">Total score 130468. Payouts add to 4.999 NEAR. 3 yocto of dust stays in the contract. Frank earned the most, 1.187 NEAR, from 3 givers. Carol earned the least, 0.290 NEAR, from 3 givers. No member hit the 25% cap in this round; the highest raw share was 23.74%.</p>
+    <h3>Explain my payout</h3>
+    <p class="muted">Pick a member and see exactly how their score was built, giver by giver, from the contract record. This is the SourceCred idea applied to a round: click a person and see where every point of their score came from.</p>
+    <select id="liveExplainSelect"></select>
+    <table>
+      <thead><tr><th>From</th><th>Points</th><th>Discount</th><th>Effective</th><th>Root part</th></tr></thead>
+      <tbody id="liveExplainBody"></tbody>
+    </table>
+    <p class="muted" id="liveExplainNote"></p>
+    <p class="muted">Worked check, Alice: Frank gave 61 points with no discount, root part 78. Carol gave 18 points, discount 9, effective 9, root part 30. Bob gave 8 points, discount 4, effective 4, root part 20. Dave gave 7 points, discount 3, effective 4, root part 20. Root parts add to 148. 148 squared is 21904, which is Alice score. Her payout is 21904 divided by 130468 of 5 NEAR, which is 0.839 NEAR.</p>
+  </section>
+
+  <section class="panel" id="round2">
+    <h2>Round 2 <span class="badge live" id="round2Badge">SETTLED ONCHAIN</span></h2>
+    <p class="muted" id="round2Note">Round 2 settled onchain with a 5 NEAR envelope and 6 new members. Payouts add to 4.999 NEAR, 3 yocto of dust stays in the contract. Two members hit the 25% cap and were paid exactly 1.250 NEAR each, with the excess flowing to the other four. This is the cap working live, not in a test. Settle: <code>6FsBf9r42Ji8afF8G6rebq2GqChmpUQW41cCpTuaodJF</code></p>
+    <p class="muted">Honest note: the six new members are script operated test accounts, not real people. A round with real humans still needs 5 to 8 people brought in, and that is a human step, not a code step.</p>
+    <h3>Members and payouts</h3>
+    <table>
+      <thead><tr><th>Member</th><th>Score</th><th>Share of envelope</th><th>Capped?</th><th>Payout</th></tr></thead>
+      <tbody id="liveRound2Body"></tbody>
+    </table>
+    <p class="muted">Total score 125923. Ibrahim earned the most by score, 36100, and Ada was second, 33489. Both were capped at 1.250 NEAR. Tunde earned the least, 0.298 NEAR, from 2 givers. The new members are Ibrahim, Fatima, Ada, Ngozi, Tunde, and Emeka, all on fairshare.testnet accounts.</p>
+    <h3>Explain my payout, round 2</h3>
+    <select id="liveExplain2Select"></select>
+    <table>
+      <thead><tr><th>From</th><th>Points</th><th>Discount</th><th>Effective</th><th>Root part</th></tr></thead>
+      <tbody id="liveExplain2Body"></tbody>
+    </table>
+    <p class="muted" id="liveExplain2Note"></p>
+    <p class="muted">Worked check, Ibrahim: Fatima gave 30 points, discount 12, effective 18, root part 42. Ada gave 20 points, no discount, root part 44. Ngozi gave 25 points, no discount, root part 50. Tunde gave 50 points, discount 20, effective 30, root part 54. Root parts add to 190. 190 squared is 36100, which is Ibrahim score. His raw payout was above the 1.250 NEAR cap, so he was paid exactly 1.250 NEAR.</p>
+  </section>
+
+  <section class="panel" id="dao">
+    <h2>The DAO and governance</h2>
+    <p>Membership in FairShare is a Sputnik DAO role, read live across contracts. The contract mirrors the DAO council into its member set with sync_dao_members, and get_dao_role checks one account live against the DAO policy. The DAO is the source of truth. The local member set is a synced mirror.</p>
+    <p class="muted">DAO: <code>fairshare-dao.testnet</code> · Name: fairshare · Council: 12 members, the 6 demo members plus the 6 round 2 crew · Policy: 1 of 2 vote to pass, 1 NEAR proposal bond, 7 day proposal period</p>
+    <p class="muted">DAO deploy: <code>23KcWfmQD2cu6nBJkx1yAoWk8istBR75omCzXVfZUDnv</code> · DAO init: <code>DV39wdiRmhgLAwZ2TCtZncR8RVMhQQ8iPy7jHd2YyYug</code></p>
+    <ol class="steps">
+      <li><b>Join.</b> A new member joins the DAO council by proposal. The council votes, and the proposal executes. Sputnik decides approval by proposal kind and role, never by amount.</li>
+      <li><b>Sync.</b> Anyone calls sync_dao_members on the round contract. It reads the DAO get_policy live and mirrors the council into the member set.</li>
+      <li><b>Fund.</b> The DAO funds a round by proposing a FunctionCall to create_round with the envelope attached. The council votes, the proposal executes, and the envelope sits in escrow in the contract.</li>
+      <li><b>Allocate and settle.</b> Members allocate, the owner closes the round early or the 7 day deadline passes, and anyone calls settle_round. The contract pays each member from the envelope.</li>
+    </ol>
+    <p class="muted">One fact worth knowing: the live testnet factory only creates DAOs as its own subaccounts, so it cannot create the top level name fairshare-dao.testnet. The real Sputnik v2 contract was deployed directly to that account instead, with the wasm read onchain from genesis.sputnikv2.testnet.</p>
+  </section>
+
+  <section class="panel" id="verify">
+    <h2>Check it yourself</h2>
+    <p>Nothing on this page asks you to trust it. Read the contract state with plain view calls:</p>
+    <ol class="steps">
+      <li><code>get_params</code> on <code>fairshare-contract.testnet</code> returns 100 points per member, at least 3 recipients, cap 2500 basis points, discount 5000 basis points, round 604800000000000 nanoseconds, standing starts at 100.</li>
+      <li><code>get_dao_info</code> returns the DAO id, the member role, the member count, and the last sync time.</li>
+      <li><code>get_round</code> with round id 1 returns the 5 NEAR envelope, closed true, settled true, total payout 4999999999999999999999997 yocto.</li>
+      <li><code>get_payouts</code> with round id 1 returns all six payouts. <code>explain_payout</code> with round id 1 and any member returns their score broken down by giver.</li>
+      <li><code>get_policy</code> on <code>fairshare-dao.testnet</code> shows the council role with 12 members, the 6 demo members plus the 6 round 2 crew.</li>
+    </ol>
+    <p class="muted">If the page cannot reach the public RPC, it says so plainly and keeps showing the last verified state, labelled as such. It never invents numbers.</p>
+  </section>
+</main>
+<footer>
+  FairShare · NEAR testnet only · Social Money, NEAR Hackathon 2026<br>
+  <a href="https://github.com/fairshare54/fairshare">Repo</a> ·
+  <a href="https://testnet.nearblocks.io/address/fairshare-contract.testnet">Contract on Nearblocks</a> ·
+  <a href="https://testnet.nearblocks.io/address/fairshare-dao.testnet">DAO on Nearblocks</a><br>
+  <span>Round 1 is the real onchain result. Round 2 is coming.</span>
+</footer>
+<script src="app.js"></script>
+</body>
+</html>

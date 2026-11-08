@@ -15,7 +15,8 @@ should say what the work is.
 
 | Path | What it is |
 |---|---|
-| `site/index.html` + `site/app.js` | The single-page site. Plain HTML/JS, no build step. Simulated demo mode by default. |
+| `site/index.html` + `site/rounds.html` + `site/how.html` + `site/lab.html` + `site/app.js` | The site. Four pages, plain HTML/JS, no build step: home, live rounds, how it works, Attack Lab. Live at https://fairshare-pi.vercel.app/ |
+| `SITE_RESEARCH.md` | Research notes for the site rebuild: what was borrowed from Coordinape, Gitcoin/Allo, Giveth, SourceCred, and Superfluid, and what was not copied. |
 | `contract/src/lib.rs` | The Rust contract (`near-sdk` 5.5), package `fairshare-round` v0.1.0, with 31 tests. |
 | `contract/Cargo.toml`, `contract/Cargo.lock` | Contract manifest and lockfile. |
 | `fairshare_round.wasm` | The built release WASM (484,794 bytes), copied here for deploy convenience. |
@@ -32,12 +33,17 @@ cd site
 python3 -m http.server 8000
 ```
 
-Open `http://localhost:8000/`. The page loads in simulated demo mode:
-a freezer cooperative round with 5 members, a 10 NEAR envelope, and the
-allocations already in. Press **Settle this round** and the settlement
-table appears; pick a member in **Explain my payout** to see their score
-broken down by giver. Press **Run the ring vs honest comparison** in the
-Attack Lab to see the collusion comparison.
+Open `http://localhost:8000/`. The home page shows the live numbers read
+from the contract, the round 1 result, a round 2 summary, and the allocation
+try out, where you allocate as Amina with live validation. `/rounds` shows
+both settled rounds with real members, scores, payouts, and explain my
+payout for each. `/how` explains the mechanism in depth with four worked
+examples and the contract methods. `/lab` runs the collusion comparison
+and lists the test vectors that prove the site matches the contract.
+Press **Settle this round** and the settlement table appears; pick a member
+in **Explain my payout** to see their score broken down by giver. Press
+**Run the ring vs honest comparison** in the Attack Lab to see the
+collusion comparison.
 
 No wallet is connected and nothing on the page can move funds. The live
 mode section reads live state from the testnet contract (see Deploy below).
@@ -369,14 +375,18 @@ shown first.
 
 ## What remains
 
+- Live round 2 is done (crew accounts, full DAO flow — see DEMO_LOG.md
+  and `LIVE_ROUND.md`). A live round with real humans still needs
+  Isaiah to bring 5–8 people; the runbook for it is `LIVE_ROUND.md`.
 - Site live mode is wired to `fairshare-contract.testnet` and reads live
   state in the browser (`get_params`, `get_members`, `get_round(1)`),
   verified from the site's own code path in node. No wallet is
-  connected; the page still cannot move funds.
-- Live round 1 is settled (demo round with DAO membership, 5 NEAR). The
-  next live round with real people needs Isaiah's separate approval and
-  real member wallets — members are currently the six demo accounts, who
-  are the DAO council.
+  connected; the page still cannot move funds, and it cannot allocate —
+  allocating is a signed call (see `LIVE_ROUND.md` section 4).
+- Live rounds 1 and 2 are settled (demo round and crew round, 5 NEAR
+  each). The next live round with real people needs Isaiah's separate
+  approval and real member wallets — the DAO council is now 12 (6 demo
+  accounts + 6 crew accounts).
 - Video, GitHub push, and hackathon submission. All need Isaiah's
   separate explicit approval. The GitHub repo
   https://github.com/fairshare54/fairshare already exists (public,
