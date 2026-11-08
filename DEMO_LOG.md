@@ -605,6 +605,25 @@ every scenario, and no payout passes the 1.250 NEAR cap.
   the 390px layout follows the same table scroll and word break rules as
   the rest of the page. Machine record: `demo-log.json` key `monitor`.
 
+## Security and Membership section — rounds page (2026-11-08)
+
+- New section "Security & Membership" on the rounds page, next to
+  governance and the Membership Integrity Monitor, with the user's text
+  verbatim: connecting a wallet does not grant membership; every member
+  must first be approved through a strict-majority Sputnik DAO proposal,
+  then the council membership is synchronised with the contract;
+  governance-based Sybil resistance, not cryptographic identity
+  verification; multiple wallets of one person could still be admitted
+  if the council approves them; final line in bold, membership is
+  governed by the community, not granted automatically by wallet
+  connection. Text used exactly as given, including "governance-based".
+- The section uses only the existing `.panel`, `h2`, `h3`, `p` styles,
+  no new CSS and no fixed widths, so the existing 640px media query
+  applies to it exactly as to every other panel. No live browser or
+  390px phone check was possible from this session (headless Chromium
+  refuses to start in this sandbox); verified by serving the page
+  locally and confirming the section and exact text in the served HTML.
+
 ## History — first live demo (superseded, kept for the record)
 
 - Contract `egbe-contract.testnet`, owner `egbe-owner.testnet`,
