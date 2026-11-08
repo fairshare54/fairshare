@@ -1319,12 +1319,16 @@ async function refreshBadgePanel() {
 }
 async function initWallet() {
   if (typeof window === "undefined") return; // no browser, no wallet
+  let skipRestore = false;
+  try { skipRestore = localStorage.getItem("fairshare-wallet-disconnected") === "1"; } catch (_) { /* storage unavailable */ }
+  if (!skipRestore) {
   try {
     const nw = fastnear();
     const restored = await nw.restore({ network: NETWORK });
     const id = (restored && typeof restored.accountId === "string" && restored.accountId) || currentAccountId(nw);
     if (id) walletAccountId = id;
   } catch (e) { console.warn("wallet restore failed", e); }
+  }
   // Clean the wallet return params off the URL, keeping the page and
   // its query string.
   try {
@@ -1351,9 +1355,14 @@ function refreshWalletBtn() {
   btn.disabled = false;
 }
 async function disconnectWallet() {
+  try { localStorage.setItem("fairshare-wallet-disconnected", "1"); } catch (_) { /* storage unavailable */ }
   try {
     const nw = fastnear();
     try { await nw.disconnect({ network: NETWORK }); } catch (_) { /* wallet already signed out */ }
+    try {
+      const still = nw.accountId({ network: NETWORK });
+      if (still) { try { await nw.disconnect({ network: NETWORK }); } catch (_) {} }
+    } catch (_) { /* accountId unavailable, session is clear */ }
   } catch (_) { /* library missing, clear local state anyway */ }
   walletAccountId = null; walletMembers = []; walletMembersKnown = false; walletOpenRound = null;
   refreshWalletBtn(); refreshWalletPanel(); refreshGovPanel();
@@ -1365,6 +1374,7 @@ async function toggleWallet() {
   // member's dashboard. Disconnecting is done from the Disconnect button
   // in the wallet panel. When not connected, it starts the connect flow.
   if (walletAccountId) { openDashboardFromHeader(); return; }
+  try { localStorage.removeItem("fairshare-wallet-disconnected"); } catch (_) { /* storage unavailable */ }
   try {
     walletStatus("Opening wallet selector…");
     const result = await nw.connect({ network: NETWORK });
