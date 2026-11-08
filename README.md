@@ -149,13 +149,19 @@ site's "Create your DAO" page builds, from one wallet, in four steps:
 
 1. A Sputnik DAO through the factory `sputnikv2.testnet`, council =
    creator, strict-majority voting, 1 NEAR proposal bond.
-2. The group's own round contract as a creator subaccount, deployed
-   with the same code as `fairshare-contract.testnet` (same settlement
-   maths, same standing rules), bound to that DAO.
-3. The group listed in the directory contract
+2. The group listed in the directory contract
    `fairshare-registry.testnet` (name, template, badge URL, creator,
    invite code). The badge image is stored offchain; only the URL goes
    onchain.
+3. The group's own round contract, deployed by the registry itself:
+   one wallet call to `deploy_group_contract` with 5.2 NEAR attached,
+   and the registry creates the contract as its own subaccount
+   (`<slug>-fairshare.fairshare-registry.testnet`), deploys the same
+   code as `fairshare-contract.testnet` (same settlement maths, same
+   standing rules), and calls `new` with owner = creator, dao = the
+   new DAO. No key is made in the browser and no full-access grant is
+   asked for, so wallets that block those (Meteor does) sign it like
+   any other call.
 4. The DAO council synced into the contract.
 
 Creating is free on testnet apart from the deposits the chain itself
@@ -193,6 +199,35 @@ every member paid exactly the 1.25 NEAR cap (5 NEAR in all), standings
 100 to 106 each. The independent integer model in the script matched
 every score and payout. The full record is in
 `prove-group-log.json`.
+
+The first proof used a browser key to deploy the contract, which
+Meteor blocks (a full-access grant from a dapp). The flow was rebuilt
+so the registry deploys the contract instead — registry v2, deployed
+2026-11-08 (code tx `Fu1whEj1X7BKFVeC1H4nr7nNjE5Nm3rU5xBiNv66Guij`,
+then a gas fix to 30 TGas for the `new` call, tx
+`2ZDzhQuut2kv16x37QpyRXf6kkvg5x2ki42oh9yifvWk`; no migration, no init
+after either deploy, state untouched, `prove-group` still listed).
+Proved live on testnet 2026-11-08 (script
+`scripts/prove-group-v2.mjs`, log `prove-group-2-log.json`): group
+`prove-group-2`, DAO `prove-group-2.sputnikv2.testnet` (create tx
+`9Bq82u5Uubkv5hgWy48q7bcvM1yhi2fV3ny6wCiPUgis`), registered in the
+directory (`FDv1tP7FRVejKmX3SwH7wjKrWsT9tyrqKpg8wYi4gzyZ`), contract
+`prove-group-2-fairshare.fairshare-registry.testnet` deployed by the
+registry (deploy tx `C6NWSxvc5ymkFQkuXt6GAzjxEZpPt5URcXyhDbxjsh5S`,
+params verified: 100 points per member, dao correct; the registry
+refuses the old scheme — deploying `prove-group` through it fails),
+membership synced (`8gyMj2sKDx9Y4NYvJoebzWAAvKUTLVDVA3ud5U84LWdW`),
+round 1 funded by DAO proposal #0 (`HcRHsfodPrYESA2vU8VEVUM1PkJwnnibZhAtHJw6SDik`,
+5 NEAR envelope). Round 1 then ran end to end: bob, carol and dave
+joined the council by DAO vote, all four members allocated 100 points
+each, the round closed (close tx
+`DjTXcdVzJtgNxUZhUDoL1jooCENGWwhsggwRFEvEoFYK`, called by the
+creator at standing 100, which only the contract owner may do) and
+settled (settle tx `66garysFmf2kt2iwap5f4QgqsNxfDve5HPM8hfSE2Yjv`),
+total score 63301, every member paid exactly the 1.25 NEAR cap (5 NEAR
+in all), standings 100 to 106 each. The independent integer model in
+the script matched every score and payout. The full record is in
+`prove-group-2-log.json`.
 
 ## Honest limits
 

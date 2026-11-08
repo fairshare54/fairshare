@@ -353,3 +353,67 @@ no fee logic.
 - Left out deliberately: mainnet parts, fee logic, round length (fixed
   at 7 days by the contract), badge changes need a DAO vote, no try-it
   group (Isaiah: the site would be too congested).
+- Registry v2 — the Meteor fix, 2026-11-08. The first proof deployed
+  the contract from the browser: the wallet created the contract
+  subaccount and added a fresh browser keypair as a FullAccess key so
+  near-api-js could deploy the code. Meteor blocks full-access grants
+  from dapps (Approve greyed out), so Isaiah's create flow died at
+  step 2 after his DAO was created. The fix removes the browser key
+  entirely: the registry now deploys the contract itself.
+  `registry-contract/src/lib.rs`: `deploy_group_contract(group_id)`
+  loads the group, asserts the caller is the creator, derives the
+  contract id as `<slug>-fairshare.fairshare-registry.testnet` (a
+  subaccount of the registry — a contract can only deploy to its own
+  subaccounts), asserts 5.2 NEAR attached, then one promise:
+  create_account, transfer the deposit, deploy_contract (the round
+  wasm embedded via `include_bytes!("../../fairshare_round.wasm")`,
+  byte-identical to the live code on `fairshare-contract.testnet`),
+  function_call `new` with owner = creator, dao = the group's DAO.
+  The state struct is unchanged, so no migration and no init after
+  the redeploy; verified both times (owner, group_count, prove-group
+  record identical before/after). Deployed twice: v2 (tx
+  `Fu1whEj1X7BKFVeC1H4nr7nNjE5Nm3rU5xBiNv66Guij`, code sha256
+  `022623f4…b896eb31`), then a gas fix (tx
+  `2ZDzhQuut2kv16x37QpyRXf6kkvg5x2ki42oh9yifvWk`, code sha256
+  `2009db25…c99b`). The gas fix was needed because the first deploy
+  attempt ran out of gas at 150 TGas prepaid: the promise's actions
+  burn ~29 TGas, but the `new` call had 100 TGas attached, and the
+  attached gas is reserved out of the outer call's prepaid gas. `new`
+  actually burns 1.62 TGas, so the attachment is now 30 TGas; the
+  whole deploy burns ~70 TGas across its receipts, so the page's
+  150 TGas wallet call has ~2x headroom. All 16 registry unit tests
+  pass. The old scheme is refused: deploying `prove-group` through
+  the registry panics (verified live).
+- Create page reworked for the new flow (`site/create.js`,
+  `site/create.html`, `site/groups-common.js`): order is now dao ->
+  register -> deploy -> sync; step 3 is a single `walletCall` to the
+  registry's `deploy_group_contract` with 5.2 NEAR attached, 150 TGas;
+  `contractIdFor` is now `<slug>-fairshare.fairshare-registry.testnet`
+  with no creator argument; the browser deploy block, the contract key
+  in localStorage, `walletTx` and `fetchContractCodeBase64` are gone;
+  the done panel shows the contract id instead of a key to save; the
+  near-api-js bundle script tag is removed from the page (nothing uses
+  it now — the bundle file stays in the repo, still referenced by
+  `vercel.json`). "How it works, in three steps" moved to the top of
+  the page, right under the hero and before the costs panel and the
+  form, with its step order reworded to match dao -> register ->
+  deploy -> sync; the progress panel stays after the form (an earlier
+  note to move it was corrected — Isaiah only asked for the how-it-works
+  block to move). Script versions bumped to `?v=3`.
+- Proof v2, `scripts/prove-group-v2.mjs`, log `prove-group-2-log.json`:
+  fresh group `prove-group-2` through the new flow end to end — DAO
+  created, registered, contract deployed by the registry with correct
+  params (100 points, dao correct, owner proven by the creator closing
+  the round at standing 100), membership synced, round 1 funded by DAO
+  proposal #0 (5 NEAR), bob/carol/dave joined by vote, all four
+  allocated, round closed and settled, total score 63301, every member
+  paid exactly the 1.25 NEAR cap (5 NEAR), standings 100 to 106 each,
+  integer model matched every score and payout. Tests:
+  `hidden_files/groups_test.js` passes (new checks: registry
+  subaccount id scheme, flow order, deploy through the registry, no
+  AddKey/FullAccess/browser key/deploy helpers anywhere in the group
+  pages, done panel shows the contract id, how-it-works before the
+  costs panel and outside the form, progress panel still after the
+  form). `dom_test.js` and `charts_test.js` still pass.
+- The original FairShare group, `fairshare-contract.testnet`, round 5
+  and `prove-group`'s contract are untouched by all of this.

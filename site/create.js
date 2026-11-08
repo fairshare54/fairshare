@@ -1,16 +1,16 @@
 // Create your DAO — the self-serve FairShare group flow.
 // One wallet, four steps, each verified onchain before the next:
 //  1. DAO through the Sputnik factory (treasury deposit -> the DAO).
-//  2. Round contract as a creator subaccount (wallet creates it with a
-//     fresh browser key; near-api-js deploys the live FairShare code and
-//     calls new() with owner=creator, dao=the new DAO).
-//  3. Register the group in fairshare-registry.testnet.
+//  2. Register the group in fairshare-registry.testnet.
+//  3. Deploy the group's round contract: one wallet call to the
+//     registry's deploy_group_contract, which creates the contract as
+//     its own subaccount and deploys the embedded FairShare code — no
+//     browser key, no full-access grant (Meteor blocks those).
 //  4. Sync the DAO council into the contract.
 // Every step first reads onchain state and skips work already done, so
 // reloading halfway (the wallet redirects back here after each signing)
 // continues where it stopped. Testnet only.
 const CREATE_KEY = "fairshare-creating";
-const GROUP_KEY_PREFIX = "fairshare-group-key-";
 
 let createState = null; // the in-progress record from localStorage
 let badgeDataUrl = ""; // downscaled badge image, if the user picked a file
@@ -29,15 +29,17 @@ function saveCreateState() {
   } catch (_) { /* storage unavailable */ }
 }
 function daoIdFor(slug) { return slug + "." + FACTORY_ID; }
-function contractIdFor(slug, creator) { return slug + "-fairshare." + creator; }
+// The round contract is a subaccount of the registry, deployed by the
+// registry itself — never by the browser, so no wallet key is needed.
+function contractIdFor(slug) { return slug + "-fairshare." + REGISTRY_ID; }
 function inviteLinkFor(slug, code) {
   return window.location.origin + "/group?id=" + encodeURIComponent(slug) + "&invite=" + encodeURIComponent(code);
 }
 
 const STEPS = [
   { id: "dao", label: "Create your DAO" },
-  { id: "contract", label: "Deploy your group's contract" },
   { id: "register", label: "List the group in the directory" },
+  { id: "contract", label: "Deploy your group's contract" },
   { id: "sync", label: "Sync your membership" },
 ];
 
@@ -52,7 +54,7 @@ async function stepDone(stepId) {
         && council.kind.Group.indexOf(createState.creator) >= 0;
     }
     if (stepId === "contract") {
-      const params = await rpcViewCall(contractIdFor(slug, createState.creator), "get_params", {});
+      const params = await rpcViewCall(contractIdFor(slug), "get_params", {});
       return params && params.points_per_member === 100;
     }
     if (stepId === "register") {
@@ -60,7 +62,7 @@ async function stepDone(stepId) {
       return g !== null && g !== undefined;
     }
     if (stepId === "sync") {
-      const members = await rpcViewCall(contractIdFor(slug, createState.creator), "get_members", {});
+      const members = await rpcViewCall(contractIdFor(slug), "get_members", {});
       return Array.isArray(members) && members.indexOf(createState.creator) >= 0;
     }
   } catch (_) { return false; }
@@ -119,55 +121,13 @@ async function runCreate() {
       s.failedStep = null; saveCreateState();
       await renderProgress();
     }
-    // Step 2: round contract as a creator subaccount.
-    if (!(await stepDone("contract"))) {
-      const contractId = contractIdFor(s.slug, s.creator);
-      if (!(await accountExists(contractId))) {
-        pageStatus("Step 2 of 4: creating your group's contract account. Your wallet will open to sign it.");
-        const kp = window.nearApiJs.KeyPair.fromRandom("ed25519");
-        const secretKey = kp.toString();
-        try { localStorage.setItem(GROUP_KEY_PREFIX + s.slug, secretKey); } catch (_) { /* storage unavailable */ }
-        s.contractKey = secretKey;
-        saveCreateState();
-        await walletTx(contractId, [
-          { type: "CreateAccount" },
-          { type: "Transfer", deposit: (BigInt(Math.round(GROUP_CONTRACT_FUND_NEAR * 10)) * YOCTO_PER_NEAR / 10n).toString() },
-          { type: "AddKey", publicKey: kp.getPublicKey().toString(), accessKey: { permission: "FullAccess" } },
-        ]);
-        if (!(await accountExists(contractId))) throw new Error("the contract account was not created");
-      }
-      // Deploy the live FairShare code with the fresh key, then init it.
-      pageStatus("Step 2 of 4: deploying your group's contract. This signs in the browser with the key just made; no wallet popup.");
-      const secretKey = s.contractKey || localStorage.getItem(GROUP_KEY_PREFIX + s.slug);
-      if (!secretKey) throw new Error("the contract account key is missing from this browser; reload the page and continue");
-      const codeB64 = await fetchContractCodeBase64();
-      const raw = atob(codeB64);
-      const code = new Uint8Array(raw.length);
-      for (let i = 0; i < raw.length; i++) code[i] = raw.charCodeAt(i);
-      const { connect, keyStores, KeyPair } = window.nearApiJs;
-      const ks = new keyStores.InMemoryKeyStore();
-      await ks.setKey("testnet", contractId, KeyPair.fromString(secretKey));
-      const near = await connect({ networkId: "testnet", nodeUrl: "https://rpc.testnet.fastnear.com", keyStore: ks });
-      const acct = await near.account(contractId);
-      await acct.deployContract(code);
-      await acct.functionCall({
-        contractId: contractId,
-        methodName: "new",
-        args: { owner_id: s.creator, dao_id: daoIdFor(s.slug) },
-        gas: 100_000_000_000_000n,
-        attachedDeposit: 0n,
-      });
-      const params = await rpcViewCall(contractId, "get_params", {});
-      if (!params || params.points_per_member !== 100) throw new Error("the contract deployed but its params do not match");
-      s.failedStep = null; saveCreateState();
-      await renderProgress();
-    }
-    // Step 3: register in the directory.
+    // Step 2: register in the directory. The registry records the
+    // contract id the deploy step will create, so this comes first.
     if (!(await stepDone("register"))) {
-      pageStatus("Step 3 of 4: listing your group in the directory. Your wallet will open to sign it.");
+      pageStatus("Step 2 of 4: listing your group in the directory. Your wallet will open to sign it.");
       await walletCall(REGISTRY_ID, "register_group", {
         group_id: s.slug, name: s.name, template: s.template, badge_url: s.badgeUrl,
-        dao_id: daoIdFor(s.slug), contract_id: contractIdFor(s.slug, s.creator),
+        dao_id: daoIdFor(s.slug), contract_id: contractIdFor(s.slug),
         creator: s.creator, invite_code: s.inviteCode,
       }, REGISTER_DEPOSIT_YOCTO, WALLET_GAS_100);
       const g = await rpcViewCall(REGISTRY_ID, "get_group", { group_id: s.slug });
@@ -175,18 +135,31 @@ async function runCreate() {
       s.failedStep = null; saveCreateState();
       await renderProgress();
     }
+    // Step 3: deploy the round contract. One wallet call to the
+    // registry, which creates the contract as its own subaccount and
+    // deploys the embedded FairShare code — no browser key, no
+    // full-access grant, so Meteor signs it like any other call.
+    if (!(await stepDone("contract"))) {
+      const contractId = contractIdFor(s.slug);
+      pageStatus("Step 3 of 4: deploying your group's contract. Your wallet will open to sign it.");
+      await walletCall(REGISTRY_ID, "deploy_group_contract", { group_id: s.slug }, (BigInt(Math.round(GROUP_CONTRACT_FUND_NEAR * 10)) * YOCTO_PER_NEAR / 10n).toString(), WALLET_GAS_150);
+      const params = await rpcViewCall(contractId, "get_params", {});
+      if (!params || params.points_per_member !== 100) throw new Error("the contract deployed but its params do not match");
+      s.failedStep = null; saveCreateState();
+      await renderProgress();
+    }
     // Step 4: sync the DAO council into the contract.
     if (!(await stepDone("sync"))) {
       pageStatus("Step 4 of 4: syncing your membership. Your wallet will open to sign it.");
-      await walletCall(contractIdFor(s.slug, s.creator), "sync_dao_members", {}, "0", WALLET_GAS_100);
-      const members = await rpcViewCall(contractIdFor(s.slug, s.creator), "get_members", {});
+      await walletCall(contractIdFor(s.slug), "sync_dao_members", {}, "0", WALLET_GAS_100);
+      const members = await rpcViewCall(contractIdFor(s.slug), "get_members", {});
       if (!members || members.indexOf(s.creator) < 0) throw new Error("your membership did not sync into the contract");
       s.failedStep = null; saveCreateState();
       await renderProgress();
     }
     showDone();
   } catch (e) {
-    const step = (await stepDone("dao")) ? ((await stepDone("contract")) ? ((await stepDone("register")) ? "sync" : "register") : "contract") : "dao";
+    const step = (await stepDone("dao")) ? ((await stepDone("register")) ? ((await stepDone("contract")) ? "sync" : "contract") : "register") : "dao";
     setStepFailed(step, String(e && e.message ? e.message : e).slice(0, 200));
     pageStatus("Creating stopped: " + String(e && e.message ? e.message : e).slice(0, 160));
   }
@@ -199,12 +172,12 @@ function showDone() {
   const line = el("doneLine");
   const link = el("doneInviteLink");
   const groupLink = el("doneGroupLink");
-  const keyEl = el("doneContractKey");
+  const contractEl = el("doneContractId");
   const next = el("doneNext");
-  if (line) line.textContent = s.name + " is live. Your DAO is " + daoIdFor(s.slug) + " and your contract is " + contractIdFor(s.slug, s.creator) + ".";
+  if (line) line.textContent = s.name + " is live. Your DAO is " + daoIdFor(s.slug) + " and your contract is " + contractIdFor(s.slug) + ".";
   if (link) link.textContent = inviteLinkFor(s.slug, s.inviteCode);
   if (groupLink) groupLink.href = "/group?id=" + encodeURIComponent(s.slug) + "&invite=" + encodeURIComponent(s.inviteCode);
-  if (keyEl) keyEl.textContent = s.contractKey || localStorage.getItem(GROUP_KEY_PREFIX + s.slug) || "(key not in this browser)";
+  if (contractEl) contractEl.textContent = contractIdFor(s.slug);
   if (next) next.textContent = "Next: share the invite link, then open your group's page and propose your first round. Your DAO holds " + s.treasury + " NEAR; a " + s.envelope + " NEAR round needs that much liquid plus the proposal bond, which is returned when the council approves.";
   if (panel) panel.style.display = "block";
   const form = el("formPanel");
@@ -231,9 +204,9 @@ function onNameInput() {
       const taken = await rpcViewCall(REGISTRY_ID, "get_group", { group_id: slug });
       if (taken) { slugAvailable = false; if (line) line.textContent = "“" + slug + "” is already taken. Try another name."; return; }
       if (await accountExists(daoIdFor(slug))) { slugAvailable = false; if (line) line.textContent = "“" + slug + "” is already taken as a DAO name. Try another name."; return; }
-      if (walletAccountId && await accountExists(contractIdFor(slug, walletAccountId))) { slugAvailable = false; if (line) line.textContent = "“" + slug + "” is already taken as a contract name. Try another name."; return; }
+      if (walletAccountId && await accountExists(contractIdFor(slug))) { slugAvailable = false; if (line) line.textContent = "“" + slug + "” is already taken as a contract name. Try another name."; return; }
       slugAvailable = true;
-      if (line) line.textContent = "Available: your DAO will be " + daoIdFor(slug) + " and your contract " + (walletAccountId ? contractIdFor(slug, walletAccountId) : slug + "-fairshare.<you>") + ".";
+      if (line) line.textContent = "Available: your DAO will be " + daoIdFor(slug) + " and your contract " + contractIdFor(slug) + ".";
     } catch (e) {
       if (line) line.textContent = "Could not check availability just now: " + String(e.message).slice(0, 100) + ". Try again.";
     }
@@ -285,7 +258,7 @@ async function submitCreate() {
     slug: slug, name: name, template: template, badgeUrl: badgeUrl,
     envelope: envelope, treasury: treasury,
     inviteCode: randomInviteCode(), creator: walletAccountId,
-    contractKey: null, failedStep: null,
+    failedStep: null,
   };
   saveCreateState();
   if (result) result.textContent = "";

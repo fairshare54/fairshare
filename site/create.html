@@ -74,6 +74,15 @@
     <p class="muted" id="pageStatus">Connect your testnet wallet above to create a group. Nothing moves without your signature.</p>
   </section>
 
+  <section class="panel" id="howPanel">
+    <h3>How it works, in three steps</h3>
+    <ol>
+      <li><b>Create.</b> Your wallet signs four steps: your DAO is created, the group is listed in the directory, your group's contract is deployed, and your membership is synced. Each step checks the chain first, so if you reload halfway, you continue where you stopped.</li>
+      <li><b>Invite with your link.</b> You get an invite link. Members open it, connect, and join through a DAO proposal your council approves.</li>
+      <li><b>Allocate your 100 points.</b> In an open round, every member gives 100 points to at least 3 others, with a reason each. The contract settles the payouts onchain.</li>
+    </ol>
+  </section>
+
   <section class="panel" id="costsPanel">
     <h2>What it costs</h2>
     <p>Creating a group is free on testnet in the sense that no fee is charged. The NEAR below is not a fee: it funds your group's own accounts, and most of it stays there.</p>
@@ -118,13 +127,6 @@
 
     <p><button id="createBtn" type="button">Create my group</button></p>
     <p class="muted" id="createResult"></p>
-
-    <h3>How it works, in three steps</h3>
-    <ol>
-      <li><b>Create.</b> Your wallet signs four steps: your DAO is created, your group's contract is deployed, the group is listed in the directory, and your membership is synced. Each step checks the chain first, so if you reload halfway, you continue where you stopped.</li>
-      <li><b>Invite with your link.</b> You get an invite link. Members open it, connect, and join through a DAO proposal your council approves.</li>
-      <li><b>Allocate your 100 points.</b> In an open round, every member gives 100 points to at least 3 others, with a reason each. The contract settles the payouts onchain.</li>
-    </ol>
   </section>
 
   <section class="panel" id="progressPanel" style="display:none">
@@ -140,9 +142,9 @@
     <p>Invite link — share it with your members:</p>
     <p class="invitelink" id="doneInviteLink"></p>
     <p><button id="copyInviteBtn" type="button">Copy invite link</button> <a id="doneGroupLink" href="#">Open your group's page</a></p>
-    <h3>Keep this safe</h3>
-    <p class="muted">Your group's contract has its own key, made in your browser when the contract was deployed. It is only needed if the contract is ever upgraded. Save it somewhere safe:</p>
-    <p><code id="doneContractKey"></code></p>
+    <h3>Your group's contract</h3>
+    <p class="muted">Your group's round contract lives at the address below. It was deployed by the registry, so no key was made in your browser and nothing needs saving:</p>
+    <p><code id="doneContractId"></code></p>
     <p class="muted" id="doneNext"></p>
   </section>
 </main>
@@ -152,8 +154,7 @@
   <a href="https://testnet.nearblocks.io/address/fairshare-registry.testnet">Registry on Nearblocks</a>
 </footer>
 <script src="fastnear-wallet.bundle.js"></script>
-<script src="near-api-js.bundle.js"></script>
-<script src="groups-common.js?v=2"></script>
-<script src="create.js?v=2"></script>
+<script src="groups-common.js?v=3"></script>
+<script src="create.js?v=3"></script>
 </body>
 </html>

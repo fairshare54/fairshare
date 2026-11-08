@@ -214,13 +214,6 @@ async function walletCall(contractId, method, args, depositYocto, gas) {
     }],
   });
 }
-// A raw multi-action transaction through the wallet (used to create a
-// group's contract subaccount: CreateAccount + Transfer + AddKey).
-async function walletTx(receiverId, actions) {
-  const nw = fastnear();
-  return nw.sendTransaction({ receiverId: receiverId, network: NETWORK, actions: actions });
-}
-
 // ---- Group helpers ----
 function slugify(name) {
   return String(name || "")
@@ -236,28 +229,6 @@ function randomInviteCode() {
   crypto.getRandomValues(buf);
   for (const b of buf) out += chars[b % chars.length];
   return out;
-}
-// The live FairShare round contract code, read off the chain as base64.
-// The create page deploys exactly these bytes for a new group.
-async function fetchContractCodeBase64() {
-  let lastErr = null;
-  for (const url of RPC_ENDPOINTS) {
-    try {
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          jsonrpc: "2.0", id: "view_code", method: "query",
-          params: { request_type: "view_code", account_id: MAIN_CONTRACT_ID, finality: "final" },
-        }),
-      });
-      if (!res.ok) throw new Error("RPC HTTP " + res.status);
-      const d = await res.json();
-      if (d.error || !d.result || !d.result.code_base64) throw new Error("RPC error");
-      return d.result.code_base64;
-    } catch (e) { lastErr = e; }
-  }
-  throw lastErr || new Error("Could not read the contract code");
 }
 // Downscale a badge image to at most 256px on its longest side and return
 // a JPEG data URL (small enough to store as the group's badge URL on

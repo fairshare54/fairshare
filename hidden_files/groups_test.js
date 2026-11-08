@@ -56,6 +56,35 @@ check("b64Utf8 matches btoa on plain ASCII", gc.b64Utf8("hello") === btoa("hello
 check("create.js uses b64Utf8 for the DAO args", fs.readFileSync("/home/hatch/workspace/egbe/site/create.js", "utf8").includes("b64Utf8(JSON.stringify(daoArgs))"));
 check("no bare btoa(JSON call left in the group pages", !/btoa\(JSON\.stringify/.test(fs.readFileSync("/home/hatch/workspace/egbe/site/groups-common.js", "utf8")) && !/btoa\(JSON\.stringify/.test(fs.readFileSync("/home/hatch/workspace/egbe/site/create.js", "utf8")) && !/btoa\(JSON\.stringify/.test(fs.readFileSync("/home/hatch/workspace/egbe/site/group.js", "utf8")));
 
+// 4c. The registry deploys the contract (Meteor blocks the old browser
+// flow's full-access key grant, 2026-11-08). The contract id is now a
+// subaccount of the registry, the flow is dao -> register -> deploy ->
+// sync, and no browser key exists anywhere in the group pages.
+const createJs = fs.readFileSync("/home/hatch/workspace/egbe/site/create.js", "utf8");
+const groupJs = fs.readFileSync("/home/hatch/workspace/egbe/site/group.js", "utf8");
+const commonJs = fs.readFileSync("/home/hatch/workspace/egbe/site/groups-common.js", "utf8");
+const createHtml = fs.readFileSync("/home/hatch/workspace/egbe/site/create.html", "utf8");
+check("contract id is a registry subaccount", createJs.includes('function contractIdFor(slug) { return slug + "-fairshare." + REGISTRY_ID; }'), createJs.match(/function contractIdFor[^\n]*/)?.[0]);
+check("create flow order is dao, register, contract, sync", JSON.stringify([...createJs.matchAll(/\{ id: "(\w+)", label/g)].map((m) => m[1])) === JSON.stringify(["dao", "register", "contract", "sync"]));
+check("deploy goes through the registry", createJs.includes('walletCall(REGISTRY_ID, "deploy_group_contract", { group_id: s.slug }'));
+check("no AddKey anywhere in the group pages", !/AddKey/.test(createJs) && !/AddKey/.test(groupJs) && !/AddKey/.test(commonJs));
+check("no FullAccess anywhere in the group pages", !/FullAccess/.test(createJs) && !/FullAccess/.test(groupJs) && !/FullAccess/.test(commonJs));
+check("no browser contract key in create.js", !/contractKey|GROUP_KEY_PREFIX/.test(createJs));
+check("no browser deploy helpers left", !/fetchContractCodeBase64|walletTx/.test(createJs) && !/fetchContractCodeBase64|walletTx/.test(commonJs));
+check("done panel shows the contract id, not a key", createHtml.includes('id="doneContractId"') && !/doneContractKey/.test(createHtml) && !/doneContractKey/.test(createJs));
+// 4d. Layout: "How it works" sits at the top of the create page, right
+// under the hero and before the costs panel and the form; the progress
+// panel stays after the form (it was never moved).
+const howAt = createHtml.indexOf("How it works, in three steps");
+const costsAt = createHtml.indexOf('id="costsPanel"');
+const formAt = createHtml.indexOf('id="formPanel"');
+const progressAt = createHtml.indexOf('id="progressPanel"');
+check("how-it-works is before the costs panel", howAt >= 0 && howAt < costsAt, "how at " + howAt + ", costs at " + costsAt);
+check("how-it-works is before the form", howAt < formAt);
+check("how-it-works is not inside the form panel", createHtml.slice(formAt, createHtml.indexOf("</section>", formAt)).indexOf("How it works, in three steps") < 0);
+check("progress panel stays after the form", progressAt > formAt, "form at " + formAt + ", progress at " + progressAt);
+check("how-it-works lists the new step order", createHtml.includes("your DAO is created, the group is listed in the directory, your group's contract is deployed, and your membership is synced"));
+
 // 5. Structural check: every id the page scripts look up exists in the HTML.
 function idsIn(html) {
   return new Set([...html.matchAll(/id="([^"]+)"/g)].map((m) => m[1]));

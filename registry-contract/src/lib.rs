@@ -2,28 +2,59 @@
 //!
 //! Anyone can create their own FairShare group from the site, without a
 //! technical person: the create page makes the group's Sputnik DAO through
-//! the live Sputnik factory, deploys the group's own FairShare round
-//! contract (the same code as fairshare-contract.testnet, read off the
-//! chain), and then registers the group here. This contract only stores
-//! the directory: one record per group with its name, template, badge
-//! image URL, DAO id, contract id, creator and invite code. It never
-//! holds group money and never moves funds except refunding unused
-//! storage deposits.
+//! the live Sputnik factory, registers the group here, and then asks this
+//! registry to deploy the group's own FairShare round contract (the same
+//! code as fairshare-contract.testnet, embedded below). This contract
+//! only stores the directory: one record per group with its name,
+//! template, badge image URL, DAO id, contract id, creator and invite
+//! code. It never holds group money, except the deposit attached to a
+//! deploy call, which it passes straight through to the new contract
+//! account, and it never moves funds except refunding unused storage
+//! deposits.
 //!
 //! Naming (enforced): a group with id `<slug>` has DAO
 //! `<slug>.sputnikv2.testnet` and round contract
-//! `<slug>-fairshare.<creator>`. The badge image itself is stored
-//! offchain; only its URL is stored here (a data: URL counts as a URL
-//! for small images on testnet; the mainnet version will use object
-//! storage). Changing a group's badge later needs the group's DAO to
-//! approve it: the DAO calls `update_badge` through a proposal.
+//! `<slug>-fairshare.fairshare-registry.testnet` — a subaccount of this
+//! registry. The registry deploys the contract itself because a contract
+//! can only create and deploy to its own subaccounts, so no wallet key
+//! is ever needed to deploy a group's contract (the old flow made the
+//! browser create the subaccount and grant it a full-access key, which
+//! Meteor blocks). The badge image itself is stored offchain; only its
+//! URL is stored here (a data: URL counts as a URL for small images on
+//! testnet; the mainnet version will use object storage). Changing a
+//! group's badge later needs the group's DAO to approve it: the DAO
+//! calls `update_badge` through a proposal.
 //!
 //! TESTNET ONLY. Never deploy to mainnet.
 
 use near_sdk::borsh::{BorshDeserialize, BorshSerialize};
 use near_sdk::serde::{Deserialize, Serialize};
 use near_sdk::store::{LookupMap, Vector};
-use near_sdk::{env, near, AccountId, NearToken, PanicOnDefault, Promise};
+use near_sdk::{env, near, AccountId, Gas, NearToken, PanicOnDefault, Promise};
+
+/// The round-contract WASM, embedded at compile time. These are the exact
+/// bytes the live fairshare-contract.testnet runs (verified: the source
+/// in contract/ builds to the same sha256). Rebuild it with:
+///   cargo build --release --target wasm32-unknown-unknown   (in contract/)
+/// and copy target/wasm32-unknown-unknown/release/fairshare_round.wasm
+/// to the workspace root as fairshare_round.wasm; or fetch the live code
+/// with an RPC view_code call on fairshare-contract.testnet and save it
+/// as that file. The .wasm is a build input only and is NOT committed
+/// (it is a binary; the push tooling only handles UTF-8 text).
+const ROUND_CONTRACT_WASM: &[u8] = include_bytes!("../../fairshare_round.wasm");
+
+/// NEAR attached to a deploy call (5.2 NEAR), transferred in full to the
+/// new contract account. About 4.9 NEAR of it stays locked as the code's
+/// storage; the rest covers the account and the contract's state.
+const GROUP_CONTRACT_FUND_YOCTO: u128 = 5_200_000_000_000_000_000_000_000;
+
+/// Gas for the `new` call on a freshly deployed round contract.
+/// Measured 1.62 TGas for the live round contract (prove-group init);
+/// 30 TGas is ~18x headroom. Keep it small: the gas attached here is
+/// reserved out of the outer call's prepaid gas, so a large value
+/// starves the deploy itself — 100 TGas made the whole deploy exceed
+/// a 150 TGas outer call even though the actions only burn ~29 TGas.
+const NEW_CALL_GAS: Gas = Gas::from_tgas(30);
 
 /// YoctoNEAR charged per byte of storage (the network's storage price).
 const STORAGE_PRICE_PER_BYTE_YOCTO: u128 = 10_000_000_000_000_000_000;
@@ -64,7 +95,8 @@ pub struct Group {
     pub badge_url: String,
     /// `<group_id>.sputnikv2.testnet`.
     pub dao_id: AccountId,
-    /// `<group_id>-fairshare.<creator>`.
+    /// `<group_id>-fairshare.fairshare-registry.testnet` — a subaccount
+    /// of this registry, deployed by `deploy_group_contract`.
     pub contract_id: AccountId,
     /// The account that created the group (and owns its round contract).
     pub creator: AccountId,
@@ -139,12 +171,15 @@ impl Registry {
             .parse()
             .expect("group_id builds a valid DAO id");
         assert_eq!(dao_id, expected_dao, "dao_id must be <group_id>.sputnikv2.testnet");
-        let expected_contract: AccountId = format!("{group_id}-fairshare.{creator}")
-            .parse()
-            .expect("group_id and creator build a valid contract id");
+        let expected_contract: AccountId = format!(
+            "{group_id}-fairshare.{}",
+            env::current_account_id()
+        )
+        .parse()
+        .expect("group_id builds a valid contract id");
         assert_eq!(
             contract_id, expected_contract,
-            "contract_id must be <group_id>-fairshare.<creator>"
+            "contract_id must be <group_id>-fairshare.fairshare-registry.testnet"
         );
         assert!(
             !self.by_dao.contains_key(&dao_id),
@@ -181,6 +216,66 @@ impl Registry {
         self.by_dao.insert(dao_id, group_id.clone());
         self.by_contract.insert(contract_id, group_id);
         self.refund_excess_storage(storage_before, attached);
+    }
+
+    /// Deploy a group's round contract as a subaccount of this registry.
+    /// The group must already be registered (the create flow is dao ->
+    /// register -> deploy -> sync). Only the group's creator may call it,
+    /// and the caller attaches at least 5.2 NEAR, transferred in full to
+    /// the new contract account. One promise creates the subaccount,
+    /// deploys the embedded round-contract code and calls `new` with
+    /// owner=creator, dao=the group's DAO. The contract id is
+    /// `<group_id>-fairshare.fairshare-registry.testnet`: a contract can
+    /// only create and deploy to its own subaccounts, so no wallet key
+    /// is ever needed here — the old browser flow made the wallet grant
+    /// the fresh browser key full access, which Meteor blocks, and this
+    /// is what replaces it. Groups registered under the old scheme
+    /// (`<group_id>-fairshare.<creator>`, e.g. prove-group) are refused:
+    /// their contract already exists under their creator and is untouched.
+    /// The attached deposit only leaves this registry as part of the
+    /// same promise that creates the account, so it cannot be stranded
+    /// by a failed deploy: if create_account fails (the account already
+    /// exists) the transfer never runs and the deposit stays here, and
+    /// the create page only retries this step while get_params does not
+    /// answer, which means no contract is deployed yet.
+    #[payable]
+    pub fn deploy_group_contract(&mut self, group_id: String) -> Promise {
+        let caller = env::predecessor_account_id();
+        let group = self
+            .groups
+            .get(&group_id)
+            .cloned()
+            .expect("unknown group_id");
+        assert_eq!(
+            caller, group.creator,
+            "only the group's creator can deploy its contract"
+        );
+        let expected_contract: AccountId = format!(
+            "{group_id}-fairshare.{}",
+            env::current_account_id()
+        )
+        .parse()
+        .expect("group_id builds a valid contract id");
+        assert_eq!(
+            group.contract_id, expected_contract,
+            "group record uses the old contract scheme"
+        );
+        let attached = env::attached_deposit();
+        assert!(
+            attached.as_yoctonear() >= GROUP_CONTRACT_FUND_YOCTO,
+            "attach at least 5.2 NEAR to fund the contract account"
+        );
+        let new_args = serde_json::json!({
+            "owner_id": group.creator,
+            "dao_id": group.dao_id,
+        })
+        .to_string()
+        .into_bytes();
+        Promise::new(group.contract_id)
+            .create_account()
+            .transfer(attached)
+            .deploy_contract(ROUND_CONTRACT_WASM.to_vec())
+            .function_call("new".to_string(), new_args, NearToken::from_yoctonear(0), NEW_CALL_GAS)
     }
 
     /// Change a group's badge. Only the group's DAO may call this, which
@@ -317,7 +412,7 @@ mod tests {
             "market-traders".to_string(),
             "https://example.com/badge.png".to_string(),
             acc("market-traders.sputnikv2.testnet"),
-            acc("market-traders-fairshare.alice-fairshare.testnet"),
+            acc("market-traders-fairshare.fairshare-registry.testnet"),
             acc(CREATOR),
             "invite-abc123".to_string(),
         )
@@ -339,14 +434,14 @@ mod tests {
         assert_eq!(g.name, "Lagos Market Traders");
         assert_eq!(g.template, "market-traders");
         assert_eq!(g.dao_id, acc("market-traders.sputnikv2.testnet"));
-        assert_eq!(g.contract_id, acc("market-traders-fairshare.alice-fairshare.testnet"));
+        assert_eq!(g.contract_id, acc("market-traders-fairshare.fairshare-registry.testnet"));
         assert_eq!(g.creator, acc(CREATOR));
         assert_eq!(g.invite_code, "invite-abc123");
         assert_eq!(g.created_at_ns, T0);
         let by_dao = c.get_group_by_dao(acc("market-traders.sputnikv2.testnet")).unwrap();
         assert_eq!(by_dao.group_id, "market-traders");
         let by_contract = c
-            .get_group_by_contract(acc("market-traders-fairshare.alice-fairshare.testnet"))
+            .get_group_by_contract(acc("market-traders-fairshare.fairshare-registry.testnet"))
             .unwrap();
         assert_eq!(by_contract.group_id, "market-traders");
         assert_eq!(c.get_owner(), acc(OWNER));
@@ -362,7 +457,7 @@ mod tests {
             "grant-team".to_string(),
             "".to_string(),
             acc("grant-team.sputnikv2.testnet"),
-            acc("grant-team-fairshare.alice-fairshare.testnet"),
+            acc("grant-team-fairshare.fairshare-registry.testnet"),
             acc(CREATOR),
             "invite-def456".to_string(),
         );
@@ -495,5 +590,72 @@ mod tests {
         let (id, name, template, badge, dao, contract, creator, code) = register_args();
         testing_env!(ctx(CREATOR, 1).build());
         c.register_group(id, name, template, badge, dao, contract, creator, code);
+    }
+
+    // -- deploy_group_contract: the registry deploys the round contract
+    // itself, so no wallet key is ever needed (Meteor blocks the old
+    // browser flow's full-access key grant). The promise is only built,
+    // not executed, in unit tests; the guards below are what is pinned.
+    #[test]
+    fn deploy_by_creator_builds_promise() {
+        let mut c = setup();
+        register(&mut c);
+        testing_env!(ctx(CREATOR, 6 * NEAR).build());
+        let _p = c.deploy_group_contract("market-traders".to_string());
+    }
+
+    #[test]
+    #[should_panic(expected = "only the group's creator can deploy its contract")]
+    fn deploy_by_stranger_rejected() {
+        let mut c = setup();
+        register(&mut c);
+        testing_env!(ctx("mallory.testnet", 6 * NEAR).build());
+        c.deploy_group_contract("market-traders".to_string());
+    }
+
+    #[test]
+    #[should_panic(expected = "unknown group_id")]
+    fn deploy_unknown_group_rejected() {
+        let mut c = setup();
+        testing_env!(ctx(CREATOR, 6 * NEAR).build());
+        c.deploy_group_contract("no-such-group".to_string());
+    }
+
+    #[test]
+    #[should_panic(expected = "attach at least 5.2 NEAR")]
+    fn deploy_needs_5_2_near() {
+        let mut c = setup();
+        register(&mut c);
+        testing_env!(ctx(CREATOR, NEAR).build());
+        c.deploy_group_contract("market-traders".to_string());
+    }
+
+    #[test]
+    #[should_panic(expected = "group record uses the old contract scheme")]
+    fn deploy_old_scheme_group_refused() {
+        // prove-group lives under the old scheme; its record can only
+        // exist from before the scheme change, so insert it directly.
+        let mut c = setup();
+        let group = Group {
+            group_id: "prove-group".to_string(),
+            name: "Prove Group".to_string(),
+            template: "cooperative".to_string(),
+            badge_url: "".to_string(),
+            dao_id: acc("prove-group.sputnikv2.testnet"),
+            contract_id: acc("prove-group-fairshare.prove-creator.testnet"),
+            creator: acc("prove-creator.testnet"),
+            invite_code: "prove-abc123".to_string(),
+            created_at_ns: T0,
+        };
+        c.groups.insert("prove-group".to_string(), group);
+        c.group_ids.push("prove-group".to_string());
+        c.by_dao
+            .insert(acc("prove-group.sputnikv2.testnet"), "prove-group".to_string());
+        c.by_contract.insert(
+            acc("prove-group-fairshare.prove-creator.testnet"),
+            "prove-group".to_string(),
+        );
+        testing_env!(ctx("prove-creator.testnet", 6 * NEAR).build());
+        c.deploy_group_contract("prove-group".to_string());
     }
 }

@@ -1,13 +1,1 @@
-{
-  "network": "testnet",
-  "registry_id": "fairshare-registry.testnet",
-  "owner_id": "fairshare-owner.testnet",
-  "wasm_bytes": 311253,
-  "wasm_sha256": "10e42ae2eb91bec96a31ac6307eb782a211be135a9f85bebcd06db5fc1e09834",
-  "deploy_tx": "AYHtQEMkk87vfDYwKwPwHBng2btbnh6BqCGXmCzytaxW",
-  "init_tx": "2gkNKdvKyyuSkxh1gAiLtuQfCa4UaGJGhZcUSw9dEbvu",
-  "owner": "fairshare-owner.testnet",
-  "group_count": 0,
-  "registry_balance_yocto": "9997547664980885200000000",
-  "deployed_at": "2026-11-08T17:43:31.721Z"
-}
+{"deploy_tx":"2ZDzhQuut2kv16x37QpyRXf6kkvg5x2ki42oh9yifvWk","deployed_at":"2026-11-08T19:24:00Z","group_count":2,"init_tx":"2gkNKdvKyyuSkxh1gAiLtuQfCa4UaGJGhZcUSw9dEbvu","network":"testnet","note":"v2 adds deploy_group_contract (the registry deploys a group's round contract as its own subaccount, so no browser key or full-access grant is needed — Meteor blocked the old flow). No migration and no init after either v2 deploy; the state struct is unchanged. The second v2 deploy only lowers NEW_CALL_GAS from 100 to 30 TGas: the first v2 deploy attempt ran out of gas at 150 TGas prepaid because the 100 TGas attached to the new call is reserved out of the outer call's prepaid gas. new() burns 1.62 TGas; the whole deploy burns about 70 TGas across its receipts.","owner":"fairshare-owner.testnet","owner_id":"fairshare-owner.testnet","previous_deploy_tx":"Fu1whEj1X7BKFVeC1H4nr7nNjE5Nm3rU5xBiNv66Guij","previous_wasm_sha256":"022623f47a03f12a44139b3c1c7d559ad91d964aad245383242a3500b896eb31","prove_group_2_contract":"prove-group-2-fairshare.fairshare-registry.testnet","prove_group_contract":"prove-group-fairshare.prove-creator.testnet","registry_balance_yocto":"9997547664980885200000000","registry_id":"fairshare-registry.testnet","v1_deploy_tx":"AYHtQEMkk87vfDYwKwPwHBng2btbnh6BqCGXmCzytaxW","v1_wasm_bytes":311253,"v1_wasm_sha256":"10e42ae2eb91bec96a31ac6307eb782a211be135a9f85bebcd06db5fc1e09834","wasm_bytes":834745,"wasm_sha256":"2009db25cd95bb82c596977c10c72ff5c144cc55bc63c3b54147cc5a0f33c99b"}
