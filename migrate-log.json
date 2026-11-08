@@ -1,0 +1,128 @@
+{
+  "network": "testnet",
+  "contract_id": "fairshare-contract.testnet",
+  "change": "reputation rule: standing updates at settle (+2 per distinct giver, cap +10, -5 no allocation, floor 50 cap 200); gates: propose >= 100, close early >= 150",
+  "wasm_bytes": 486611,
+  "wasm_sha256": "a2fe8ce3784b0c3f377651785138fe8dcfba027f3cbb83e8be202cf98b9a5585",
+  "migrate_tx": "Bz1CPe8ngb7ACjKXc45GDqYEG5NCHGFz4PWjAUsgJExh",
+  "before": {
+    "params": {
+      "points_per_member": 100,
+      "min_recipients": 3,
+      "cap_bps": 2500,
+      "reciprocity_discount_bps": 5000,
+      "round_duration_ns": 604800000000000,
+      "standing_start": 100
+    },
+    "members": [
+      "frank-fairshare.testnet",
+      "carol-fairshare.testnet",
+      "bob-fairshare.testnet",
+      "dave-fairshare.testnet",
+      "alice-fairshare.testnet",
+      "erin-fairshare.testnet",
+      "ibrahim-fairshare.testnet",
+      "fatima-fairshare.testnet",
+      "ada-fairshare.testnet",
+      "ngozi-fairshare.testnet",
+      "tunde-fairshare.testnet",
+      "emeka-fairshare.testnet"
+    ],
+    "round1": {
+      "id": 1,
+      "envelope_yocto": "5000000000000000000000000",
+      "created_ns": 1794129774970267400,
+      "deadline_ns": 1794734574970267400,
+      "closed": true,
+      "settled": true,
+      "total_payout_yocto": "4999999999999999999999997"
+    },
+    "round2": {
+      "id": 2,
+      "envelope_yocto": "5000000000000000000000000",
+      "created_ns": 1794131724863121700,
+      "deadline_ns": 1794736524863121700,
+      "closed": true,
+      "settled": true,
+      "total_payout_yocto": "4999999999999999999999997"
+    },
+    "standings": {
+      "frank-fairshare.testnet": 100,
+      "carol-fairshare.testnet": 100,
+      "bob-fairshare.testnet": 100,
+      "dave-fairshare.testnet": 100,
+      "alice-fairshare.testnet": 100,
+      "erin-fairshare.testnet": 100,
+      "ibrahim-fairshare.testnet": 100,
+      "fatima-fairshare.testnet": 100,
+      "ada-fairshare.testnet": 100,
+      "ngozi-fairshare.testnet": 100,
+      "tunde-fairshare.testnet": 100,
+      "emeka-fairshare.testnet": 100
+    }
+  },
+  "after": {
+    "params": {
+      "points_per_member": 100,
+      "min_recipients": 3,
+      "cap_bps": 2500,
+      "reciprocity_discount_bps": 5000,
+      "round_duration_ns": 604800000000000,
+      "standing_start": 100,
+      "standing_gain_per_giver": 2,
+      "standing_gain_cap_per_round": 10,
+      "standing_no_alloc_penalty": 5,
+      "standing_floor": 50,
+      "standing_cap": 200,
+      "propose_min_standing": 100,
+      "close_min_standing": 150
+    },
+    "members": [
+      "frank-fairshare.testnet",
+      "carol-fairshare.testnet",
+      "bob-fairshare.testnet",
+      "dave-fairshare.testnet",
+      "alice-fairshare.testnet",
+      "erin-fairshare.testnet",
+      "ibrahim-fairshare.testnet",
+      "fatima-fairshare.testnet",
+      "ada-fairshare.testnet",
+      "ngozi-fairshare.testnet",
+      "tunde-fairshare.testnet",
+      "emeka-fairshare.testnet"
+    ],
+    "round1": {
+      "id": 1,
+      "envelope_yocto": "5000000000000000000000000",
+      "created_ns": 1794129774970267400,
+      "deadline_ns": 1794734574970267400,
+      "closed": true,
+      "settled": true,
+      "total_payout_yocto": "4999999999999999999999997"
+    },
+    "round2": {
+      "id": 2,
+      "envelope_yocto": "5000000000000000000000000",
+      "created_ns": 1794131724863121700,
+      "deadline_ns": 1794736524863121700,
+      "closed": true,
+      "settled": true,
+      "total_payout_yocto": "4999999999999999999999997"
+    },
+    "standings": {
+      "frank-fairshare.testnet": 100,
+      "carol-fairshare.testnet": 100,
+      "bob-fairshare.testnet": 100,
+      "dave-fairshare.testnet": 100,
+      "alice-fairshare.testnet": 100,
+      "erin-fairshare.testnet": 100,
+      "ibrahim-fairshare.testnet": 100,
+      "fatima-fairshare.testnet": 100,
+      "ada-fairshare.testnet": 100,
+      "ngozi-fairshare.testnet": 100,
+      "tunde-fairshare.testnet": 100,
+      "emeka-fairshare.testnet": 100
+    }
+  },
+  "migrated_at": "2026-11-08T11:03:56.283Z"
+}

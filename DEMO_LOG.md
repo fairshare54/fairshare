@@ -224,18 +224,126 @@ member's balance is 10 NEAR (faucet start) + payout − gas (under
 
 ### What is NOT done (needs Isaiah or a follow-up)
 
-- **Live round with real people**, **GitHub push**, **hackathon
-  submission**: need Isaiah's separate explicit approval. The repo
-  https://github.com/fairshare54/fairshare already exists (public,
-  empty); nothing pushed yet.
+- **Live round with real people** and **hackathon submission**: need
+  Isaiah's separate explicit approval.
 - **Lead question**: FairShare is the fourth project (Genesis, PAC,
   VeilProof, FairShare); one person can lead at most 2, so it needs a
   different lead or Genesis to wait.
-- DAO treasury is nearly empty (0.2591 NEAR available) after funding
-  round 2 — top it up before any round 3.
 - The 6 demo members are still on the council alongside the 6 crew
-  (12 total). They did not allocate in round 2, but they can still vote.
-  Removing them takes one RemoveMemberFromRole proposal each.
+  (12 total). Removing them takes one RemoveMemberFromRole proposal each.
+
+## Live round 3 — 5 NEAR, reputation-rule proof round (2026-11-08)
+
+Contract migrated in place first (no fresh contract, state survived):
+`cargo test --offline` 39 passed, 0 failed (31 original + 8 new
+reputation tests). Wasm rebuilt 486,611 bytes, sha256
+`a2fe8ce3784b0c3f377651785138fe8dcfba027f3cbb83e8be202cf98b9a5585`.
+Migrate (code only, no `new()` call) tx
+`Bz1CPe8ngb7ACjKXc45GDqYEG5NCHGFz4PWjAUsgJExh`. Verified after:
+`get_params` shows the reputation rule live, 12 members unchanged,
+rounds 1 and 2 still settled with identical totals, standings all 100.
+
+The rule, as built: at each settle, +2 standing per distinct giver
+(capped at +10 a round), -5 for submitting no allocations, floor 50,
+cap 200. Giver weight in scoring is the giver's standing. Gates:
+standing 100 or more to propose a round, 150 or more to close one
+early. The owner and the DAO are excepted from the gates (the owner is
+the admin bootstrap; a DAO proposal already needs a council majority).
+
+### Funding proposal #7 — it failed twice before it passed
+
+The DAO's total balance is not its spendable balance. Sputnik stores
+every proposal onchain, so the DAO must keep about 4.74 NEAR staked
+for its own storage (measured storage_usage 474269 bytes = 4.7427
+NEAR), and executing a proposal also returns the 1 NEAR bond, so a
+5 NEAR envelope is really a 6 NEAR outflow. Funding round 2 had left
+the DAO at ~5.0 NEAR total (~0.26 free).
+
+- Top-up 1 NEAR owner to DAO: `HkNBdKAhjtB5b4Jh7ktMnT4PvjKwVr2H5tQHpPStKvhq`.
+  Proposal #7 proposed: `LiZkXGB2phs1xhqZbxuFmFctYuHTAEPh8DLYGWowvid`.
+  Six votes cast (alice `7oy8vNAg6wwY9WdbwLT91fqr3XijZki5s6umYwcAfXFq`,
+  bob `CdT8pZLhaywbkyN2edS1jsVsGuCGiDJkTW4Uj237Bayx`, carol
+  `JANJeg449pUJFzz1kk1NvaD97jYmnwwGP8pU7KvcYuWb`, dave
+  `7ka88pz4ij2Fb63tjfoKekKeF9isFD3A7BSK3FQzWP3b`, erin
+  `C9W9JGUycVfi5rLgRXE3eeZtR53Qt9kQuJnH16QUhAxh`, frank
+  `61yi6wFuhMYeZPHfB3KEVLAkm2Pv4ehoTQgaEKypxMqc`). Ada's 7th vote
+  failed: `LackBalanceForState`, 3.7466 NEAR short (tx
+  `213Y4FR9WaVJTjrMKiGwKT8CMAwgUYnsTAsU5ivfgCVW`).
+- Top-up to 10 NEAR total (alice to owner
+  `EA9uMRh1j5wX6QAhdK6gRfv3j4PnnJYQG1guNoE4xqUp`, owner to DAO
+  `6MzaiX8Ny6XSu8GACjmXSUr3nvbwDDixg2Yo22t4UQVT`). Ada's vote failed
+  again: 0.74295 NEAR short (tx
+  `Ft4GUeW8Hr9jUDjt64y3ZVP3G6XqmHjsA5KpMPMV85pv`).
+- Top-up to 11.5 NEAR total (alice to owner
+  `7MRWUxi6WMknAR3G1T9o3Y5P29fowviLJgZS7jVEc6kr`, owner to DAO
+  `HiJqfXbTVEyYp2sM55wEbvNk7C69j9DT3CRxbXWGMeMx`). Ada's vote passed:
+  `DAjHSRvyJuU1s1BGR2t69RJCKrxuzuzuLsdghDAssdQA`. Proposal #7
+  APPROVED and executed; round 3 created with the 5 NEAR envelope.
+
+Lesson for the runbook: a 5 NEAR round needs the DAO at about
+11.5 NEAR total (4.74 storage + 5 envelope + 1 bond return), not 5.
+Top the DAO up before any round 4.
+
+### Allocations, close, settle
+
+Eleven members allocated (tunde deliberately submitted nothing, to
+prove the -5 penalty live). Allocation txs: alice
+`3xoL61y7GSUCG1k1R7REJ1ifZSVg7UnYV9mhb1ZLcDRY`, bob
+`Gx4WbCZoR68mkfA9GGTnomeFGjpExBWYAphtjzoiYoW8`, carol
+`FwexM6am2vmG3PXrWM4N3w5Cxthhrh1um1MkVvpjkgT2`, dave
+`DBPgQAn3Vvm5L8GaBHz7HYK7WAQm3YaVfZp4QiEG6gDU`, erin
+`CwgUrahKbkXziogu2SeGr4hSCsBBFyV2P9DPPnbTUh9w`, frank
+`EgWSve9VeJByBKGKz8hGZFzWSn9PdZqN4hPCty8B6dD7`, ada
+`9qs6pZmEZjvkxwVRJ3TYHxTWXCQNFnjRaKXeHp1yndBt`, emeka
+`FfCZgCEMEQHhjJJuGsydqNakZ6Jsr7a6VX2mwNrG3Rh`, fatima
+`BDPEe8sckjKZLaMdKB3We6Pz5ghHTChCLJCAKZbvbZMo`, ibrahim
+`ESAwgB8bjggDcqwzQ4ajejLch5MDcck9hQJDP2jbsySn`, ngozi
+`2vCZKtaqsAiV5z7xBzUeYjjztmzMh2MeLgndhEw2KjoB`.
+
+Close (owner): `C3nXKn8MKioieU5wW6AZGEYEqQ7CDBVebttaxNSNEYcJ`.
+Settle: `7ZbAQganvPJKGHsQkUGYXE56tdvqLm9UM1CGRwcCkMWG`.
+
+Scores match the contract's maths exactly (verified by an independent
+integer model in `scripts/live-round-3.mjs`, standing weight 100 for
+everyone going in). Ada was capped at exactly 1.25 NEAR.
+
+| member | score | payout (NEAR) | standing before | standing after |
+|---|---|---|---|---|
+| ada-fairshare.testnet | 272484 | 1.250000 | 100 | 110 |
+| emeka-fairshare.testnet | 29241 | 0.696900 | 100 | 106 |
+| tunde-fairshare.testnet | 26244 | 0.625473 | 100 | 95 |
+| fatima-fairshare.testnet | 21316 | 0.508024 | 100 | 106 |
+| ibrahim-fairshare.testnet | 21316 | 0.508024 | 100 | 106 |
+| ngozi-fairshare.testnet | 21316 | 0.508024 | 100 | 106 |
+| bob-fairshare.testnet | 9604 | 0.228892 | 100 | 104 |
+| carol-fairshare.testnet | 8464 | 0.201722 | 100 | 104 |
+| dave-fairshare.testnet | 8464 | 0.201722 | 100 | 104 |
+| frank-fairshare.testnet | 8464 | 0.201722 | 100 | 104 |
+| erin-fairshare.testnet | 2916 | 0.069497 | 100 | 102 |
+| alice-fairshare.testnet | 0 | 0.000000 | 100 | 100 |
+
+Total score 429829. Payouts sum to envelope minus 5 yocto. Ada
+received points from 9 distinct givers, so she gained the capped
++10. Tunde received points from 3 givers but submitted nothing, so he
+lost 5. Alice received points from nobody and submitted, so she stayed
+at 100. Every standing moved exactly as the rule says.
+
+### Gates proved live
+
+- Before the settle, Ada (standing 100) tried `close_round`. The call
+  was rejected (closing early needs 150). Failed receipt
+  `2EKu2diJrGySDmUtWXPii8cgg96ngPkd2B8BGanKUMSm`; the round stayed open.
+- After the settle, Tunde (standing 95) tried `create_round` for round
+  4. The call was rejected (proposing needs 100). Failed receipts
+  `4xnJvMnVECoSBSh9JKboKkcnTEKd9JuWHMZt8NTEQMMD` and
+  `2cdad1oRJeJ7Dqunhi3HRKHxX1agx8HzLVxZpkQLTU5o`; no round 4 exists.
+- Note: the rejections surface onchain as a bare `unreachable` trap,
+  with no message text, because the release build sets
+  `panic = "abort"`. The rejection is proven by the failed receipt plus
+  the unchanged state, and the exact panic messages are covered by the
+  unit tests. A member at 100 proposing, and a member at 150 closing,
+  are proved in unit tests only — doing them live would create a real
+  round or close a live one.
 
 ## History — first live demo (superseded, kept for the record)
 

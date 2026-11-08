@@ -4,7 +4,9 @@
 //   * discount on a mutual pair = floor(min(points) * 5000 / 10000),
 //     taken off BOTH directions before scoring.
 //   * sqrt contribution = isqrt(effective_points * giver_weight), where
-//     giver_weight is the giver's standing and starts at 100 for everyone.
+//     giver_weight is the giver's standing, which starts at 100 and moves
+//     at each settle: +2 per distinct giver, capped at +10 a round, -5
+//     for submitting no allocations, clamped to [50, 200].
 //   * score = (sum of sqrt contributions over distinct givers) squared.
 //   * payouts are whole yocto amounts: uncapped = score * envelope /
 //     total_score with integer division, capped at 25% of the envelope,

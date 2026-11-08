@@ -1,4 +1,4 @@
-//! FairShare round contract (formerly Egbe) — a Sputnik DAO funds a
+//! FairShare round contract — a Sputnik DAO funds a
 //! round, the round contract escrows only that round's envelope, and
 //! members allocate points to each other. Settlement is deterministic
 //! and on-chain.
@@ -22,6 +22,19 @@
 //!     any dust remainder stays in the contract.
 //!   * A round settles only after its deadline (7 days from creation) or
 //!     after the owner closes it. Settling twice fails.
+//!
+//! Reputation (standing): at each settle, a member gains +2 standing per
+//! distinct giver who gave them points that round (capped at +10 per
+//! round) and loses 5 standing for submitting no allocations that round;
+//! standing is clamped to [50, 200]. Giver weight in scoring is the
+//! giver's standing, so reputation compounds: members the group keeps
+//! recognising vote heavier. Running a round needs reputation: only the
+//! owner, the DAO (whose proposals pass by council majority vote), or a
+//! member with standing 100 or more may create a round; only the owner
+//! or a member with standing 150 or more may close a round early. New
+//! members start at 100, so they can allocate from day one and propose
+//! rounds, but cannot close one early until the group has recognised
+//! them.
 //!
 //! Membership: production membership is a Sputnik DAO role read
 //! cross-contract. The contract stores the DAO id and the role name
@@ -64,6 +77,19 @@ pub const RECIPROCITY_DISCOUNT_BPS: u128 = 5_000;
 pub const ROUND_DURATION_NS: u64 = 7 * 24 * 60 * 60 * 1_000_000_000;
 /// Standing every member starts with (also the giver weight).
 pub const STANDING_START: u64 = 100;
+/// Standing gained per distinct giver at settle (+2 each).
+pub const STANDING_GAIN_PER_GIVER: u64 = 2;
+/// Maximum standing gain per round (+10).
+pub const STANDING_GAIN_CAP_PER_ROUND: u64 = 10;
+/// Standing lost for submitting no allocations in a round (-5).
+pub const STANDING_NO_ALLOC_PENALTY: u64 = 5;
+/// Standing floor and cap.
+pub const STANDING_FLOOR: u64 = 50;
+pub const STANDING_CAP: u64 = 200;
+/// Minimum standing to propose (create) a round.
+pub const PROPOSE_MIN_STANDING: u64 = 100;
+/// Minimum standing to close a round early.
+pub const CLOSE_MIN_STANDING: u64 = 150;
 /// Ownership-unit decay per settle: keep 9/10 of existing units.
 pub const UNIT_DECAY_NUM: u64 = 9;
 pub const UNIT_DECAY_DEN: u64 = 10;
@@ -275,6 +301,13 @@ pub struct Params {
     pub reciprocity_discount_bps: u16,
     pub round_duration_ns: u64,
     pub standing_start: u64,
+    pub standing_gain_per_giver: u64,
+    pub standing_gain_cap_per_round: u64,
+    pub standing_no_alloc_penalty: u64,
+    pub standing_floor: u64,
+    pub standing_cap: u64,
+    pub propose_min_standing: u64,
+    pub close_min_standing: u64,
 }
 
 /// What membership looks like for one account: the DAO id and role, whether
@@ -517,15 +550,21 @@ impl Contract {
     // -- rounds ------------------------------------------------------------
 
     /// Create a round and escrow its envelope. The attached deposit must
-    /// equal `envelope_yocto` exactly. Only the owner or the DAO may call
-    /// this; for local testing the owner calls it. Deadline is 7 days from
-    /// creation.
+    /// equal `envelope_yocto` exactly. The owner or the DAO may call this
+    /// (the DAO path is a council-voted proposal, so the vote is the gate
+    /// there); a member may also propose a round directly, but only with
+    /// standing 100 or more — a member whose standing has fallen below
+    /// 100 cannot propose. Deadline is 7 days from creation.
     #[payable]
     pub fn create_round(&mut self, round_id: u64, envelope_yocto: U128) {
         let caller = env::predecessor_account_id();
+        let may_create = caller == self.owner_id
+            || caller == self.dao_id
+            || (self.member_set.contains(&caller)
+                && self.standing_of(&caller) >= PROPOSE_MIN_STANDING);
         assert!(
-            caller == self.owner_id || caller == self.dao_id,
-            "only the owner or the DAO may create a round"
+            may_create,
+            "only the owner, the DAO, or a member with standing 100 or more may create a round"
         );
         let attached = env::attached_deposit().as_yoctonear();
         assert_eq!(
@@ -552,9 +591,20 @@ impl Contract {
         );
     }
 
-    /// Close a round early so it can settle before its deadline. Owner only.
+    /// Close a round early so it can settle before its deadline. The
+    /// owner may call this; a member may also close early, but only with
+    /// standing 150 or more — closing a round early is an act of trust
+    /// the group has to have earned. A member at the starting standing
+    /// of 100 cannot close.
     pub fn close_round(&mut self, round_id: u64) {
-        self.assert_owner();
+        let caller = env::predecessor_account_id();
+        let may_close = caller == self.owner_id
+            || (self.member_set.contains(&caller)
+                && self.standing_of(&caller) >= CLOSE_MIN_STANDING);
+        assert!(
+            may_close,
+            "only the owner or a member with standing 150 or more may close a round early"
+        );
         let mut round = self.round_or_panic(round_id);
         assert!(!round.settled, "round is already settled");
         assert!(!round.closed, "round is already closed");
@@ -794,6 +844,34 @@ impl Contract {
             }
         }
 
+        // Reputation: standing moves at settle, AFTER scores are computed
+        // (so this round is scored with pre-settle standings). A member
+        // gains +2 per distinct giver who gave them points this round,
+        // capped at +10 per round, and loses 5 for submitting no
+        // allocations this round; standing is clamped to [50, 200].
+        for member in &members {
+            let submitted = self
+                .allocations
+                .get(&Self::submission_key(round_id, member))
+                .is_some();
+            let mut distinct_givers: Vec<&AccountId> = Vec::new();
+            for (giver, to, _) in &edges {
+                if to == member && !distinct_givers.contains(&giver) {
+                    distinct_givers.push(giver);
+                }
+            }
+            let gain = ((distinct_givers.len() as u64) * STANDING_GAIN_PER_GIVER)
+                .min(STANDING_GAIN_CAP_PER_ROUND);
+            let current = self.standing_of(member);
+            let updated = if submitted {
+                current.saturating_add(gain)
+            } else {
+                current.saturating_sub(STANDING_NO_ALLOC_PENALTY)
+            };
+            let clamped = updated.clamp(STANDING_FLOOR, STANDING_CAP);
+            self.standing.insert(member.clone(), clamped);
+        }
+
         round.settled = true;
         round.total_payout_yocto = total_payout;
         self.rounds.insert(round_id, round);
@@ -897,6 +975,13 @@ impl Contract {
             reciprocity_discount_bps: RECIPROCITY_DISCOUNT_BPS as u16,
             round_duration_ns: ROUND_DURATION_NS,
             standing_start: STANDING_START,
+            standing_gain_per_giver: STANDING_GAIN_PER_GIVER,
+            standing_gain_cap_per_round: STANDING_GAIN_CAP_PER_ROUND,
+            standing_no_alloc_penalty: STANDING_NO_ALLOC_PENALTY,
+            standing_floor: STANDING_FLOOR,
+            standing_cap: STANDING_CAP,
+            propose_min_standing: PROPOSE_MIN_STANDING,
+            close_min_standing: CLOSE_MIN_STANDING,
         }
     }
 
@@ -1327,7 +1412,10 @@ mod tests {
     // (a -> b 50 is one-way); in round 2 b allocates a 50 (mutual).
     // b receives only from a in both rounds, so the comparison is clean:
     // one-way b score = isqrt(50*100)^2 = 70^2 = 4900;
-    // mutual b score = isqrt(25*100)^2 = 50^2 = 2500.
+    // mutual b score = isqrt(25*106)^2 = 51^2 = 2601 — the 106 is a's
+    // standing after round 1 (a received from c, d and e, 3 distinct
+    // givers, +6), so round 2 is scored with the updated giver weight.
+    // Mutual still scores strictly less than one-way.
     #[test]
     fn reciprocity_discount_mutual_scores_less_than_one_way() {
         let members = ["a.testnet", "b.testnet", "c.testnet", "d.testnet", "e.testnet"];
@@ -1390,7 +1478,7 @@ mod tests {
             settle(&mut c, round);
         }
         assert_eq!(ex(&c, 1, "b.testnet").score, 4900, "one-way score");
-        assert_eq!(ex(&c, 2, "b.testnet").score, 2500, "mutual score");
+        assert_eq!(ex(&c, 2, "b.testnet").score, 2601, "mutual score");
         assert!(
             ex(&c, 2, "b.testnet").score < ex(&c, 1, "b.testnet").score,
             "mutual allocation must score less than the same points one-way"
@@ -1528,10 +1616,10 @@ mod tests {
     // -- auth / views ----------------------------------------------------------
 
     #[test]
-    #[should_panic(expected = "only the owner or the DAO may create a round")]
-    fn create_round_non_owner_rejected() {
+    #[should_panic(expected = "only the owner, the DAO, or a member with standing 100 or more")]
+    fn create_round_stranger_rejected() {
         let mut c = setup(&["alice.testnet"]);
-        testing_env!(ctx("alice.testnet", 10 * NEAR, T0).build());
+        testing_env!(ctx("stranger.testnet", 10 * NEAR, T0).build());
         c.create_round(1, U128(10 * NEAR));
     }
 
@@ -1561,6 +1649,13 @@ mod tests {
         assert_eq!(p.reciprocity_discount_bps, 5000);
         assert_eq!(p.round_duration_ns, ROUND_DURATION_NS);
         assert_eq!(p.standing_start, 100);
+        assert_eq!(p.standing_gain_per_giver, 2);
+        assert_eq!(p.standing_gain_cap_per_round, 10);
+        assert_eq!(p.standing_no_alloc_penalty, 5);
+        assert_eq!(p.standing_floor, 50);
+        assert_eq!(p.standing_cap, 200);
+        assert_eq!(p.propose_min_standing, 100);
+        assert_eq!(p.close_min_standing, 150);
 
         let role = c.get_cached_dao_role(acc("alice.testnet"));
         assert_eq!(role.dao_id, acc(DAO));
@@ -1576,6 +1671,222 @@ mod tests {
             c.get_members(),
             vec![acc("alice.testnet"), acc("bob.testnet")]
         );
+    }
+
+    // -- reputation: standing updates at settle ------------------------------
+    //
+    // 6 members, 10 NEAR. Distinct givers per member this round:
+    // alice 3 (+6), bob 3 (+6), carol 1 (+2), dave 5 but submits nothing
+    // (-5: receiving does not save you from the no-allocation penalty),
+    // erin 2 (+4), frank 2 (+4). Expected standings after settle:
+    // 106 / 106 / 102 / 95 / 104 / 104.
+    #[test]
+    fn standing_updates_at_settle() {
+        let mut c = setup(&[
+            "alice.testnet",
+            "bob.testnet",
+            "carol.testnet",
+            "dave.testnet",
+            "erin.testnet",
+            "frank.testnet",
+        ]);
+        create_round(&mut c, 1, 10 * NEAR);
+        submit(
+            &mut c,
+            "alice.testnet",
+            1,
+            vec![
+                alloc("bob.testnet", 40, "work"),
+                alloc("carol.testnet", 30, "work"),
+                alloc("dave.testnet", 30, "work"),
+            ],
+        );
+        submit(
+            &mut c,
+            "bob.testnet",
+            1,
+            vec![
+                alloc("alice.testnet", 40, "work"),
+                alloc("dave.testnet", 30, "work"),
+                alloc("erin.testnet", 30, "work"),
+            ],
+        );
+        submit(
+            &mut c,
+            "carol.testnet",
+            1,
+            vec![
+                alloc("alice.testnet", 40, "work"),
+                alloc("dave.testnet", 30, "work"),
+                alloc("frank.testnet", 30, "work"),
+            ],
+        );
+        submit(
+            &mut c,
+            "erin.testnet",
+            1,
+            vec![
+                alloc("alice.testnet", 40, "work"),
+                alloc("bob.testnet", 30, "work"),
+                alloc("frank.testnet", 30, "work"),
+            ],
+        );
+        submit(
+            &mut c,
+            "frank.testnet",
+            1,
+            vec![
+                alloc("bob.testnet", 40, "work"),
+                alloc("dave.testnet", 30, "work"),
+                alloc("erin.testnet", 30, "work"),
+            ],
+        );
+        // dave submits nothing: -5, even though five members gave to him.
+        close(&mut c, 1);
+        settle(&mut c, 1);
+        assert_eq!(c.get_standing(acc("alice.testnet")), 106);
+        assert_eq!(c.get_standing(acc("bob.testnet")), 106);
+        assert_eq!(c.get_standing(acc("carol.testnet")), 102);
+        assert_eq!(c.get_standing(acc("dave.testnet")), 95);
+        assert_eq!(c.get_standing(acc("erin.testnet")), 104);
+        assert_eq!(c.get_standing(acc("frank.testnet")), 104);
+    }
+
+    #[test]
+    fn standing_gain_capped_at_10_per_round() {
+        let members = [
+            "a.testnet",
+            "b.testnet",
+            "c.testnet",
+            "d.testnet",
+            "e.testnet",
+            "f.testnet",
+            "g.testnet",
+        ];
+        let mut c = setup(&members);
+        create_round(&mut c, 1, 10 * NEAR);
+        // Everyone except a gives to a (6 distinct givers -> +12 uncapped,
+        // +10 capped). a gives to b, c, d.
+        for giver in ["b.testnet", "c.testnet", "d.testnet", "e.testnet", "f.testnet", "g.testnet"] {
+            let others: Vec<Allocation> = members
+                .iter()
+                .filter(|m| **m != giver && **m != "a.testnet")
+                .take(2)
+                .map(|to| alloc(to, 30, "work"))
+                .collect();
+            let mut v = vec![alloc("a.testnet", 40, "work")];
+            v.extend(others);
+            submit(&mut c, giver, 1, v);
+        }
+        submit(
+            &mut c,
+            "a.testnet",
+            1,
+            vec![
+                alloc("b.testnet", 40, "work"),
+                alloc("c.testnet", 30, "work"),
+                alloc("d.testnet", 30, "work"),
+            ],
+        );
+        close(&mut c, 1);
+        settle(&mut c, 1);
+        assert_eq!(c.get_standing(acc("a.testnet")), 110, "gain capped at +10");
+    }
+
+    #[test]
+    fn standing_floor_and_cap() {
+        let mut c = setup(&["alice.testnet", "bob.testnet", "carol.testnet", "dave.testnet"]);
+        // Floor: alice at 52 who submits nothing -> 52 - 5 = 47 -> clamped 50.
+        c.standing.insert(acc("alice.testnet"), 52);
+        // Cap: bob at 197 who receives from 2 distinct givers (carol and
+        // dave) -> 197 + 4 = 201 -> clamped 200.
+        c.standing.insert(acc("bob.testnet"), 197);
+        create_round(&mut c, 1, 10 * NEAR);
+        submit(
+            &mut c,
+            "bob.testnet",
+            1,
+            vec![
+                alloc("alice.testnet", 40, "work"),
+                alloc("carol.testnet", 30, "work"),
+                alloc("dave.testnet", 30, "work"),
+            ],
+        );
+        submit(
+            &mut c,
+            "carol.testnet",
+            1,
+            vec![
+                alloc("bob.testnet", 40, "work"),
+                alloc("alice.testnet", 30, "work"),
+                alloc("dave.testnet", 30, "work"),
+            ],
+        );
+        submit(
+            &mut c,
+            "dave.testnet",
+            1,
+            vec![
+                alloc("bob.testnet", 40, "work"),
+                alloc("alice.testnet", 30, "work"),
+                alloc("carol.testnet", 30, "work"),
+            ],
+        );
+        // alice submits nothing.
+        close(&mut c, 1);
+        settle(&mut c, 1);
+        assert_eq!(c.get_standing(acc("alice.testnet")), 50, "floor holds");
+        assert_eq!(c.get_standing(acc("bob.testnet")), 200, "cap holds");
+    }
+
+    // -- reputation: gates ---------------------------------------------------
+    //
+    // Propose (create_round): owner, DAO, or a member with standing >= 100.
+    // Close early (close_round): owner or a member with standing >= 150.
+
+    #[test]
+    fn create_round_member_at_100_may_propose() {
+        let mut c = setup(&["alice.testnet", "bob.testnet", "carol.testnet"]);
+        testing_env!(ctx("alice.testnet", 10 * NEAR, T0).build());
+        c.create_round(1, U128(10 * NEAR));
+        assert!(c.get_round(1).is_some());
+    }
+
+    #[test]
+    #[should_panic(expected = "only the owner, the DAO, or a member with standing 100 or more")]
+    fn create_round_member_below_100_rejected() {
+        let mut c = setup(&["alice.testnet", "bob.testnet", "carol.testnet"]);
+        c.standing.insert(acc("alice.testnet"), 95);
+        testing_env!(ctx("alice.testnet", 10 * NEAR, T0).build());
+        c.create_round(1, U128(10 * NEAR));
+    }
+
+    #[test]
+    #[should_panic(expected = "only the owner or a member with standing 150 or more")]
+    fn close_round_member_below_150_rejected() {
+        let mut c = setup(&["alice.testnet", "bob.testnet", "carol.testnet"]);
+        create_round(&mut c, 1, 10 * NEAR);
+        testing_env!(ctx("alice.testnet", 0, T0).build());
+        c.close_round(1);
+    }
+
+    #[test]
+    fn close_round_member_at_150_may_close() {
+        let mut c = setup(&["alice.testnet", "bob.testnet", "carol.testnet"]);
+        c.standing.insert(acc("alice.testnet"), 150);
+        create_round(&mut c, 1, 10 * NEAR);
+        testing_env!(ctx("alice.testnet", 0, T0).build());
+        c.close_round(1);
+        assert!(c.get_round(1).expect("round").closed);
+    }
+
+    #[test]
+    #[should_panic(expected = "only the owner or a member with standing 150 or more")]
+    fn close_round_stranger_rejected() {
+        let mut c = setup(&["alice.testnet", "bob.testnet", "carol.testnet"]);
+        create_round(&mut c, 1, 10 * NEAR);
+        testing_env!(ctx("stranger.testnet", 0, T0).build());
+        c.close_round(1);
     }
 
     #[test]
@@ -2081,12 +2392,16 @@ mod tests {
         assert!(dist_sum <= inflow, "distribution must not exceed inflow");
         assert_eq!(dist.len(), 7, "h holds 0 units and gets no share");
 
-        // Second identical round: decay 10% then mint again.
+        // Second identical round: decay 10% then mint again. Round 2 is
+        // scored with the standings updated by round 1 (a 110, b 108,
+        // c 108, d 106, e 106, f 106, g 104, h 100), so the shares shift
+        // slightly: a is still capped and mints 2500 again, but b's share
+        // is 2068 bps this time (not 2090), so b ends at 2090*9/10 + 2068.
         create_round(&mut c, 2, env);
         submit_cap_setup(&mut c, 2);
         close(&mut c, 2);
         settle(&mut c, 2);
         assert_eq!(c.get_units(acc("a.testnet")), 4750);
-        assert_eq!(c.get_units(acc("b.testnet")), 2090 * 9 / 10 + 2090);
+        assert_eq!(c.get_units(acc("b.testnet")), 2090 * 9 / 10 + 2068);
     }
 }

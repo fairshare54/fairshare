@@ -80,8 +80,11 @@ this directory root for deploy convenience.
   directions before scoring (integer division, floor).
 - Score for a member = (sum over distinct givers of
   `isqrt(effective_points * giver_weight)`)^2. Giver weight is the
-  giver's standing; every member starts at 100. Standing never changes
-  in this version (no standing-update rule was specified).
+  giver's standing; every member starts at 100, and standing moves at
+  each settle: +2 per distinct giver (capped at +10 a round), -5 for
+  submitting no allocations, clamped to [50, 200]. Gates: standing 100
+  or more to propose a round, 150 or more to close one early (owner
+  and DAO excepted).
 - Payouts are proportional to score, capped at 25% of the envelope per
   member. Capped surplus is redistributed water-filling style to
   uncapped members in score order; the payout sum never exceeds the
@@ -163,10 +166,11 @@ first build, 7 new DAO membership tests:
 - Simulated / local-testing only: `add_member` (owner-seeded members,
   kept as a testing fallback); the site's simulated demo round and
   Attack Lab.
-- Standing is stored and readable but never updated (starts 100 for
-  everyone); no standing-update rule was specified.
-- No GitHub push. The repo https://github.com/fairshare54/fairshare
-  exists (public, empty); nothing pushed yet.
+- Standing now moves at each settle (+2 per distinct giver capped at
+  +10, -5 for no allocation, floor 50, cap 200) with gates on proposing
+  (100+) and closing early (150+); proved live in round 3 (see DEMO_LOG.md).
+- The repo https://github.com/fairshare54/fairshare is pushed (contract,
+  site, logs); the live site is https://fairshare-pi.vercel.app/.
 
 ## Sputnik DAO — DONE 2026-11-08 (phase 2)
 
@@ -243,3 +247,45 @@ Full record: `DEMO_LOG.md`, `deploy-log.json`, `demo-log.json`.
   `egbe-contract.testnet` instead. Do not use `egbe-round.testnet`.
 - Old keys remain in `.testnet-accounts.json` (chmod 600, gitignored);
   new keys are in `.testnet-fairshare-accounts.json`.
+
+## Reputation rule — DONE 2026-11-08 (migrate + live round 3)
+
+Full record: `migrate-log.json`, `demo-log-round3.json`, `DEMO_LOG.md`
+(round 3 section), `scripts/migrate.mjs`, `scripts/live-round-3.mjs`.
+
+- Rule, as built: at each settle, +2 standing per distinct giver who
+  gave that member points that round (capped at +10), -5 for submitting
+  no allocations that round, clamped to [50, 200]. Giver weight in
+  scoring is the giver's standing, so reputation compounds. Gates:
+  standing 100 or more to propose a round (`create_round`), 150 or
+  more to close one early (`close_round`). The owner and the DAO are
+  excepted from the gates: the owner is the admin bootstrap, and a DAO
+  proposal already needs a council majority vote. `get_params` exposes
+  the whole rule live. No state migration was needed: the standing map
+  already existed, the state struct is unchanged, so the code was
+  replaced in place with no `new()` call.
+- Tests: `cargo test --offline` 39 passed, 0 failed (31 original + 8
+  new: standing updates, gain cap, floor/cap, propose gate x2, close
+  gate x3). Two old exact-value tests changed only because round 2+
+  scoring now uses updated giver weights: the reciprocity mutual score
+  is 2601 not 2500 (giver standing 106 after round 1), and the units
+  test round 2 b units are 3949 not 3971 (round 2 share 2068 bps).
+- Migrate tx `Bz1CPe8ngb7ACjKXc45GDqYEG5NCHGFz4PWjAUsgJExh`, wasm
+  486,611 bytes, sha256
+  `a2fe8ce3784b0c3f377651785138fe8dcfba027f3cbb83e8be202cf98b9a5585`.
+  Verified after: `get_params` shows the rule, 12 members unchanged,
+  rounds 1 and 2 still settled with identical totals, standings all 100.
+- Live round 3: funded by DAO proposal #7 (5 NEAR), settled tx
+  `7ZbAQganvPJKGHsQkUGYXE56tdvqLm9UM1CGRwcCkMWG`, total score 429829,
+  payouts sum to envelope minus 5 yocto. Standings moved exactly per
+  the rule (ada 100 to 110, tunde 100 to 95, rest as computed). Both
+  gates proved live: member close at 100 rejected, member propose at
+  95 rejected, no round 4 created.
+- DAO funding lesson (round 3): the DAO's total balance is not its
+  spendable balance. Sputnik stores every proposal onchain, so the DAO
+  must keep about 4.74 NEAR staked for storage (measured storage_usage
+  474269 bytes = 4.7427 NEAR), and executing a proposal also returns
+  the 1 NEAR bond, so a 5 NEAR envelope is a 6 NEAR outflow. Proposal
+  #7 failed twice (3.7466 short, then 0.74295 short) before the DAO was
+  topped to 11.5 NEAR total and the 7th vote passed. A 5 NEAR round
+  needs the DAO at about 11.5 NEAR total. Top up before any round 4.

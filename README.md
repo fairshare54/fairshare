@@ -20,7 +20,13 @@ Settlement is arithmetic anyone can repeat:
   the mutual portion, and 50% of it is discounted from both directions.
 - Score: for each member, the square of the sum over distinct givers of the
   square root of effective points times giver standing. Standing starts at
-  100 for everyone in this version.
+  100 for everyone and moves at each settle: +2 per distinct giver who gave
+  that member points, capped at +10 per round, and -5 for submitting no
+  allocations that round. Standing is clamped between 50 and 200, so
+  reputation compounds: members the group keeps recognising vote heavier.
+  Running a round needs reputation: only the owner, the DAO, or a member
+  with standing 100 or more may propose a round, and only the owner or a
+  member with standing 150 or more may close one early.
 - Payouts are proportional to score, capped at 25% of the envelope per
   member. Capped surplus is redistributed in water filling style to
   uncapped members. Division in whole yocto leaves a few yocto of dust in
@@ -40,6 +46,12 @@ against the DAO policy. The DAO is the source of truth.
 - Site: https://fairshare-pi.vercel.app/
 - Contract: `fairshare-contract.testnet`: https://testnet.nearblocks.io/address/fairshare-contract.testnet
 - DAO: `fairshare-dao.testnet`: https://testnet.nearblocks.io/address/fairshare-dao.testnet
+- Trezu: the DAO is a standard Sputnik DAO that Trezu manages. Trezu
+  production is mainnet only, so there is no live Trezu testnet payout;
+  the local testnet view was verified instead (see `TREZU.md`): the
+  Trezu frontend run locally shows all 8 DAO proposals Executed, all
+  12 council members, and the 6 of 12 voting policy. Assets stay empty
+  for testnet DAOs, as the Trezu README says.
 
 ## Live rounds
 
@@ -47,12 +59,19 @@ against the DAO policy. The DAO is the source of truth.
 |---|---|---|---|---|
 | 1 | 5 NEAR | 130468 | 4.999 NEAR | `2MUqHsLbbMcZGsneNnBBTinUfPXXJwdoRnJjwzxhpJYu` |
 | 2 | 5 NEAR | 125923 | 4.999 NEAR | `6FsBf9r42Ji8afF8G6rebq2GqChmpUQW41cCpTuaodJF` |
+| 3 | 5 NEAR | 429829 | 4.999 NEAR | `7ZbAQganvPJKGHsQkUGYXE56tdvqLm9UM1CGRwcCkMWG` |
 
-Payouts in each round add to the envelope minus 3 yocto of dust. Round 2
-was the first live round where the 25% cap triggered: Ada and Ibrahim were
-each capped at exactly 1.25 NEAR, and the surplus went to the rest. The DAO
-council is now 12 members. Both rounds ran through real DAO proposals, with
-test accounts, not real people yet.
+Payouts in each round add to the envelope minus a few yocto of dust (3 in
+rounds 1 and 2, 5 in round 3). Round 2 was the first live round where the
+25% cap triggered: Ada and Ibrahim were each capped at exactly 1.25 NEAR,
+and the surplus went to the rest. Round 3 was the reputation round: the
+first settle under the standing rule. Ada received points from 9 distinct
+givers and went from 100 to 110, the capped gain. Tunde submitted nothing
+and went from 100 to 95, even though 3 members gave to him. Both gates
+were proved live in round 3: Ada at 100 could not close the round early,
+and Tunde at 95 could not propose a round afterwards. The DAO council is
+now 12 members. All three rounds ran through real DAO proposals, with test
+accounts, not real people yet.
 
 ## How to verify it onchain
 
@@ -72,19 +91,24 @@ curl -s https://rpc.testnet.near.org -H 'Content-Type: application/json' -d '{
 ```
 
 Expect 100 points per member, at least 3 recipients, cap 2500 bps,
-discount 5000 bps, standing starting at 100.
+discount 5000 bps, standing starting at 100, gain +2 per distinct giver
+capped at +10 a round, -5 for no allocation, floor 50, cap 200, propose at
+100, close early at 150.
 
-The site also has a simulated try out and an Attack Lab that run the same
-settlement maths in the browser. They move no funds.
+The site also has an Attack Lab that runs the same settlement maths in the
+browser. It moves no funds.
 
 ## Honest limits
 
 - Collusion is made costly, not impossible. The Attack Lab shows a closed
   ring earning less, but only under reciprocal outsider behaviour. If the
   whole round colludes, the maths cannot save it.
-- Standing starts at 100 and never changes in this version. No rule to
-  update standing was specified yet.
+- Standing moves at each settle under the rule above, proved live in
+  round 3, and the gates on proposing and closing are enforced onchain.
 - The site has no wallet connected. Creating a round, allocating, and
   settling live are manual steps for now, not buttons on the page.
-- Trezu was not verified to drive payouts. The contract pays by ordinary
-  transfer from the round envelope.
+- Trezu manages the DAO, and the local testnet view was verified (see
+  `TREZU.md`): all 8 proposals Executed, 12 council members, 6 of 12
+  voting policy. Trezu production is mainnet only, so there is no live
+  Trezu testnet payout, and none is claimed. The contract pays by
+  ordinary transfer from the round envelope.

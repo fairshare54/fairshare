@@ -88,14 +88,14 @@
       <div class="step"><b class="num">3</b><h3>Settle onchain</h3><p>The contract turns points into payouts. A score rewards breadth: points from many distinct givers count for more than the same points from one giver. Mutual giving is discounted by half, and nobody takes more than 25% of the envelope.</p></div>
       <div class="step"><b class="num">4</b><h3>Explain every payout</h3><p>Anyone can ask the contract why a member was paid what they were paid, giver by giver, discount by discount. No hidden inputs. The explanation is stored onchain with the payout.</p></div>
     </div>
-    <p class="muted">A round lasts 7 days unless the owner closes it early. Allocating is rejected after close, settle, or deadline. Settling twice fails. A round settles only after the deadline or an owner close, and anyone may call settle.</p>
+    <p class="muted">A round lasts 7 days unless the owner, or a member with standing 150 or more, closes it early. Allocating is rejected after close, settle, or deadline. Settling twice fails. A round settles only after the deadline or an early close, and anyone may call settle.</p>
   </section>
 
   <section class="panel" id="maths">
     <h2>The maths</h2>
     <p>Three ideas, in order. First, breadth beats concentration. Second, mutual giving is discounted. Third, nobody takes more than a quarter of the envelope.</p>
     <div class="formula">Score = (sum over distinct givers of the square root of effective points times giver weight) squared</div>
-    <p>Effective points start as the points a giver gave you. For each mutual pair, the smaller of the two allocations is the mutual portion, and 50% of it is discounted from both directions, integer division, floor. Giver weight is the giver standing, which starts at 100 for everyone in this version.</p>
+    <p>Effective points start as the points a giver gave you. For each mutual pair, the smaller of the two allocations is the mutual portion, and 50% of it is discounted from both directions, integer division, floor. Giver weight is the giver standing, which starts at 100 for everyone and then moves: at each settle a member gains +2 per distinct giver who gave them points that round, capped at +10 a round, and loses 5 for submitting no allocations that round. Standing is clamped between 50 and 200. So reputation compounds: members the group keeps recognising vote heavier in later rounds.</p>
     <h3>Worked example one: the discount</h3>
     <p>Amina gives Chidi 35 points and Chidi gives Amina 40 points. The mutual portion is 35, the smaller of the two. The discount is floor(35 divided by 2), which is 17. So Chidi gift to Amina counts as 40 minus 17, which is 23 effective points. Amina gift to Chidi counts as 35 minus 17, which is 18 effective points. A one way gift of 50 points scores 4900. The same 50 points given mutually scores 2500. The loop keeps less of what it passes around.</p>
     <h3>Worked example two: breadth</h3>
@@ -114,11 +114,22 @@
         <tr><td>Reason on every allocation</td><td>Required, 1 to 200 characters</td></tr>
         <tr><td>Cap per member</td><td>25% of the envelope</td></tr>
         <tr><td>Reciprocity discount</td><td>50% of the mutual portion, both directions</td></tr>
-        <tr><td>Giver weight</td><td>Standing, starts at 100 for everyone</td></tr>
+        <tr><td>Giver weight</td><td>Standing, starts at 100, moves at each settle</td></tr>
+        <tr><td>Standing gain</td><td>+2 per distinct giver, capped at +10 per round</td></tr>
+        <tr><td>Standing penalty</td><td>Minus 5 for submitting no allocations in a round</td></tr>
+        <tr><td>Standing floor and cap</td><td>50 and 200</td></tr>
+        <tr><td>Propose a round</td><td>Standing 100 or more (owner and DAO excepted)</td></tr>
+        <tr><td>Close a round early</td><td>Standing 150 or more (owner excepted)</td></tr>
         <tr><td>Round length</td><td>7 days, unless the owner closes it early</td></tr>
         <tr><td>Ownership units decay</td><td>10% each settle</td></tr>
       </tbody>
     </table>
+  </section>
+
+  <section class="panel" id="reputation">
+    <h2>Reputation: standing that moves</h2>
+    <p>Standing is not a badge. It is a member giver weight, and it moves at every settle. A member gains +2 for each distinct giver who gave them points that round, up to +10. A member who submits no allocations loses 5, even if others gave to them. Standing never falls below 50 or rises above 200. New members start at 100, so they can allocate from day one and propose rounds, but they cannot close a round early until the group has recognised them: closing early needs standing 150, proposing needs 100. The owner and the DAO are excepted from the gates, because the owner is the admin bootstrap and a DAO proposal already needs a council majority vote to pass.</p>
+    <p>Round 3 proved it live. Ada received points from 9 distinct givers and went from 100 to 110, the capped gain. Tunde received points from 3 givers but submitted nothing and went from 100 to 95. Alice received points from nobody and stayed at 100. Before the settle, Ada at 100 tried to close the round early and was rejected. After the settle, Tunde at 95 tried to propose a round and was rejected. The full record, with scores and transactions, is on the <a href="/rounds">live rounds</a> page.</p>
   </section>
 
   <section class="panel" id="ownership">
@@ -137,9 +148,9 @@
       <thead><tr><th>Method</th><th>Kind</th><th>What it does</th></tr></thead>
       <tbody>
         <tr><td><code>new(owner_id, dao_id)</code></td><td>init</td><td>Sets the owner and the Sputnik DAO that funds rounds</td></tr>
-        <tr><td><code>create_round(round_id, envelope_yocto)</code></td><td>call, payable</td><td>Opens a round with the attached envelope; only the owner or the DAO can call it</td></tr>
+        <tr><td><code>create_round(round_id, envelope_yocto)</code></td><td>call, payable</td><td>Opens a round with the attached envelope; the owner, the DAO, or a member with standing 100 or more can call it</td></tr>
         <tr><td><code>allocate(round_id, allocations)</code></td><td>call</td><td>Records one member's points, each with a to, points and reason</td></tr>
-        <tr><td><code>close_round(round_id)</code></td><td>call</td><td>Owner closes a round early so it can settle before the deadline</td></tr>
+        <tr><td><code>close_round(round_id)</code></td><td>call</td><td>The owner or a member with standing 150 or more closes a round early so it can settle before the deadline</td></tr>
         <tr><td><code>settle_round(round_id)</code></td><td>call</td><td>Settles the round and pays each member from the envelope</td></tr>
         <tr><td><code>distribute_inflow(amount)</code></td><td>call, payable</td><td>Shares an inflow, like freezer rent, in proportion to ownership units</td></tr>
         <tr><td><code>sync_dao_members()</code></td><td>call</td><td>Reads the DAO council live and mirrors it into the member set; anyone can call it</td></tr>
@@ -154,15 +165,15 @@
         <tr><td><code>get_members()</code></td><td>view</td><td>Members of the round</td></tr>
         <tr><td><code>get_standing(account)</code></td><td>view</td><td>One member's standing, which is their giver weight</td></tr>
         <tr><td><code>get_units(account)</code></td><td>view</td><td>Ownership units held by one member</td></tr>
-        <tr><td><code>get_params()</code></td><td>view</td><td>Round rules: 100 points, at least 3 recipients, cap 25%, discount 50%, 7 day round, standing starts at 100</td></tr>
+        <tr><td><code>get_params()</code></td><td>view</td><td>Round rules: 100 points, at least 3 recipients, cap 25%, discount 50%, 7 day round, standing starts at 100, gain +2 per distinct giver capped at +10, minus 5 for no allocation, floor 50, cap 200, propose at 100, close early at 150</td></tr>
       </tbody>
     </table>
-    <p class="muted">Payouts leave the contract by ordinary Transfer from the round envelope. Trezu was not verified to drive payouts, so no Trezu step is claimed here. The fallback is ordinary Transfer proposals through the DAO.</p>
+    <p class="muted">Payouts leave the contract by ordinary Transfer from the round envelope. Trezu manages the DAO, and the local testnet view was verified: the Trezu frontend run locally shows all 8 DAO proposals Executed, all 12 council members, and the 6 of 12 voting policy. Trezu production is mainnet only, so there is no live Trezu testnet payout, and none is claimed here. The full record is on the <a href="/rounds#trezu">live rounds</a> page and in TREZU.md in the repo.</p>
   </section>
 
   <section class="panel" id="limits-short">
     <h2>What it does not do</h2>
-    <p>Collusion is made costly, not impossible. Popularity bias remains. The contract cannot see physical work. It settles what members said about each other, nothing more. Standing starts at 100 for everyone and never changes in this version, because no standing update rule was specified. The full list, stated plainly, is on the home page under honest limits, and the collusion test is on the <a href="/lab">Attack Lab</a> page.</p>
+    <p>Collusion is made costly, not impossible. Popularity bias remains. The contract cannot see physical work. It settles what members said about each other, nothing more. Standing now moves at each settle under the rule above, proved live in round 3, and the gates on proposing and closing are enforced onchain. The full list, stated plainly, is on the home page under honest limits, and the collusion test is on the <a href="/lab">Attack Lab</a> page.</p>
   </section>
 </main>
 <footer>

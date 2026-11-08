@@ -1,0 +1,848 @@
+{
+  "network": "testnet",
+  "contract_id": "fairshare-contract.testnet",
+  "owner_id": "fairshare-owner.testnet",
+  "dao_id": "fairshare-dao.testnet",
+  "round_id": 3,
+  "envelope_yocto": "5000000000000000000000000",
+  "allocations": {
+    "alice-fairshare.testnet": [
+      {
+        "to": "ada-fairshare.testnet",
+        "points": 40,
+        "reason": "kept the temperature log perfect"
+      },
+      {
+        "to": "emeka-fairshare.testnet",
+        "points": 30,
+        "reason": "delivered the fish on time"
+      },
+      {
+        "to": "frank-fairshare.testnet",
+        "points": 30,
+        "reason": "kept the stall tidy"
+      }
+    ],
+    "bob-fairshare.testnet": [
+      {
+        "to": "ada-fairshare.testnet",
+        "points": 40,
+        "reason": "logged every delivery"
+      },
+      {
+        "to": "ibrahim-fairshare.testnet",
+        "points": 30,
+        "reason": "fixed the generator"
+      },
+      {
+        "to": "carol-fairshare.testnet",
+        "points": 30,
+        "reason": "reviewed the round notes"
+      }
+    ],
+    "carol-fairshare.testnet": [
+      {
+        "to": "ada-fairshare.testnet",
+        "points": 40,
+        "reason": "kept the books straight"
+      },
+      {
+        "to": "ngozi-fairshare.testnet",
+        "points": 30,
+        "reason": "negotiated the wholesale price"
+      },
+      {
+        "to": "dave-fairshare.testnet",
+        "points": 30,
+        "reason": "shared the freezer rota"
+      }
+    ],
+    "dave-fairshare.testnet": [
+      {
+        "to": "ada-fairshare.testnet",
+        "points": 40,
+        "reason": "checked the temperature at night"
+      },
+      {
+        "to": "fatima-fairshare.testnet",
+        "points": 30,
+        "reason": "collected all the rent"
+      },
+      {
+        "to": "erin-fairshare.testnet",
+        "points": 30,
+        "reason": "tested the new lock"
+      }
+    ],
+    "erin-fairshare.testnet": [
+      {
+        "to": "ada-fairshare.testnet",
+        "points": 40,
+        "reason": "hosted the freezer and kept the log"
+      },
+      {
+        "to": "tunde-fairshare.testnet",
+        "points": 30,
+        "reason": "guarded the stall overnight"
+      },
+      {
+        "to": "bob-fairshare.testnet",
+        "points": 30,
+        "reason": "paired on the stock count"
+      }
+    ],
+    "frank-fairshare.testnet": [
+      {
+        "to": "emeka-fairshare.testnet",
+        "points": 40,
+        "reason": "drove the night delivery"
+      },
+      {
+        "to": "ibrahim-fairshare.testnet",
+        "points": 30,
+        "reason": "repaired the freezer at midnight"
+      },
+      {
+        "to": "ngozi-fairshare.testnet",
+        "points": 30,
+        "reason": "found the cheaper ice supplier"
+      }
+    ],
+    "ada-fairshare.testnet": [
+      {
+        "to": "bob-fairshare.testnet",
+        "points": 40,
+        "reason": "kept the temperature log perfect"
+      },
+      {
+        "to": "carol-fairshare.testnet",
+        "points": 30,
+        "reason": "reviewed the round notes"
+      },
+      {
+        "to": "dave-fairshare.testnet",
+        "points": 30,
+        "reason": "shared the freezer rota"
+      }
+    ],
+    "emeka-fairshare.testnet": [
+      {
+        "to": "ada-fairshare.testnet",
+        "points": 40,
+        "reason": "logged every delivery"
+      },
+      {
+        "to": "fatima-fairshare.testnet",
+        "points": 30,
+        "reason": "collected the rent on time"
+      },
+      {
+        "to": "tunde-fairshare.testnet",
+        "points": 30,
+        "reason": "helped load the van at dawn"
+      }
+    ],
+    "fatima-fairshare.testnet": [
+      {
+        "to": "ada-fairshare.testnet",
+        "points": 40,
+        "reason": "kept the books straight"
+      },
+      {
+        "to": "ibrahim-fairshare.testnet",
+        "points": 30,
+        "reason": "repaired the lock the same day"
+      },
+      {
+        "to": "ngozi-fairshare.testnet",
+        "points": 30,
+        "reason": "negotiated the wholesale price down"
+      }
+    ],
+    "ibrahim-fairshare.testnet": [
+      {
+        "to": "ada-fairshare.testnet",
+        "points": 40,
+        "reason": "hosted the freezer and kept the log"
+      },
+      {
+        "to": "tunde-fairshare.testnet",
+        "points": 30,
+        "reason": "guarded the stall overnight"
+      },
+      {
+        "to": "frank-fairshare.testnet",
+        "points": 30,
+        "reason": "kept the stall tidy"
+      }
+    ],
+    "ngozi-fairshare.testnet": [
+      {
+        "to": "ada-fairshare.testnet",
+        "points": 40,
+        "reason": "logged every delivery"
+      },
+      {
+        "to": "emeka-fairshare.testnet",
+        "points": 30,
+        "reason": "delivered the fish on time"
+      },
+      {
+        "to": "fatima-fairshare.testnet",
+        "points": 30,
+        "reason": "collected the rent on time"
+      }
+    ]
+  },
+  "effective_points": {
+    "alice-fairshare.testnet": {
+      "ada-fairshare.testnet": 40,
+      "emeka-fairshare.testnet": 30,
+      "frank-fairshare.testnet": 30
+    },
+    "bob-fairshare.testnet": {
+      "ada-fairshare.testnet": 20,
+      "ibrahim-fairshare.testnet": 30,
+      "carol-fairshare.testnet": 30
+    },
+    "carol-fairshare.testnet": {
+      "ada-fairshare.testnet": 25,
+      "ngozi-fairshare.testnet": 30,
+      "dave-fairshare.testnet": 30
+    },
+    "dave-fairshare.testnet": {
+      "ada-fairshare.testnet": 25,
+      "fatima-fairshare.testnet": 30,
+      "erin-fairshare.testnet": 30
+    },
+    "erin-fairshare.testnet": {
+      "ada-fairshare.testnet": 40,
+      "tunde-fairshare.testnet": 30,
+      "bob-fairshare.testnet": 30
+    },
+    "frank-fairshare.testnet": {
+      "emeka-fairshare.testnet": 40,
+      "ibrahim-fairshare.testnet": 15,
+      "ngozi-fairshare.testnet": 30
+    },
+    "ada-fairshare.testnet": {
+      "bob-fairshare.testnet": 20,
+      "carol-fairshare.testnet": 15,
+      "dave-fairshare.testnet": 15
+    },
+    "emeka-fairshare.testnet": {
+      "ada-fairshare.testnet": 40,
+      "fatima-fairshare.testnet": 30,
+      "tunde-fairshare.testnet": 30
+    },
+    "fatima-fairshare.testnet": {
+      "ada-fairshare.testnet": 40,
+      "ibrahim-fairshare.testnet": 30,
+      "ngozi-fairshare.testnet": 15
+    },
+    "ibrahim-fairshare.testnet": {
+      "ada-fairshare.testnet": 40,
+      "tunde-fairshare.testnet": 30,
+      "frank-fairshare.testnet": 15
+    },
+    "ngozi-fairshare.testnet": {
+      "ada-fairshare.testnet": 40,
+      "emeka-fairshare.testnet": 30,
+      "fatima-fairshare.testnet": 15
+    }
+  },
+  "expected_scores": {
+    "alice-fairshare.testnet": "0",
+    "bob-fairshare.testnet": "9604",
+    "carol-fairshare.testnet": "8464",
+    "dave-fairshare.testnet": "8464",
+    "erin-fairshare.testnet": "2916",
+    "frank-fairshare.testnet": "8464",
+    "ada-fairshare.testnet": "272484",
+    "emeka-fairshare.testnet": "29241",
+    "fatima-fairshare.testnet": "21316",
+    "ibrahim-fairshare.testnet": "21316",
+    "ngozi-fairshare.testnet": "21316",
+    "tunde-fairshare.testnet": "26244"
+  },
+  "expected_standing_after": {
+    "ada-fairshare.testnet": 110,
+    "emeka-fairshare.testnet": 106,
+    "frank-fairshare.testnet": 104,
+    "ibrahim-fairshare.testnet": 106,
+    "carol-fairshare.testnet": 104,
+    "ngozi-fairshare.testnet": 106,
+    "dave-fairshare.testnet": 104,
+    "fatima-fairshare.testnet": 106,
+    "erin-fairshare.testnet": 102,
+    "bob-fairshare.testnet": 104,
+    "tunde-fairshare.testnet": 95,
+    "alice-fairshare.testnet": 100
+  },
+  "txs": {
+    "topup_dao_first_attempt": "HkNBdKAhjtB5b4Jh7ktMnT4PvjKwVr2H5tQHpPStKvhq",
+    "fund_proposal": {
+      "proposal_id": 7,
+      "propose_tx": "LiZkXGB2phs1xhqZbxuFmFctYuHTAEPh8DLYGWowvid"
+    },
+    "fund_votes_cast": {
+      "alice-fairshare.testnet": "7oy8vNAg6wwY9WdbwLT91fqr3XijZki5s6umYwcAfXFq",
+      "bob-fairshare.testnet": "CdT8pZLhaywbkyN2edS1jsVsGuCGiDJkTW4Uj237Bayx",
+      "carol-fairshare.testnet": "JANJeg449pUJFzz1kk1NvaD97jYmnwwGP8pU7KvcYuWb",
+      "dave-fairshare.testnet": "7ka88pz4ij2Fb63tjfoKekKeF9isFD3A7BSK3FQzWP3b",
+      "erin-fairshare.testnet": "C9W9JGUycVfi5rLgRXE3eeZtR53Qt9kQuJnH16QUhAxh",
+      "frank-fairshare.testnet": "61yi6wFuhMYeZPHfB3KEVLAkm2Pv4ehoTQgaEKypxMqc",
+      "ada-fairshare.testnet": "DAjHSRvyJuU1s1BGR2t69RJCKrxuzuzuLsdghDAssdQA"
+    },
+    "fund_vote_ada_failed": "LackBalanceForState: DAO needed 3.746 NEAR more to cover storage (tx 213Y4FR9WaVJTjrMKiGwKT8CMAwgUYnsTAsU5ivfgCVW)",
+    "topup_owner_attempt2": "EA9uMRh1j5wX6QAhdK6gRfv3j4PnnJYQG1guNoE4xqUp",
+    "topup_dao_attempt2": "6MzaiX8Ny6XSu8GACjmXSUr3nvbwDDixg2Yo22t4UQVT",
+    "fund_vote_ada_failed_attempt2": "LackBalanceForState: DAO needed 0.743 NEAR more (tx Ft4GUeW8Hr9jUDjt64y3ZVP3G6XqmHjsA5KpMPMV85pv)",
+    "topup_owner": "7MRWUxi6WMknAR3G1T9o3Y5P29fowviLJgZS7jVEc6kr",
+    "topup_dao": "HiJqfXbTVEyYp2sM55wEbvNk7C69j9DT3CRxbXWGMeMx",
+    "gate_close_rejected": "{\"index\":0,\"kind\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` opcode was executed.\"}}}}",
+    "allocate": {
+      "alice-fairshare.testnet": "3xoL61y7GSUCG1k1R7REJ1ifZSVg7UnYV9mhb1ZLcDRY",
+      "bob-fairshare.testnet": "Gx4WbCZoR68mkfA9GGTnomeFGjpExBWYAphtjzoiYoW8",
+      "carol-fairshare.testnet": "FwexM6am2vmG3PXrWM4N3w5Cxthhrh1um1MkVvpjkgT2",
+      "dave-fairshare.testnet": "DBPgQAn3Vvm5L8GaBHz7HYK7WAQm3YaVfZp4QiEG6gDU",
+      "erin-fairshare.testnet": "CwgUrahKbkXziogu2SeGr4hSCsBBFyV2P9DPPnbTUh9w",
+      "frank-fairshare.testnet": "EgWSve9VeJByBKGKz8hGZFzWSn9PdZqN4hPCty8B6dD7",
+      "ada-fairshare.testnet": "9qs6pZmEZjvkxwVRJ3TYHxTWXCQNFnjRaKXeHp1yndBt",
+      "emeka-fairshare.testnet": "FfCZgCEMEQHhjJJuGsydqNakZ6Jsr7a6VX2mwNrG3Rh",
+      "fatima-fairshare.testnet": "BDPEe8sckjKZLaMdKB3We6Pz5ghHTChCLJCAKZbvbZMo",
+      "ibrahim-fairshare.testnet": "ESAwgB8bjggDcqwzQ4ajejLch5MDcck9hQJDP2jbsySn",
+      "ngozi-fairshare.testnet": "2vCZKtaqsAiV5z7xBzUeYjjztmzMh2MeLgndhEw2KjoB"
+    },
+    "close_round": "C3nXKn8MKioieU5wW6AZGEYEqQ7CDBVebttaxNSNEYcJ",
+    "settle_round": "7ZbAQganvPJKGHsQkUGYXE56tdvqLm9UM1CGRwcCkMWG",
+    "gate_create_rejected": "{\"index\":0,\"kind\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` opcode was executed.\"}}}}"
+  },
+  "round": {
+    "id": 3,
+    "envelope_yocto": "5000000000000000000000000",
+    "created_ns": 1794136024665348400,
+    "deadline_ns": 1794740824665348400,
+    "closed": true,
+    "settled": true,
+    "total_payout_yocto": "4999999999999999999999995"
+  },
+  "payouts": [
+    {
+      "account_id": "frank-fairshare.testnet",
+      "payout_yocto": "201722329911976866122215"
+    },
+    {
+      "account_id": "carol-fairshare.testnet",
+      "payout_yocto": "201722329911976866122215"
+    },
+    {
+      "account_id": "bob-fairshare.testnet",
+      "payout_yocto": "228891925386888684101814"
+    },
+    {
+      "account_id": "dave-fairshare.testnet",
+      "payout_yocto": "201722329911976866122215"
+    },
+    {
+      "account_id": "alice-fairshare.testnet",
+      "payout_yocto": "0"
+    },
+    {
+      "account_id": "erin-fairshare.testnet",
+      "payout_yocto": "69496965267406018621500"
+    },
+    {
+      "account_id": "ibrahim-fairshare.testnet",
+      "payout_yocto": "508023769423877466713273"
+    },
+    {
+      "account_id": "fatima-fairshare.testnet",
+      "payout_yocto": "508023769423877466713273"
+    },
+    {
+      "account_id": "ada-fairshare.testnet",
+      "payout_yocto": "1250000000000000000000000"
+    },
+    {
+      "account_id": "ngozi-fairshare.testnet",
+      "payout_yocto": "508023769423877466713273"
+    },
+    {
+      "account_id": "tunde-fairshare.testnet",
+      "payout_yocto": "625472687406654167593504"
+    },
+    {
+      "account_id": "emeka-fairshare.testnet",
+      "payout_yocto": "696900123931488131176713"
+    }
+  ],
+  "explanations": {
+    "alice-fairshare.testnet": {
+      "round_id": 3,
+      "account_id": "alice-fairshare.testnet",
+      "score": 0,
+      "total_score": 429829,
+      "contributions": [],
+      "reciprocity_discount_total_points": 0,
+      "cap_applied": false,
+      "uncapped_payout_yocto": "0",
+      "payout_yocto": "0"
+    },
+    "bob-fairshare.testnet": {
+      "round_id": 3,
+      "account_id": "bob-fairshare.testnet",
+      "score": 9604,
+      "total_score": 429829,
+      "contributions": [
+        {
+          "giver": "erin-fairshare.testnet",
+          "points": 30,
+          "effective_points": 30,
+          "giver_weight": 100,
+          "sqrt_contribution": 54,
+          "reciprocity_discount_points": 0
+        },
+        {
+          "giver": "ada-fairshare.testnet",
+          "points": 40,
+          "effective_points": 20,
+          "giver_weight": 100,
+          "sqrt_contribution": 44,
+          "reciprocity_discount_points": 20
+        }
+      ],
+      "reciprocity_discount_total_points": 20,
+      "cap_applied": false,
+      "uncapped_payout_yocto": "111718846331913388812760",
+      "payout_yocto": "228891925386888684101814"
+    },
+    "carol-fairshare.testnet": {
+      "round_id": 3,
+      "account_id": "carol-fairshare.testnet",
+      "score": 8464,
+      "total_score": 429829,
+      "contributions": [
+        {
+          "giver": "bob-fairshare.testnet",
+          "points": 30,
+          "effective_points": 30,
+          "giver_weight": 100,
+          "sqrt_contribution": 54,
+          "reciprocity_discount_points": 0
+        },
+        {
+          "giver": "ada-fairshare.testnet",
+          "points": 30,
+          "effective_points": 15,
+          "giver_weight": 100,
+          "sqrt_contribution": 38,
+          "reciprocity_discount_points": 15
+        }
+      ],
+      "reciprocity_discount_total_points": 15,
+      "cap_applied": false,
+      "uncapped_payout_yocto": "98457758783143994472220",
+      "payout_yocto": "201722329911976866122215"
+    },
+    "dave-fairshare.testnet": {
+      "round_id": 3,
+      "account_id": "dave-fairshare.testnet",
+      "score": 8464,
+      "total_score": 429829,
+      "contributions": [
+        {
+          "giver": "carol-fairshare.testnet",
+          "points": 30,
+          "effective_points": 30,
+          "giver_weight": 100,
+          "sqrt_contribution": 54,
+          "reciprocity_discount_points": 0
+        },
+        {
+          "giver": "ada-fairshare.testnet",
+          "points": 30,
+          "effective_points": 15,
+          "giver_weight": 100,
+          "sqrt_contribution": 38,
+          "reciprocity_discount_points": 15
+        }
+      ],
+      "reciprocity_discount_total_points": 15,
+      "cap_applied": false,
+      "uncapped_payout_yocto": "98457758783143994472220",
+      "payout_yocto": "201722329911976866122215"
+    },
+    "erin-fairshare.testnet": {
+      "round_id": 3,
+      "account_id": "erin-fairshare.testnet",
+      "score": 2916,
+      "total_score": 429829,
+      "contributions": [
+        {
+          "giver": "dave-fairshare.testnet",
+          "points": 30,
+          "effective_points": 30,
+          "giver_weight": 100,
+          "sqrt_contribution": 54,
+          "reciprocity_discount_points": 0
+        }
+      ],
+      "reciprocity_discount_total_points": 0,
+      "cap_applied": false,
+      "uncapped_payout_yocto": "33920466045799608681591",
+      "payout_yocto": "69496965267406018621500"
+    },
+    "frank-fairshare.testnet": {
+      "round_id": 3,
+      "account_id": "frank-fairshare.testnet",
+      "score": 8464,
+      "total_score": 429829,
+      "contributions": [
+        {
+          "giver": "alice-fairshare.testnet",
+          "points": 30,
+          "effective_points": 30,
+          "giver_weight": 100,
+          "sqrt_contribution": 54,
+          "reciprocity_discount_points": 0
+        },
+        {
+          "giver": "ibrahim-fairshare.testnet",
+          "points": 30,
+          "effective_points": 15,
+          "giver_weight": 100,
+          "sqrt_contribution": 38,
+          "reciprocity_discount_points": 15
+        }
+      ],
+      "reciprocity_discount_total_points": 15,
+      "cap_applied": false,
+      "uncapped_payout_yocto": "98457758783143994472220",
+      "payout_yocto": "201722329911976866122215"
+    },
+    "ada-fairshare.testnet": {
+      "round_id": 3,
+      "account_id": "ada-fairshare.testnet",
+      "score": 272484,
+      "total_score": 429829,
+      "contributions": [
+        {
+          "giver": "carol-fairshare.testnet",
+          "points": 40,
+          "effective_points": 25,
+          "giver_weight": 100,
+          "sqrt_contribution": 50,
+          "reciprocity_discount_points": 15
+        },
+        {
+          "giver": "bob-fairshare.testnet",
+          "points": 40,
+          "effective_points": 20,
+          "giver_weight": 100,
+          "sqrt_contribution": 44,
+          "reciprocity_discount_points": 20
+        },
+        {
+          "giver": "dave-fairshare.testnet",
+          "points": 40,
+          "effective_points": 25,
+          "giver_weight": 100,
+          "sqrt_contribution": 50,
+          "reciprocity_discount_points": 15
+        },
+        {
+          "giver": "alice-fairshare.testnet",
+          "points": 40,
+          "effective_points": 40,
+          "giver_weight": 100,
+          "sqrt_contribution": 63,
+          "reciprocity_discount_points": 0
+        },
+        {
+          "giver": "erin-fairshare.testnet",
+          "points": 40,
+          "effective_points": 40,
+          "giver_weight": 100,
+          "sqrt_contribution": 63,
+          "reciprocity_discount_points": 0
+        },
+        {
+          "giver": "ibrahim-fairshare.testnet",
+          "points": 40,
+          "effective_points": 40,
+          "giver_weight": 100,
+          "sqrt_contribution": 63,
+          "reciprocity_discount_points": 0
+        },
+        {
+          "giver": "fatima-fairshare.testnet",
+          "points": 40,
+          "effective_points": 40,
+          "giver_weight": 100,
+          "sqrt_contribution": 63,
+          "reciprocity_discount_points": 0
+        },
+        {
+          "giver": "ngozi-fairshare.testnet",
+          "points": 40,
+          "effective_points": 40,
+          "giver_weight": 100,
+          "sqrt_contribution": 63,
+          "reciprocity_discount_points": 0
+        },
+        {
+          "giver": "emeka-fairshare.testnet",
+          "points": 40,
+          "effective_points": 40,
+          "giver_weight": 100,
+          "sqrt_contribution": 63,
+          "reciprocity_discount_points": 0
+        }
+      ],
+      "reciprocity_discount_total_points": 50,
+      "cap_applied": true,
+      "uncapped_payout_yocto": "3169679104946385655690984",
+      "payout_yocto": "1250000000000000000000000"
+    },
+    "emeka-fairshare.testnet": {
+      "round_id": 3,
+      "account_id": "emeka-fairshare.testnet",
+      "score": 29241,
+      "total_score": 429829,
+      "contributions": [
+        {
+          "giver": "frank-fairshare.testnet",
+          "points": 40,
+          "effective_points": 40,
+          "giver_weight": 100,
+          "sqrt_contribution": 63,
+          "reciprocity_discount_points": 0
+        },
+        {
+          "giver": "alice-fairshare.testnet",
+          "points": 30,
+          "effective_points": 30,
+          "giver_weight": 100,
+          "sqrt_contribution": 54,
+          "reciprocity_discount_points": 0
+        },
+        {
+          "giver": "ngozi-fairshare.testnet",
+          "points": 30,
+          "effective_points": 30,
+          "giver_weight": 100,
+          "sqrt_contribution": 54,
+          "reciprocity_discount_points": 0
+        }
+      ],
+      "reciprocity_discount_total_points": 0,
+      "cap_applied": false,
+      "uncapped_payout_yocto": "340146895625934964834852",
+      "payout_yocto": "696900123931488131176713"
+    },
+    "fatima-fairshare.testnet": {
+      "round_id": 3,
+      "account_id": "fatima-fairshare.testnet",
+      "score": 21316,
+      "total_score": 429829,
+      "contributions": [
+        {
+          "giver": "dave-fairshare.testnet",
+          "points": 30,
+          "effective_points": 30,
+          "giver_weight": 100,
+          "sqrt_contribution": 54,
+          "reciprocity_discount_points": 0
+        },
+        {
+          "giver": "ngozi-fairshare.testnet",
+          "points": 30,
+          "effective_points": 15,
+          "giver_weight": 100,
+          "sqrt_contribution": 38,
+          "reciprocity_discount_points": 15
+        },
+        {
+          "giver": "emeka-fairshare.testnet",
+          "points": 30,
+          "effective_points": 30,
+          "giver_weight": 100,
+          "sqrt_contribution": 54,
+          "reciprocity_discount_points": 0
+        }
+      ],
+      "reciprocity_discount_total_points": 15,
+      "cap_applied": false,
+      "uncapped_payout_yocto": "247959072096112640142940",
+      "payout_yocto": "508023769423877466713273"
+    },
+    "ibrahim-fairshare.testnet": {
+      "round_id": 3,
+      "account_id": "ibrahim-fairshare.testnet",
+      "score": 21316,
+      "total_score": 429829,
+      "contributions": [
+        {
+          "giver": "frank-fairshare.testnet",
+          "points": 30,
+          "effective_points": 15,
+          "giver_weight": 100,
+          "sqrt_contribution": 38,
+          "reciprocity_discount_points": 15
+        },
+        {
+          "giver": "bob-fairshare.testnet",
+          "points": 30,
+          "effective_points": 30,
+          "giver_weight": 100,
+          "sqrt_contribution": 54,
+          "reciprocity_discount_points": 0
+        },
+        {
+          "giver": "fatima-fairshare.testnet",
+          "points": 30,
+          "effective_points": 30,
+          "giver_weight": 100,
+          "sqrt_contribution": 54,
+          "reciprocity_discount_points": 0
+        }
+      ],
+      "reciprocity_discount_total_points": 15,
+      "cap_applied": false,
+      "uncapped_payout_yocto": "247959072096112640142940",
+      "payout_yocto": "508023769423877466713273"
+    },
+    "ngozi-fairshare.testnet": {
+      "round_id": 3,
+      "account_id": "ngozi-fairshare.testnet",
+      "score": 21316,
+      "total_score": 429829,
+      "contributions": [
+        {
+          "giver": "frank-fairshare.testnet",
+          "points": 30,
+          "effective_points": 30,
+          "giver_weight": 100,
+          "sqrt_contribution": 54,
+          "reciprocity_discount_points": 0
+        },
+        {
+          "giver": "carol-fairshare.testnet",
+          "points": 30,
+          "effective_points": 30,
+          "giver_weight": 100,
+          "sqrt_contribution": 54,
+          "reciprocity_discount_points": 0
+        },
+        {
+          "giver": "fatima-fairshare.testnet",
+          "points": 30,
+          "effective_points": 15,
+          "giver_weight": 100,
+          "sqrt_contribution": 38,
+          "reciprocity_discount_points": 15
+        }
+      ],
+      "reciprocity_discount_total_points": 15,
+      "cap_applied": false,
+      "uncapped_payout_yocto": "247959072096112640142940",
+      "payout_yocto": "508023769423877466713273"
+    },
+    "tunde-fairshare.testnet": {
+      "round_id": 3,
+      "account_id": "tunde-fairshare.testnet",
+      "score": 26244,
+      "total_score": 429829,
+      "contributions": [
+        {
+          "giver": "erin-fairshare.testnet",
+          "points": 30,
+          "effective_points": 30,
+          "giver_weight": 100,
+          "sqrt_contribution": 54,
+          "reciprocity_discount_points": 0
+        },
+        {
+          "giver": "ibrahim-fairshare.testnet",
+          "points": 30,
+          "effective_points": 30,
+          "giver_weight": 100,
+          "sqrt_contribution": 54,
+          "reciprocity_discount_points": 0
+        },
+        {
+          "giver": "emeka-fairshare.testnet",
+          "points": 30,
+          "effective_points": 30,
+          "giver_weight": 100,
+          "sqrt_contribution": 54,
+          "reciprocity_discount_points": 0
+        }
+      ],
+      "reciprocity_discount_total_points": 0,
+      "cap_applied": false,
+      "uncapped_payout_yocto": "305284194412196478134327",
+      "payout_yocto": "625472687406654167593504"
+    }
+  },
+  "standings_before": {
+    "alice-fairshare.testnet": 100,
+    "bob-fairshare.testnet": 100,
+    "carol-fairshare.testnet": 100,
+    "dave-fairshare.testnet": 100,
+    "erin-fairshare.testnet": 100,
+    "frank-fairshare.testnet": 100,
+    "ada-fairshare.testnet": 100,
+    "emeka-fairshare.testnet": 100,
+    "fatima-fairshare.testnet": 100,
+    "ibrahim-fairshare.testnet": 100,
+    "ngozi-fairshare.testnet": 100,
+    "tunde-fairshare.testnet": 100
+  },
+  "standings_after": {
+    "alice-fairshare.testnet": 100,
+    "bob-fairshare.testnet": 104,
+    "carol-fairshare.testnet": 104,
+    "dave-fairshare.testnet": 104,
+    "erin-fairshare.testnet": 102,
+    "frank-fairshare.testnet": 104,
+    "ada-fairshare.testnet": 110,
+    "emeka-fairshare.testnet": 106,
+    "fatima-fairshare.testnet": 106,
+    "ibrahim-fairshare.testnet": 106,
+    "ngozi-fairshare.testnet": 106,
+    "tunde-fairshare.testnet": 95
+  },
+  "balances_before_yocto": {
+    "alice-fairshare.testnet": "8325421077624718257092927",
+    "bob-fairshare.testnet": "10615715414287995863086733",
+    "carol-fairshare.testnet": "10287657664498469572403961",
+    "dave-fairshare.testnet": "11118060727688585079001747",
+    "erin-fairshare.testnet": "10942611727539021924373792",
+    "frank-fairshare.testnet": "11185625131018274104040837",
+    "ada-fairshare.testnet": "11247789893511588100000000",
+    "emeka-fairshare.testnet": "10869577060511925376362409",
+    "fatima-fairshare.testnet": "10784770581070896782167074",
+    "ibrahim-fairshare.testnet": "11249765075598281400000000",
+    "ngozi-fairshare.testnet": "10546547877939522694600063",
+    "tunde-fairshare.testnet": "10298163256073626346870451"
+  },
+  "balances_after_yocto": {
+    "alice-fairshare.testnet": "8325185618967671557092927",
+    "bob-fairshare.testnet": "10844372028942913947188547",
+    "carol-fairshare.testnet": "10489144334727464738526176",
+    "dave-fairshare.testnet": "11319547895012027845123962",
+    "erin-fairshare.testnet": "11011872992839040642995292",
+    "frank-fairshare.testnet": "11387111414342160770163052",
+    "ada-fairshare.testnet": "12497554243123343500000000",
+    "emeka-fairshare.testnet": "11566241301614692207539122",
+    "fatima-fairshare.testnet": "11292558992956516248880347",
+    "ibrahim-fairshare.testnet": "11757553551346431766713273",
+    "ngozi-fairshare.testnet": "11054335767284745561313336",
+    "tunde-fairshare.testnet": "10923635943480280514463955"
+  },
+  "payout_sum_yocto": "4999999999999999999999995",
+  "remainder_yocto": "5",
+  "demo_at": "2026-11-08T11:07:50.883Z"
+}

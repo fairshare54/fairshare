@@ -129,6 +129,33 @@
     <p class="muted">Worked check, Ibrahim: Fatima gave 30 points, discount 12, effective 18, root part 42. Ada gave 20 points, no discount, root part 44. Ngozi gave 25 points, no discount, root part 50. Tunde gave 50 points, discount 20, effective 30, root part 54. Root parts add to 190. 190 squared is 36100, which is Ibrahim score. His raw payout was above the 1.250 NEAR cap, so he was paid exactly 1.250 NEAR.</p>
   </section>
 
+  <section class="panel" id="round3">
+    <h2>Round 3 <span class="badge live">SETTLED ONCHAIN</span></h2>
+    <p class="muted">Round 3 is the reputation round: the first round settled under the standing rule. Eleven members allocated and one, Tunde, deliberately submitted nothing, to prove the penalty live. Payouts add to 4.999 NEAR, 5 yocto of dust stays in the contract. Ada was capped at exactly 1.250 NEAR. Settle: <code>7ZbAQganvPJKGHsQkUGYXE56tdvqLm9UM1CGRwcCkMWG</code> · Close: <code>C3nXKn8MKioieU5wW6AZGEYEqQ7CDBVebttaxNSNEYcJ</code> · Funding proposal #7: <code>LiZkXGB2phs1xhqZbxuFmFctYuHTAEPh8DLYGWowvid</code></p>
+    <p class="muted">The funding proposal taught the project something real. It failed twice before it passed: the DAO looks rich on its total balance, but Sputnik stores every proposal onchain, so the DAO must keep about 4.74 NEAR staked for its own storage, and executing a proposal also returns the 1 NEAR bond. A 5 NEAR envelope therefore needs the DAO at about 11.5 NEAR total, not 5. The DAO was topped up to 11.5 NEAR and the seventh vote passed. The full story, with the failed votes, is in the repo runbook.</p>
+    <h3>Members, payouts, and standing</h3>
+    <table>
+      <thead><tr><th>Member</th><th>Score</th><th>Payout</th><th>Standing before</th><th>Standing after</th></tr></thead>
+      <tbody>
+        <tr><td>Ada</td><td>272484</td><td>1.2500 NEAR (capped)</td><td>100</td><td>110</td></tr>
+        <tr><td>Emeka</td><td>29241</td><td>0.6969 NEAR</td><td>100</td><td>106</td></tr>
+        <tr><td>Tunde</td><td>26244</td><td>0.6255 NEAR</td><td>100</td><td>95</td></tr>
+        <tr><td>Fatima</td><td>21316</td><td>0.5080 NEAR</td><td>100</td><td>106</td></tr>
+        <tr><td>Ibrahim</td><td>21316</td><td>0.5080 NEAR</td><td>100</td><td>106</td></tr>
+        <tr><td>Ngozi</td><td>21316</td><td>0.5080 NEAR</td><td>100</td><td>106</td></tr>
+        <tr><td>Bob</td><td>9604</td><td>0.2289 NEAR</td><td>100</td><td>104</td></tr>
+        <tr><td>Carol</td><td>8464</td><td>0.2017 NEAR</td><td>100</td><td>104</td></tr>
+        <tr><td>Dave</td><td>8464</td><td>0.2017 NEAR</td><td>100</td><td>104</td></tr>
+        <tr><td>Frank</td><td>8464</td><td>0.2017 NEAR</td><td>100</td><td>104</td></tr>
+        <tr><td>Erin</td><td>2916</td><td>0.0695 NEAR</td><td>100</td><td>102</td></tr>
+        <tr><td>Alice</td><td>0</td><td>0 NEAR</td><td>100</td><td>100</td></tr>
+      </tbody>
+    </table>
+    <p class="muted">Total score 429829. Ada received points from 9 distinct givers, so she gained the capped +10. Tunde received points from 3 givers but submitted nothing, so he lost 5. Alice received points from nobody and submitted, so she stayed at 100. Every score was checked against an independent integer model before the settle was accepted.</p>
+    <h3>The gates, proved live</h3>
+    <p class="muted">Before the settle, Ada, standing 100, tried to close the round early. The call was rejected: closing early needs standing 150. After the settle, Tunde, standing 95, tried to propose a round. The call was rejected: proposing needs standing 100. No round 4 was created. Both rejections are failed receipts onchain; the contract code is built to abort on a failed check, so the receipt carries no message text, only the failed call and the unchanged state.</p>
+  </section>
+
   <section class="panel" id="dao">
     <h2>The DAO and governance</h2>
     <p>Membership in FairShare is a Sputnik DAO role, read live across contracts. The contract mirrors the DAO council into its member set with sync_dao_members, and get_dao_role checks one account live against the DAO policy. The DAO is the source of truth. The local member set is a synced mirror.</p>
@@ -143,11 +170,17 @@
     <p class="muted">One fact worth knowing: the live testnet factory only creates DAOs as its own subaccounts, so it cannot create the top level name fairshare-dao.testnet. The real Sputnik v2 contract was deployed directly to that account instead, with the wasm read onchain from genesis.sputnikv2.testnet.</p>
   </section>
 
+  <section class="panel" id="trezu">
+    <h2>Trezu manages this DAO</h2>
+    <p>Trezu is the treasury app for Sputnik DAOs. This DAO is a standard Sputnik DAO, so it is the kind of DAO Trezu manages: council members propose, vote and execute through it, and the contract reads membership live from it.</p>
+    <p class="muted">The honest limit: Trezu production is mainnet only, so there is no live Trezu testnet payout, and none is claimed here. What was verified is the local testnet view: the Trezu frontend run locally with the mock backend from the Trezu repo, opening fairshare-dao.testnet, shows the real onchain data. Requests, Executed tab: all 8 proposals, each Executed, including the round 2 and round 3 funding proposals. Members: all 12 council members. Settings, Voting: 6 of 12 threshold, 7 day vote duration. Assets and recent transactions stay empty, because there is no indexer for testnet DAOs. The exact steps and screenshots are in the repo, TREZU.md.</p>
+  </section>
+
   <section class="panel" id="verify">
     <h2>Check it yourself</h2>
     <p>Nothing on this page asks you to trust it. Read the contract state with plain view calls:</p>
     <ol class="steps">
-      <li><code>get_params</code> on <code>fairshare-contract.testnet</code> returns 100 points per member, at least 3 recipients, cap 2500 basis points, discount 5000 basis points, round 604800000000000 nanoseconds, standing starts at 100.</li>
+      <li><code>get_params</code> on <code>fairshare-contract.testnet</code> returns 100 points per member, at least 3 recipients, cap 2500 basis points, discount 5000 basis points, round 604800000000000 nanoseconds, standing starts at 100, and the reputation rule: +2 per distinct giver, capped at +10 a round, minus 5 for no allocation, floor 50, cap 200, propose at 100, close early at 150.</li>
       <li><code>get_dao_info</code> returns the DAO id, the member role, the member count, and the last sync time.</li>
       <li><code>get_round</code> with round id 1 returns the 5 NEAR envelope, closed true, settled true, total payout 4999999999999999999999997 yocto.</li>
       <li><code>get_payouts</code> with round id 1 returns all six payouts. <code>explain_payout</code> with round id 1 and any member returns their score broken down by giver.</li>
@@ -161,7 +194,7 @@
   <a href="https://github.com/fairshare54/fairshare">Repo</a> ·
   <a href="https://testnet.nearblocks.io/address/fairshare-contract.testnet">Contract on Nearblocks</a> ·
   <a href="https://testnet.nearblocks.io/address/fairshare-dao.testnet">DAO on Nearblocks</a><br>
-  <span>Round 1 is the real onchain result. Round 2 is coming.</span>
+  <span>Round 1, 2 and 3 are settled onchain.</span>
 </footer>
 <script src="app.js"></script>
 </body>

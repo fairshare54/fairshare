@@ -2,7 +2,7 @@
 name = "fairshare-round"
 version = "0.1.0"
 edition = "2021"
-description = "FairShare round contract (formerly Egbe) — a Sputnik DAO funds a round; members allocate 100 points each to peers and the round settles deterministically on-chain. NEAR testnet only."
+description = "FairShare round contract — a Sputnik DAO funds a round; members allocate 100 points each to peers and the round settles deterministically on-chain. NEAR testnet only."
 
 [lib]
 crate-type = ["cdylib", "rlib"]
