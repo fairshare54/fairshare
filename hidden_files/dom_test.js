@@ -16,7 +16,7 @@ console.log('lab ring rows:', (els.labRingBody.innerHTML.match(/<tr>/g)||[]).len
 console.log('lab honest rows:', (els.labHonestBody.innerHTML.match(/<tr>/g)||[]).length);
 console.log('lab verdict:', els.labVerdict.innerHTML.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').slice(0,700));
 
-// Fairness Stress Test: every scenario computes, payouts sum to the
+
 // envelope minus dust, no payout passes the cap, standings stay in range.
 const app = require('/home/hatch/workspace/egbe/site/app.js');
 const YOCTO = 10n ** 24n;
@@ -38,3 +38,15 @@ for (const sc of app.STRESS_SCENARIOS) {
     'standings in [50,200]:', !badStanding);
   console.log('stress verdict', sc.id + ':', els.stressVerdict.innerHTML.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').slice(0,420));
 }
+
+
+// Membership Integrity Monitor: the mutual pair rule flags exactly the six
+// recorded pairs, activity covers all 19 members, history lists all 13
+// admissions and no removals, and the last sync is the clearsite587 one.
+const pairs = app.monitorMutualPairs();
+console.log('monitor pairs:', pairs.length, pairs.map((p) => "r" + p.round + ":" + p.a.split("-")[0] + "<->" + p.b.split("-")[0] + " " + p.aToB + "/" + p.bToA + " (" + p.shareA + "%/" + p.shareB + "%)").join(" | "));
+console.log('monitor activity rows:', (els.monitorActivity.innerHTML.match(/<tr>/g)||[]).length);
+console.log('monitor history rows:', (els.monitorHistory.innerHTML.match(/<tr>/g)||[]).length);
+console.log('monitor history says no removals:', els.monitorHistory.innerHTML.includes("No member has been removed"));
+console.log('monitor sync text:', els.monitorSync.innerHTML.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').slice(0,260));
+console.log('monitor warnings text:', els.monitorWarnings.innerHTML.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').slice(0,500));

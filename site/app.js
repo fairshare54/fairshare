@@ -1267,6 +1267,364 @@ async function submitWalletAllocate() {
   }
 }
 
+// Membership Integrity Monitor: recorded history, generated from
+// demo-log.json on 2026-11-08. Live membership, standings, badges,
+// and pending proposals are read from the chain when the page loads;
+// this block is the recorded history the live read is checked against.
+const MONITOR_THRESHOLD = 40; // flag a pair when each gave at least 40% of their points to the other
+const MONITOR_SYNCS = [
+  { tx: "CihwgreGNAYuWyb6pRRbWRy6oUyHRwx5vPWJW3DEBJcs", when: "2026-11-08 10:23 WAT", members: 6, note: "First sync, the 6 demo members" },
+  { tx: "Ah87M1UuRdaXx6aHqKD1PdoMty9xysH7Tbyv1VKJ27jW", when: "2026-11-08 10:57 WAT", members: 12, note: "After proposals #0 to #5, the round 2 crew" },
+  { tx: "8xekwzk8c9qFSvDSMVEDMAmynuCt3boTKG7kgB3U3mjw", when: "2026-11-08 12:42 WAT", members: 18, note: "After proposals #8 to #13, the round 4 crew" },
+  { tx: "B92RYmbboLwazJzd5V7LS7en1w7UNy5Z92HRMhK3YvQF", when: "2026-11-08 13:07 WAT", members: 19, note: "After proposal #15, clearsite587.testnet" },
+];
+const MONITOR_ADDS = [
+  { proposal: 0, member: "ada-fairshare.testnet", tx: "2u8eFs6gA8i8fawfXrkUdhNabhAC3DXDLbEb9TksVTGq" },
+  { proposal: 1, member: "emeka-fairshare.testnet", tx: "H1ji1upA2BpJXXehvBSJeBdGBaLhSyRnnPUGG6e2GdyZ" },
+  { proposal: 2, member: "fatima-fairshare.testnet", tx: "AXwZ3dL7hJTzkjFDVeFs1aMNgxYY8wJ6Z4ZDzwg2qYQQ" },
+  { proposal: 3, member: "ibrahim-fairshare.testnet", tx: "CPhRFG4MSPDgomj4BJHquiS29wbpDmrtx6jrwsZ92awm" },
+  { proposal: 4, member: "ngozi-fairshare.testnet", tx: "4t646jvECf7KtKZTftHs2NMMx1krJ4F63qtp91hAP7Cp" },
+  { proposal: 5, member: "tunde-fairshare.testnet", tx: "EzTDjkY8WSCBbHXH1fyAbymYkJQVt1fTVMGJPnHAmcUp" },
+  { proposal: 8, member: "chidi-fairshare.testnet", tx: "59GMPavYKdtpZE5ojfnbdVck8m3x5eSKeaeDWn8w2m3x" },
+  { proposal: 9, member: "amara-fairshare.testnet", tx: "4sWyFWFxPfXNu3B6XbQgPE4eTnZ1zvGbcMGWYeSdW1LR" },
+  { proposal: 10, member: "segun-fairshare.testnet", tx: "G8JRHXUgfSD3FZi8SS8HxAfhov3qxi3JcWqxAvwYoeNn" },
+  { proposal: 11, member: "kemi-fairshare.testnet", tx: "HVxT35ryJhfDVHGDXji8gX3CjJtB8TBWUPSX4rSut6NH" },
+  { proposal: 12, member: "tobi-fairshare.testnet", tx: "86Eq4QdkiwoWrjpUbKWqDpjUKi7tRKEYSfAtCtLPK5Py" },
+  { proposal: 13, member: "zainab-fairshare.testnet", tx: "CsqEGAvSxQj61hDdPBvggSpWhMSTkzY2mmVwJv4RyxgC" },
+  { proposal: 15, member: "clearsite587.testnet", tx: "8S89xddY1rahiPZvCRpUYyaNLvNCrZGQBfLsPTfZMMZ1" },
+];
+const MONITOR_REMOVALS = []; // no member has ever been removed from the council
+const MONITOR_ACTIVITY = {
+ "alice-fairshare.testnet": {
+  "standing": 95,
+  "rounds": {
+   "1": "allocated",
+   "2": "none",
+   "3": "allocated",
+   "4": "none"
+  }
+ },
+ "bob-fairshare.testnet": {
+  "standing": 99,
+  "rounds": {
+   "1": "allocated",
+   "2": "none",
+   "3": "allocated",
+   "4": "none"
+  }
+ },
+ "carol-fairshare.testnet": {
+  "standing": 99,
+  "rounds": {
+   "1": "allocated",
+   "2": "none",
+   "3": "allocated",
+   "4": "none"
+  }
+ },
+ "dave-fairshare.testnet": {
+  "standing": 99,
+  "rounds": {
+   "1": "allocated",
+   "2": "none",
+   "3": "allocated",
+   "4": "none"
+  }
+ },
+ "erin-fairshare.testnet": {
+  "standing": 97,
+  "rounds": {
+   "1": "allocated",
+   "2": "none",
+   "3": "allocated",
+   "4": "none"
+  }
+ },
+ "frank-fairshare.testnet": {
+  "standing": 99,
+  "rounds": {
+   "1": "allocated",
+   "2": "none",
+   "3": "allocated",
+   "4": "none"
+  }
+ },
+ "ada-fairshare.testnet": {
+  "standing": 105,
+  "rounds": {
+   "1": "not member",
+   "2": "allocated",
+   "3": "allocated",
+   "4": "none"
+  }
+ },
+ "emeka-fairshare.testnet": {
+  "standing": 101,
+  "rounds": {
+   "1": "not member",
+   "2": "allocated",
+   "3": "allocated",
+   "4": "none"
+  }
+ },
+ "fatima-fairshare.testnet": {
+  "standing": 101,
+  "rounds": {
+   "1": "not member",
+   "2": "allocated",
+   "3": "allocated",
+   "4": "none"
+  }
+ },
+ "ibrahim-fairshare.testnet": {
+  "standing": 101,
+  "rounds": {
+   "1": "not member",
+   "2": "allocated",
+   "3": "allocated",
+   "4": "none"
+  }
+ },
+ "ngozi-fairshare.testnet": {
+  "standing": 101,
+  "rounds": {
+   "1": "not member",
+   "2": "allocated",
+   "3": "allocated",
+   "4": "none"
+  }
+ },
+ "tunde-fairshare.testnet": {
+  "standing": 90,
+  "rounds": {
+   "1": "not member",
+   "2": "allocated",
+   "3": "none",
+   "4": "none"
+  }
+ },
+ "chidi-fairshare.testnet": {
+  "standing": 106,
+  "rounds": {
+   "1": "not member",
+   "2": "not member",
+   "3": "not member",
+   "4": "allocated"
+  }
+ },
+ "amara-fairshare.testnet": {
+  "standing": 106,
+  "rounds": {
+   "1": "not member",
+   "2": "not member",
+   "3": "not member",
+   "4": "allocated"
+  }
+ },
+ "segun-fairshare.testnet": {
+  "standing": 106,
+  "rounds": {
+   "1": "not member",
+   "2": "not member",
+   "3": "not member",
+   "4": "allocated"
+  }
+ },
+ "kemi-fairshare.testnet": {
+  "standing": 106,
+  "rounds": {
+   "1": "not member",
+   "2": "not member",
+   "3": "not member",
+   "4": "allocated"
+  }
+ },
+ "tobi-fairshare.testnet": {
+  "standing": 106,
+  "rounds": {
+   "1": "not member",
+   "2": "not member",
+   "3": "not member",
+   "4": "allocated"
+  }
+ },
+ "zainab-fairshare.testnet": {
+  "standing": 106,
+  "rounds": {
+   "1": "not member",
+   "2": "not member",
+   "3": "not member",
+   "4": "allocated"
+  }
+ },
+ "clearsite587.testnet": {
+  "standing": 100,
+  "rounds": {
+   "1": "not member",
+   "2": "not member",
+   "3": "not member",
+   "4": "not member"
+  }
+ }
+};
+const MONITOR_ALLOCATIONS = {
+ "1": {
+  "frank-fairshare.testnet": {
+   "alice-fairshare.testnet": 61,
+   "carol-fairshare.testnet": 1,
+   "dave-fairshare.testnet": 4,
+   "erin-fairshare.testnet": 34
+  },
+  "carol-fairshare.testnet": {
+   "alice-fairshare.testnet": 18,
+   "erin-fairshare.testnet": 18,
+   "frank-fairshare.testnet": 64
+  },
+  "bob-fairshare.testnet": {
+   "alice-fairshare.testnet": 8,
+   "carol-fairshare.testnet": 13,
+   "dave-fairshare.testnet": 4,
+   "frank-fairshare.testnet": 75
+  },
+  "dave-fairshare.testnet": {
+   "alice-fairshare.testnet": 7,
+   "bob-fairshare.testnet": 28,
+   "erin-fairshare.testnet": 65
+  },
+  "alice-fairshare.testnet": {
+   "bob-fairshare.testnet": 8,
+   "carol-fairshare.testnet": 26,
+   "dave-fairshare.testnet": 66
+  },
+  "erin-fairshare.testnet": {
+   "bob-fairshare.testnet": 33,
+   "dave-fairshare.testnet": 66,
+   "frank-fairshare.testnet": 1
+  }
+ },
+ "2": {
+  "ada-fairshare.testnet": {
+   "emeka-fairshare.testnet": 45,
+   "fatima-fairshare.testnet": 35,
+   "ibrahim-fairshare.testnet": 20
+  },
+  "emeka-fairshare.testnet": {
+   "ada-fairshare.testnet": 40,
+   "ngozi-fairshare.testnet": 35,
+   "tunde-fairshare.testnet": 25
+  },
+  "fatima-fairshare.testnet": {
+   "ngozi-fairshare.testnet": 50,
+   "ibrahim-fairshare.testnet": 30,
+   "ada-fairshare.testnet": 20
+  },
+  "ibrahim-fairshare.testnet": {
+   "tunde-fairshare.testnet": 40,
+   "emeka-fairshare.testnet": 35,
+   "fatima-fairshare.testnet": 25
+  },
+  "ngozi-fairshare.testnet": {
+   "fatima-fairshare.testnet": 45,
+   "ada-fairshare.testnet": 30,
+   "ibrahim-fairshare.testnet": 25
+  },
+  "tunde-fairshare.testnet": {
+   "ibrahim-fairshare.testnet": 50,
+   "ada-fairshare.testnet": 30,
+   "emeka-fairshare.testnet": 20
+  }
+ },
+ "3": {
+  "alice-fairshare.testnet": {
+   "ada-fairshare.testnet": 40,
+   "emeka-fairshare.testnet": 30,
+   "frank-fairshare.testnet": 30
+  },
+  "bob-fairshare.testnet": {
+   "ada-fairshare.testnet": 40,
+   "ibrahim-fairshare.testnet": 30,
+   "carol-fairshare.testnet": 30
+  },
+  "carol-fairshare.testnet": {
+   "ada-fairshare.testnet": 40,
+   "ngozi-fairshare.testnet": 30,
+   "dave-fairshare.testnet": 30
+  },
+  "dave-fairshare.testnet": {
+   "ada-fairshare.testnet": 40,
+   "fatima-fairshare.testnet": 30,
+   "erin-fairshare.testnet": 30
+  },
+  "erin-fairshare.testnet": {
+   "ada-fairshare.testnet": 40,
+   "tunde-fairshare.testnet": 30,
+   "bob-fairshare.testnet": 30
+  },
+  "frank-fairshare.testnet": {
+   "emeka-fairshare.testnet": 40,
+   "ibrahim-fairshare.testnet": 30,
+   "ngozi-fairshare.testnet": 30
+  },
+  "ada-fairshare.testnet": {
+   "bob-fairshare.testnet": 40,
+   "carol-fairshare.testnet": 30,
+   "dave-fairshare.testnet": 30
+  },
+  "emeka-fairshare.testnet": {
+   "ada-fairshare.testnet": 40,
+   "fatima-fairshare.testnet": 30,
+   "tunde-fairshare.testnet": 30
+  },
+  "fatima-fairshare.testnet": {
+   "ada-fairshare.testnet": 40,
+   "ibrahim-fairshare.testnet": 30,
+   "ngozi-fairshare.testnet": 30
+  },
+  "ibrahim-fairshare.testnet": {
+   "ada-fairshare.testnet": 40,
+   "tunde-fairshare.testnet": 30,
+   "frank-fairshare.testnet": 30
+  },
+  "ngozi-fairshare.testnet": {
+   "ada-fairshare.testnet": 40,
+   "emeka-fairshare.testnet": 30,
+   "fatima-fairshare.testnet": 30
+  }
+ },
+ "4": {
+  "chidi-fairshare.testnet": {
+   "amara-fairshare.testnet": 40,
+   "segun-fairshare.testnet": 35,
+   "kemi-fairshare.testnet": 25
+  },
+  "amara-fairshare.testnet": {
+   "chidi-fairshare.testnet": 40,
+   "zainab-fairshare.testnet": 35,
+   "tobi-fairshare.testnet": 25
+  },
+  "segun-fairshare.testnet": {
+   "kemi-fairshare.testnet": 40,
+   "chidi-fairshare.testnet": 30,
+   "amara-fairshare.testnet": 30
+  },
+  "kemi-fairshare.testnet": {
+   "tobi-fairshare.testnet": 40,
+   "segun-fairshare.testnet": 30,
+   "zainab-fairshare.testnet": 30
+  },
+  "tobi-fairshare.testnet": {
+   "zainab-fairshare.testnet": 40,
+   "amara-fairshare.testnet": 30,
+   "chidi-fairshare.testnet": 30
+  },
+  "zainab-fairshare.testnet": {
+   "tobi-fairshare.testnet": 35,
+   "kemi-fairshare.testnet": 35,
+   "segun-fairshare.testnet": 30
+  }
+ }
+};
+
 // ---- DAO governance, from this site ----
 // Open proposals are read live from the DAO. A connected council member
 // can vote on them and propose a new member, with signed calls to the
@@ -1427,6 +1785,153 @@ async function govProposeAdd() {
   }
 }
 
+// ---- Membership Integrity Monitor ----
+// Membership is the one thing a bad actor can game without touching the
+// settlement maths: join twice, or join with friends and vote each other
+// in. This panel shows who is on the council, how they got there, whether
+// the contract mirror matches the DAO, what each member actually did in
+// the settled rounds, and which pairs gave each other a large share of
+// their points. Live membership, standings, badges, and pending proposals
+// are read from the chain. Syncs, adds, removals, activity, and the
+// allocations behind the warnings are recorded history from demo-log.json,
+// labelled as such. A warning is a prompt for a human to look, not proof
+// of collusion: in a 100 point round with 3 recipients, 40 points to one
+// person is common, and the contract discount already cut every mutual
+// leg in half at settle.
+function monitorShort(id) {
+  return id.replace("-fairshare.testnet", "").replace(".testnet", "");
+}
+function monitorMutualPairs() {
+  const flagged = [];
+  for (const round of Object.keys(MONITOR_ALLOCATIONS).map(Number).sort((a, b) => a - b)) {
+    const alloc = MONITOR_ALLOCATIONS[String(round)];
+    for (const a of Object.keys(alloc)) {
+      const totalA = Object.values(alloc[a]).reduce((s, p) => s + p, 0);
+      for (const b of Object.keys(alloc[a])) {
+        if (!(b in alloc) || !(a in alloc[b]) || a >= b) continue;
+        const totalB = Object.values(alloc[b]).reduce((s, p) => s + p, 0);
+        const aToB = alloc[a][b];
+        const bToA = alloc[b][a];
+        const shareA = Math.round(100 * aToB / totalA);
+        const shareB = Math.round(100 * bToA / totalB);
+        if (shareA >= MONITOR_THRESHOLD && shareB >= MONITOR_THRESHOLD) {
+          flagged.push({ round: round, a: a, b: b, aToB: aToB, bToA: bToA, shareA: shareA, shareB: shareB });
+        }
+      }
+    }
+  }
+  return flagged;
+}
+function renderMonitorStatic() {
+  const sync = el("monitorSync");
+  if (sync) {
+    const last = MONITOR_SYNCS[MONITOR_SYNCS.length - 1];
+    sync.innerHTML = "<p>Last successful synchronisation, from the recorded history: <code>" +
+      last.tx + "</code> · " + last.when + " · " + last.members +
+      " members after the sync · " + last.note + ".</p>" +
+      "<p class=\"muted\">This is recorded history from the project log, not a live chain read. " +
+      "The live DAO versus contract comparison is directly above.</p>" +
+      "<p class=\"muted\">Earlier syncs: " + MONITOR_SYNCS.slice(0, -1).map((s) =>
+        s.when + ", " + s.members + " members, <code>" + s.tx.slice(0, 12) + "…</code>").join(" · ") + ".</p>";
+  }
+  const hist = el("monitorHistory");
+  if (hist) {
+    const adds = MONITOR_ADDS.slice().reverse().map((a) =>
+      "<tr><td>#" + a.proposal + "</td><td>" + monitorShort(a.member) + "</td><td><code>" +
+      a.tx + "</code></td></tr>").join("");
+    hist.innerHTML = "<table><thead><tr><th>Proposal</th><th>Admitted</th><th>Propose transaction</th></tr></thead><tbody>" +
+      adds + "</tbody></table>" +
+      (MONITOR_REMOVALS.length === 0
+        ? "<p class=\"muted\">No member has been removed from the council. Every admission above was a DAO proposal passed by strict majority.</p>"
+        : "<p>Removed: " + MONITOR_REMOVALS.map((r) => r.member + " (#" + r.proposal + ")").join(", ") + ".</p>");
+  }
+  const act = el("monitorActivity");
+  if (act) {
+    const rows = Object.keys(MONITOR_ACTIVITY).map((id) => {
+      const m = MONITOR_ACTIVITY[id];
+      const cell = (r) => m.rounds[String(r)] === "allocated" ? "Allocated"
+        : m.rounds[String(r)] === "not member" ? "<span class=\"muted\">Not a member</span>" : "None";
+      return "<tr><td>" + monitorShort(id) + "<br><span class=\"muted\">" + id +
+        "</span></td><td>" + cell(1) + "</td><td>" + cell(2) + "</td><td>" + cell(3) +
+        "</td><td>" + cell(4) + "</td><td>" + m.standing + "</td></tr>";
+    }).join("");
+    act.innerHTML = "<table><thead><tr><th>Member</th><th>Round 1</th><th>Round 2</th><th>Round 3</th><th>Round 4</th><th>Standing</th></tr></thead><tbody>" +
+      rows + "</tbody></table>" +
+      "<p class=\"muted\">Allocated means the member submitted points in that round. None means they were a member and submitted nothing, which cost them 5 standing. Not a member means they had not joined yet. Standing is the live value after round 4.</p>";
+  }
+  const warn = el("monitorWarnings");
+  if (warn) {
+    const pairs = monitorMutualPairs();
+    if (pairs.length === 0) {
+      warn.innerHTML = "<p>No pair of members gave each other " + MONITOR_THRESHOLD +
+        "% or more of their points in any settled round. Nothing crosses the warning threshold.</p>";
+    } else {
+      warn.innerHTML = "<p>A pair is flagged when each member gave at least " + MONITOR_THRESHOLD +
+        "% of their points to the other in the same round. The contract discount already cut each mutual leg in half at settle, so the flag is about the pattern, not the payout.</p>" +
+        pairs.map((p) => "<p><b>Round " + p.round + ":</b> " + monitorShort(p.a) + " gave " +
+          p.aToB + " points (" + p.shareA + "% of what they gave) to " + monitorShort(p.b) +
+          ", who gave " + p.bToA + " points (" + p.shareB + "%) back. " +
+          "Flagged for review, not proof of collusion.</p>").join("");
+    }
+  }
+}
+async function refreshMonitorPanel() {
+  const line = el("monitorSyncLine");
+  const membersBox = el("monitorMembers");
+  const pendingBox = el("monitorPending");
+  try {
+    const policy = await daoView("get_policy", {});
+    const councilRole = (policy.roles || []).find((r) => r.name === "council");
+    const council = (councilRole && councilRole.kind && councilRole.kind.Group) || [];
+    const members = await contractView("get_members", {});
+    const inSync = council.length === members.length &&
+      council.every((m) => members.indexOf(m) >= 0);
+    const standings = {};
+    await Promise.all(members.map(async (m) => {
+      try { standings[m] = await contractView("get_standing", { account_id: m }); }
+      catch (_) { standings[m] = "?"; }
+    }));
+    let badgeOwners = {};
+    try {
+      const tokens = await badgeView("nft_tokens", { from_index: "0", limit: 100 });
+      for (const t of tokens || []) badgeOwners[t.owner_id] = true;
+    } catch (_) { badgeOwners = null; }
+    const proposals = await daoView("get_proposals", { from_index: 0, limit: 50 });
+    const open = (proposals || []).filter((p) => p.status === "InProgress");
+    const pendingAdds = open.filter((p) => p.kind && p.kind.AddMemberToRole);
+    const threshold = Math.floor(council.length / 2) + 1;
+    if (line) line.textContent = inSync
+      ? "Live just now: the DAO council and the contract mirror agree, " + council.length +
+        " members each. In sync."
+      : "Live just now: OUT OF SYNC. The DAO council has " + council.length +
+        " members and the contract mirror has " + members.length +
+        ". Run sync_dao_members to fix it.";
+    if (membersBox) {
+      membersBox.innerHTML = "<table><thead><tr><th>Member</th><th>Standing</th><th>Badge</th></tr></thead><tbody>" +
+        members.map((m) => "<tr><td>" + monitorShort(m) + "<br><span class=\"muted\">" + m +
+          "</span></td><td>" + standings[m] + "</td><td>" +
+          (badgeOwners === null ? "Unknown" : (badgeOwners[m] ? "Yes, soulbound" : "No")) +
+          "</td></tr>").join("") + "</tbody></table>" +
+        "<p class=\"muted\">Read live from the DAO policy and the contract just now. Standing is the live value; the badge column says whether the member holds a soulbound council badge.</p>";
+    }
+    if (pendingBox) {
+      pendingBox.innerHTML = pendingAdds.length === 0
+        ? "<p>No admission proposal is open right now. " + (proposals || []).length +
+          " proposals have run so far, and every one of them was decided by the council.</p>"
+        : pendingAdds.map((p) => {
+          const counts = (p.vote_counts && p.vote_counts.council) || [0, 0, 0];
+          return "<p><b>Proposal #" + p.id + ":</b> add " + p.kind.AddMemberToRole.member_id +
+            " to the council · Proposed by " + p.proposer + " · " + (counts[0] || 0) +
+            " approve, " + (counts[1] || 0) + " reject · Needs " + threshold + " approvals.</p>";
+        }).join("");
+    }
+  } catch (e) {
+    if (line) line.textContent = "Could not read the DAO and the contract just now. Last verified state: 19 members, DAO and contract in sync, last sync " +
+      MONITOR_SYNCS[MONITOR_SYNCS.length - 1].tx + " on " +
+      MONITOR_SYNCS[MONITOR_SYNCS.length - 1].when + ".";
+  }
+}
+
 function renderLive() {
   const cid = el("liveContractId");
   if (cid) cid.textContent = CONTRACT_ID || "not deployed yet";
@@ -1444,6 +1949,8 @@ if (typeof document !== "undefined") {
     initWallet();
     refreshGovPanel();
     refreshBadgePanel();
+    renderMonitorStatic();
+    refreshMonitorPanel();
     const govBtn = el("govProposeBtn");
     if (govBtn) govBtn.addEventListener("click", govProposeAdd);
     const settleBtn = el("settleBtn");
@@ -1464,5 +1971,5 @@ if (typeof document !== "undefined") {
 }
 
 if (typeof module !== "undefined") {
-  module.exports = { PARAMS, MEMBERS, ALLOCATIONS, ENVELOPE_NEAR, settle, effectivePoints, isqrt, fmtYocto, LAB_MEMBERS, LAB_TRIO, LAB_RING, LAB_HONEST, LAB_ENVELOPE_NEAR, LIVE_ROUND1, LIVE_ROUND2, CONTRACT_ID, DAO_ID, standingAfter, STRESS_MEMBERS, STRESS_NAMES, STRESS_SCENARIOS, STRESS_ENVELOPE_NEAR, runStressScenario };
+  module.exports = { PARAMS, MEMBERS, ALLOCATIONS, ENVELOPE_NEAR, settle, effectivePoints, isqrt, fmtYocto, LAB_MEMBERS, LAB_TRIO, LAB_RING, LAB_HONEST, LAB_ENVELOPE_NEAR, LIVE_ROUND1, LIVE_ROUND2, CONTRACT_ID, DAO_ID, standingAfter, STRESS_MEMBERS, STRESS_NAMES, STRESS_SCENARIOS, STRESS_ENVELOPE_NEAR, runStressScenario, MONITOR_THRESHOLD, MONITOR_SYNCS, MONITOR_ADDS, MONITOR_REMOVALS, MONITOR_ACTIVITY, MONITOR_ALLOCATIONS, monitorMutualPairs, renderMonitorStatic };
 }

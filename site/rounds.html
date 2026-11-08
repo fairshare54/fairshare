@@ -232,6 +232,24 @@
     </div>
   </section>
 
+  <section class="panel" id="monitor">
+    <h2>Membership Integrity Monitor</h2>
+    <p>Membership is the one thing a bad actor can game without touching the settlement maths: join twice, or join with friends and vote each other in. This panel shows who is on the council, how they got there, whether the contract mirror matches the DAO, what each member actually did in the settled rounds, and which pairs gave each other a large share of their points.</p>
+    <h3>Approved council membership</h3>
+    <p class="muted" id="monitorSyncLine">Reading the council live from the DAO and the contract…</p>
+    <div id="monitorMembers"></div>
+    <h3>Pending admission proposals</h3>
+    <div id="monitorPending"><p class="muted">Reading open proposals from the DAO…</p></div>
+    <h3>Last membership synchronisation</h3>
+    <div id="monitorSync"><p class="muted">Last successful synchronisation, from the recorded history: <code>B92RYmbboLwazJzd5V7LS7en1w7UNy5Z92HRMhK3YvQF</code> · 2026-11-08 13:07 WAT · 19 members after the sync · After proposal #15, clearsite587.testnet.</p></div>
+    <h3>Membership history</h3>
+    <div id="monitorHistory"><p class="muted">Loading the membership history…</p></div>
+    <h3>Allocation activity by member</h3>
+    <div id="monitorActivity"><p class="muted">Loading allocation activity…</p></div>
+    <h3>Warnings: coordinated allocation patterns</h3>
+    <div id="monitorWarnings"><p class="muted">Checking the settled rounds for mutual heavy pairs…</p></div>
+  </section>
+
   <section class="panel" id="trezu">
     <h2>Trezu manages this DAO</h2>
     <p>Trezu is the treasury app for Sputnik DAOs. This DAO is a standard Sputnik DAO, so it is the kind of DAO Trezu manages: council members propose, vote and execute through it, and the contract reads membership live from it.</p>

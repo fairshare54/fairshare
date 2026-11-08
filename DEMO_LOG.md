@@ -568,6 +568,43 @@ every scenario, and no payout passes the 1.250 NEAR cap.
   no horizontal overflow, all five picker buttons render results.
   Machine record: `demo-log.json` key `stress_test`.
 
+## Membership Integrity Monitor — rounds page (2026-11-08)
+
+- New panel on the rounds page, next to governance. It reads the
+  council live from the DAO policy, the member mirror live from the
+  contract, standings live per member, badges live from the badge
+  contract, and open admission proposals live from the DAO. It compares
+  DAO and contract and says in sync or out of sync in plain words.
+- Last successful sync, from the recorded history: `B92RYmbboLwazJzd5V7LS7en1w7UNy5Z92HRMhK3YvQF`,
+  2026-11-08 13:07 WAT, 19 members, after proposal #15
+  (clearsite587.testnet). Earlier syncs: `CihwgreGNAYuWyb6pRRbWRy6oUyHRwx5vPWJW3DEBJcs`
+  (10:23 WAT, 6 members), `Ah87M1UuRdaXx6aHqKD1PdoMty9xysH7Tbyv1VKJ27jW`
+  (10:57 WAT, 12 members), `8xekwzk8c9qFSvDSMVEDMAmynuCt3boTKG7kgB3U3mjw`
+  (12:42 WAT, 18 members). Live check on 2026-11-08: DAO council 19,
+  contract mirror 19, in sync. No admission proposal is open; all 16
+  proposals so far were decided.
+- Membership history: 13 admissions by proposal (#0 to #5 round 2 crew,
+  #8 to #13 round 4 crew, #15 clearsite587.testnet). No member has ever
+  been removed.
+- Allocation activity: every member, rounds 1 to 4, allocated or not, with
+  current standing. Tunde allocated in round 2 but nothing in round 3,
+  which cost him 5 standing. The 12 older members allocated nothing in
+  round 4 and each lost 5. Clearsite587.testnet joined after round 4 and
+  has allocated in no round yet.
+- Warnings: a pair is flagged when each gave at least 40% of their points
+  to the other in the same round. Six pairs cross it: round 1 Dave and
+  Erin (65 and 66 points, 65% and 66%); round 2 Ada and Emeka (45 and 40),
+  Fatima and Ngozi (50 and 45), Ibrahim and Tunde (40 and 50); round 3
+  Ada and Bob (40 and 40); round 4 Amara and Chidi (40 and 40). The
+  discount already cut each mutual leg in half at settle, so a flag is a
+  prompt for a human to look, not proof of collusion.
+- Headless checks: `node hidden_files/dom_test.js` now also checks the
+  monitor (6 flagged pairs, 19 activity rows, 13 history rows, no
+  removals, last sync text). No live browser click test was possible from
+  this session; the panel uses only the existing responsive styles, so
+  the 390px layout follows the same table scroll and word break rules as
+  the rest of the page. Machine record: `demo-log.json` key `monitor`.
+
 ## History — first live demo (superseded, kept for the record)
 
 - Contract `egbe-contract.testnet`, owner `egbe-owner.testnet`,

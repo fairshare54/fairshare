@@ -47,6 +47,7 @@ against the DAO policy. The DAO is the source of truth.
 - Contract: `fairshare-contract.testnet`: https://testnet.nearblocks.io/address/fairshare-contract.testnet
 - DAO: `fairshare-dao.testnet`: https://testnet.nearblocks.io/address/fairshare-dao.testnet
 - Badge: `fairshare-badge.testnet`: https://testnet.nearblocks.io/address/fairshare-badge.testnet — 19 soulbound council badges, one per member, each carrying the member's standing at mint. Transfers are blocked in the contract.
+- Membership Integrity Monitor: on the rounds page, next to governance. It reads the council live from the DAO, the member mirror live from the contract, and flags pairs who gave each other 40% or more of their points in a settled round. 19 members, DAO and contract in sync, 6 pairs flagged for review, no member ever removed.
 - Trezu: the DAO is a standard Sputnik DAO that Trezu manages. Trezu
   production is mainnet only, so there is no live Trezu testnet payout;
   the local testnet view was verified instead (see `TREZU.md`): the

@@ -600,7 +600,7 @@
      "frank-fairshare.testnet": "GYXtUbL1kcNcdJFLdpCty1ynx6Bf9sTq3m78uxi5fNMR",
      "ada-fairshare.testnet": "Cu4UqfKntuLtUyw5arqitXGfWfdYbMCM9aAPAFPy2AkQ"
     },
-    "note": "6 of 12 council votes (exactly 1/2) did NOT pass — Sputnik threshold is a strict majority. The 7th vote (ada) approved it."
+    "note": "6 of 12 council votes (exactly 1/2) did NOT pass \u2014 Sputnik threshold is a strict majority. The 7th vote (ada) approved it."
    },
    "sync_dao_members": "Ah87M1UuRdaXx6aHqKD1PdoMty9xysH7Tbyv1VKJ27jW",
    "allocate": {
@@ -3311,5 +3311,99 @@
     }
    }
   }
+ },
+ "monitor": {
+  "verified_at": "2026-11-08T13:55:00Z",
+  "member_count": 19,
+  "dao_contract_in_sync": true,
+  "last_sync": {
+   "tx": "B92RYmbboLwazJzd5V7LS7en1w7UNy5Z92HRMhK3YvQF",
+   "when": "2026-11-08 13:07 WAT",
+   "members": 19,
+   "note": "After proposal #15, clearsite587.testnet"
+  },
+  "syncs": [
+   {
+    "tx": "CihwgreGNAYuWyb6pRRbWRy6oUyHRwx5vPWJW3DEBJcs",
+    "when": "2026-11-08 10:23 WAT",
+    "members": 6
+   },
+   {
+    "tx": "Ah87M1UuRdaXx6aHqKD1PdoMty9xysH7Tbyv1VKJ27jW",
+    "when": "2026-11-08 10:57 WAT",
+    "members": 12
+   },
+   {
+    "tx": "8xekwzk8c9qFSvDSMVEDMAmynuCt3boTKG7kgB3U3mjw",
+    "when": "2026-11-08 12:42 WAT",
+    "members": 18
+   },
+   {
+    "tx": "B92RYmbboLwazJzd5V7LS7en1w7UNy5Z92HRMhK3YvQF",
+    "when": "2026-11-08 13:07 WAT",
+    "members": 19
+   }
+  ],
+  "admissions": 13,
+  "removals": 0,
+  "open_admission_proposals": 0,
+  "warning_threshold": "each member gave at least 40% of their points to the other in the same round",
+  "warnings": [
+   {
+    "round": 1,
+    "a": "dave-fairshare.testnet",
+    "b": "erin-fairshare.testnet",
+    "a_to_b_points": 65,
+    "b_to_a_points": 66,
+    "share_a_pct": 65,
+    "share_b_pct": 66
+   },
+   {
+    "round": 2,
+    "a": "ada-fairshare.testnet",
+    "b": "emeka-fairshare.testnet",
+    "a_to_b_points": 45,
+    "b_to_a_points": 40,
+    "share_a_pct": 45,
+    "share_b_pct": 40
+   },
+   {
+    "round": 2,
+    "a": "fatima-fairshare.testnet",
+    "b": "ngozi-fairshare.testnet",
+    "a_to_b_points": 50,
+    "b_to_a_points": 45,
+    "share_a_pct": 50,
+    "share_b_pct": 45
+   },
+   {
+    "round": 2,
+    "a": "ibrahim-fairshare.testnet",
+    "b": "tunde-fairshare.testnet",
+    "a_to_b_points": 40,
+    "b_to_a_points": 50,
+    "share_a_pct": 40,
+    "share_b_pct": 50
+   },
+   {
+    "round": 3,
+    "a": "ada-fairshare.testnet",
+    "b": "bob-fairshare.testnet",
+    "a_to_b_points": 40,
+    "b_to_a_points": 40,
+    "share_a_pct": 40,
+    "share_b_pct": 40
+   },
+   {
+    "round": 4,
+    "a": "amara-fairshare.testnet",
+    "b": "chidi-fairshare.testnet",
+    "a_to_b_points": 40,
+    "b_to_a_points": 40,
+    "share_a_pct": 40,
+    "share_b_pct": 40
+   }
+  ],
+  "note": "A warning is a flag for a human to look, not proof of collusion. The contract discount already cut each mutual leg in half at settle."
  }
 }
