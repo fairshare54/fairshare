@@ -86,6 +86,26 @@
     </div>
   </section>
 
+  <section class="panel" id="stress">
+    <h2>Fairness Stress Test <span class="badge">SIMULATED</span></h2>
+    <p>Pick a scenario. Each one settles with the exact contract maths, a 5 NEAR envelope, six members, 100 points each. The table shows who gave what to whom, then what each member is paid and how their standing moves. The verdict names what the mechanism caught and where its limit is. The members here are made up names for the simulation, not real people.</p>
+    <div>
+      <button id="stressBtn-ring" type="button">Three friends reward each other</button>
+      <button id="stressBtn-popular" type="button">A popular member receives from everyone</button>
+      <button id="stressBtn-newcomer" type="button">A new member joins an established DAO</button>
+      <button id="stressBtn-allcollude" type="button">A group where everyone colludes</button>
+      <button id="stressBtn-unpopular" type="button">A productive member who is unpopular</button>
+    </div>
+    <div id="stressResult" style="display:none;">
+      <p id="stressBlurb"></p>
+      <h3>Allocation pattern</h3>
+      <table><thead><tr><th>From</th><th>To</th><th>Points</th><th>Reason</th></tr></thead><tbody id="stressPatternBody"></tbody></table>
+      <h3>Result</h3>
+      <table><thead><tr><th>Member</th><th>Givers</th><th>Points received</th><th>Score</th><th>Raw payout</th><th>Capped</th><th>Payout</th><th>Standing</th></tr></thead><tbody id="stressResultBody"></tbody></table>
+      <div id="stressVerdict" class="verdict"></div>
+    </div>
+  </section>
+
   <section class="panel" id="why">
     <h2>Why the ring earns less</h2>
     <p>Two forces work against the ring. First, breadth. The square root rewards points that arrive from many distinct givers. 100 points arriving from 2 givers scores 19600. The same 100 points arriving from 5 givers scores 48400. The trio in the ring round is fed by 2 givers each. The same trio in the honest round is fed by 6 givers each. Second, the reciprocity discount. Every mutual leg in the ring is cut by half of the shared amount, so the loop keeps less of what it passes around. A one way gift of 50 points scores 4900. The same 50 points given mutually scores 2500.</p>

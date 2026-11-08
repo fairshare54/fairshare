@@ -102,7 +102,15 @@ capped at +10 a round, -5 for no allocation, floor 50, cap 200, propose at
 100, close early at 150.
 
 The site also has an Attack Lab that runs the same settlement maths in the
-browser. It moves no funds.
+browser. It moves no funds. The Lab now has a Fairness Stress Test with
+five scenarios a judge can pick: three friends rewarding each other, a
+popular member receiving from everyone, a new member joining an
+established DAO, a whole round colluding, and a productive member who is
+unpopular. Each scenario settles with the exact contract maths and shows
+the allocation pattern, every payout, the standing change, and a verdict
+on what the mechanism caught and where its limit is. The whole round
+colluding scenario is the honest limit: the maths cannot stop it, only
+DAO curation can.
 
 ## Honest limits
 

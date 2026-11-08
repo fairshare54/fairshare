@@ -223,9 +223,15 @@ function effectivePoints(allocations) {
 // Full settlement, mirroring settle_round in the contract. poolNear is a
 // whole number of NEAR. Returns per member: score, giver breakdown,
 // uncapped payout, capped flag, final payout (all payouts as yocto BigInt).
-function settle(allocations, memberIds, poolNear) {
+// weights is an optional map of member id to standing before the round;
+// the contract scores each gift with the GIVER's standing, so a scenario
+// with mixed standings passes them here. Without weights every giver
+// weighs PARAMS.giverWeight (100), which is the standing every member
+// starts at, so existing calls are unchanged.
+function settle(allocations, memberIds, poolNear, weights) {
   const poolYocto = BigInt(poolNear) * YOCTO_PER_NEAR;
   const eff = effectivePoints(allocations);
+  const weightOf = (id) => (weights && weights[id] !== undefined ? weights[id] : PARAMS.giverWeight);
   const per = {};
   for (const id of memberIds) {
     per[id] = { id, givers: [], score: 0, rawPayoutYocto: 0n, payoutYocto: 0n, capped: false };
@@ -241,7 +247,7 @@ function settle(allocations, memberIds, poolNear) {
       mutual: back > 0 ? mutual : 0,
       discount,
       effective: e,
-      sqrt: isqrt(e * PARAMS.giverWeight),
+      sqrt: isqrt(e * weightOf(a.from)),
       reason: a.reason,
     });
   }
@@ -365,6 +371,241 @@ const LAB_HONEST = [
   { from: "ivy", to: "ben", points: 33, reason: "Ben covered a shift" },
   { from: "ivy", to: "cara", points: 33, reason: "Cara helped with stock" },
 ];
+
+// Standing after a settle, mirroring the contract exactly. A member who
+// submitted gains +2 per distinct giver who gave them points this round,
+// capped at +10 a round. A member who submitted nothing loses 5. Standing
+// is clamped to [50, 200]. Scoring for this round uses the standings
+// BEFORE this update, so callers pass the pre round map and get the post
+// round map back.
+function standingAfter(allocations, memberIds, standings) {
+  const next = {};
+  for (const id of memberIds) {
+    const before = standings && standings[id] !== undefined ? standings[id] : PARAMS.giverWeight;
+    const submitted = allocations.some((a) => a.from === id);
+    const givers = [];
+    for (const a of allocations) {
+      if (a.to === id && givers.indexOf(a.from) < 0) givers.push(a.from);
+    }
+    const gain = Math.min(givers.length * 2, 10);
+    const updated = submitted ? before + gain : before - 5;
+    next[id] = Math.max(50, Math.min(200, updated));
+  }
+  return next;
+}
+
+// ---- Fairness Stress Test scenarios ----
+// Five scenarios a judge can pick, each settled with the same settle()
+// above, which is the contract maths. Six members, 5 NEAR envelope each.
+// Ada, Ben, Cara, Dan, Eli, Fay are made up names for the simulation;
+// the members, points, and standings are the scenario, not real people.
+const STRESS_MEMBERS = ["ada", "ben", "cara", "dan", "eli", "fay"];
+const STRESS_NAMES = { ada: "Ada", ben: "Ben", cara: "Cara", dan: "Dan", eli: "Eli", fay: "Fay" };
+const STRESS_ENVELOPE_NEAR = 5;
+const STRESS_SCENARIOS = [
+  {
+    id: "ring",
+    title: "Three friends reward each other",
+    blurb: "Ada, Ben, and Cara form a ring and point only at each other, 40 points each way. The other three did no work for the trio, so they give the trio only a token 1 point each and point at each other instead.",
+    standings: { ada: 100, ben: 100, cara: 100, dan: 100, eli: 100, fay: 100 },
+    allocations: [
+      { from: "ada", to: "ben", points: 40, reason: "Ring giving" },
+      { from: "ada", to: "cara", points: 40, reason: "Ring giving" },
+      { from: "ada", to: "dan", points: 20, reason: "Third recipient, required" },
+      { from: "ben", to: "ada", points: 40, reason: "Ring giving" },
+      { from: "ben", to: "cara", points: 40, reason: "Ring giving" },
+      { from: "ben", to: "eli", points: 20, reason: "Third recipient, required" },
+      { from: "cara", to: "ada", points: 40, reason: "Ring giving" },
+      { from: "cara", to: "ben", points: 40, reason: "Ring giving" },
+      { from: "cara", to: "fay", points: 20, reason: "Third recipient, required" },
+      { from: "dan", to: "eli", points: 49, reason: "Helped with a delivery" },
+      { from: "dan", to: "fay", points: 50, reason: "Helped with a delivery" },
+      { from: "dan", to: "ada", points: 1, reason: "Token point, no work done for me" },
+      { from: "eli", to: "dan", points: 49, reason: "Helped with a delivery" },
+      { from: "eli", to: "fay", points: 50, reason: "Helped with a delivery" },
+      { from: "eli", to: "ben", points: 1, reason: "Token point, no work done for me" },
+      { from: "fay", to: "dan", points: 50, reason: "Helped with a delivery" },
+      { from: "fay", to: "eli", points: 49, reason: "Helped with a delivery" },
+      { from: "fay", to: "cara", points: 1, reason: "Token point, no work done for me" },
+    ],
+  },
+  {
+    id: "popular",
+    title: "A popular member receives from everyone",
+    blurb: "Ada is the member everyone likes. All five others give Ada 40 points each. Ada gives back, but only 34, 33, and 33 points, to three of them.",
+    standings: { ada: 100, ben: 100, cara: 100, dan: 100, eli: 100, fay: 100 },
+    allocations: [
+      { from: "ada", to: "ben", points: 34, reason: "Covered a shift" },
+      { from: "ada", to: "cara", points: 33, reason: "Helped with stock" },
+      { from: "ada", to: "dan", points: 33, reason: "Ran the stall" },
+      { from: "ben", to: "ada", points: 40, reason: "Ada is the one everyone trusts" },
+      { from: "ben", to: "cara", points: 30, reason: "Helped with stock" },
+      { from: "ben", to: "dan", points: 30, reason: "Ran the stall" },
+      { from: "cara", to: "ada", points: 40, reason: "Ada is the one everyone trusts" },
+      { from: "cara", to: "ben", points: 30, reason: "Covered a shift" },
+      { from: "cara", to: "eli", points: 30, reason: "Helped with a delivery" },
+      { from: "dan", to: "ada", points: 40, reason: "Ada is the one everyone trusts" },
+      { from: "dan", to: "eli", points: 30, reason: "Helped with a delivery" },
+      { from: "dan", to: "fay", points: 30, reason: "Kept the books" },
+      { from: "eli", to: "ada", points: 40, reason: "Ada is the one everyone trusts" },
+      { from: "eli", to: "dan", points: 30, reason: "Ran the stall" },
+      { from: "eli", to: "fay", points: 30, reason: "Kept the books" },
+      { from: "fay", to: "ada", points: 40, reason: "Ada is the one everyone trusts" },
+      { from: "fay", to: "dan", points: 30, reason: "Ran the stall" },
+      { from: "fay", to: "eli", points: 30, reason: "Helped with a delivery" },
+    ],
+  },
+  {
+    id: "newcomer",
+    title: "A new member joins an established DAO",
+    blurb: "Fay is new, standing 100. The five veterans stand at 160, so their gifts weigh more than hers. Fay did real work, and three veterans point at her. The question is whether a newcomer can earn a fair share at all.",
+    standings: { ada: 160, ben: 160, cara: 160, dan: 160, eli: 160, fay: 100 },
+    allocations: [
+      { from: "ada", to: "ben", points: 40, reason: "Covered a shift" },
+      { from: "ada", to: "cara", points: 30, reason: "Helped with stock" },
+      { from: "ada", to: "fay", points: 30, reason: "Fay repaired the freezer" },
+      { from: "ben", to: "ada", points: 40, reason: "Ran the stall" },
+      { from: "ben", to: "cara", points: 30, reason: "Helped with stock" },
+      { from: "ben", to: "dan", points: 30, reason: "Ran the stall" },
+      { from: "cara", to: "ada", points: 40, reason: "Ran the stall" },
+      { from: "cara", to: "ben", points: 30, reason: "Covered a shift" },
+      { from: "cara", to: "eli", points: 30, reason: "Helped with a delivery" },
+      { from: "dan", to: "ada", points: 40, reason: "Ran the stall" },
+      { from: "dan", to: "eli", points: 30, reason: "Helped with a delivery" },
+      { from: "dan", to: "fay", points: 30, reason: "Fay repaired the freezer" },
+      { from: "eli", to: "ada", points: 40, reason: "Ran the stall" },
+      { from: "eli", to: "dan", points: 30, reason: "Ran the stall" },
+      { from: "eli", to: "fay", points: 30, reason: "Fay repaired the freezer" },
+      { from: "fay", to: "ada", points: 40, reason: "Ada ran the stall" },
+      { from: "fay", to: "ben", points: 30, reason: "Ben covered a shift" },
+      { from: "fay", to: "cara", points: 30, reason: "Cara helped with stock" },
+    ],
+  },
+  {
+    id: "allcollude",
+    title: "A group where everyone colludes",
+    blurb: "All six members are in one ring. Everyone gives 40 points each way to two neighbours and 20 to a third. There is no honest member left in the round. This is the scenario the maths cannot fix, and the test says so.",
+    standings: { ada: 100, ben: 100, cara: 100, dan: 100, eli: 100, fay: 100 },
+    allocations: [
+      { from: "ada", to: "ben", points: 40, reason: "Ring giving" },
+      { from: "ada", to: "fay", points: 40, reason: "Ring giving" },
+      { from: "ada", to: "cara", points: 20, reason: "Ring giving" },
+      { from: "ben", to: "ada", points: 40, reason: "Ring giving" },
+      { from: "ben", to: "cara", points: 40, reason: "Ring giving" },
+      { from: "ben", to: "dan", points: 20, reason: "Ring giving" },
+      { from: "cara", to: "ben", points: 40, reason: "Ring giving" },
+      { from: "cara", to: "dan", points: 40, reason: "Ring giving" },
+      { from: "cara", to: "eli", points: 20, reason: "Ring giving" },
+      { from: "dan", to: "cara", points: 40, reason: "Ring giving" },
+      { from: "dan", to: "eli", points: 40, reason: "Ring giving" },
+      { from: "dan", to: "fay", points: 20, reason: "Ring giving" },
+      { from: "eli", to: "dan", points: 40, reason: "Ring giving" },
+      { from: "eli", to: "fay", points: 40, reason: "Ring giving" },
+      { from: "eli", to: "ada", points: 20, reason: "Ring giving" },
+      { from: "fay", to: "eli", points: 40, reason: "Ring giving" },
+      { from: "fay", to: "ada", points: 40, reason: "Ring giving" },
+      { from: "fay", to: "ben", points: 20, reason: "Ring giving" },
+    ],
+  },
+  {
+    id: "unpopular",
+    title: "A productive member who is unpopular",
+    blurb: "Fay does the real work, she repairs the freezers, but she is not liked. She receives only 70 points in total. Ada is popular and receives 200 points. Fay still gives generously to the others.",
+    standings: { ada: 100, ben: 100, cara: 100, dan: 100, eli: 100, fay: 100 },
+    allocations: [
+      { from: "ada", to: "ben", points: 45, reason: "Covered a shift" },
+      { from: "ada", to: "cara", points: 45, reason: "Helped with stock" },
+      { from: "ada", to: "fay", points: 10, reason: "Fixed a light" },
+      { from: "ben", to: "ada", points: 40, reason: "Ada is the one everyone trusts" },
+      { from: "ben", to: "cara", points: 30, reason: "Helped with stock" },
+      { from: "ben", to: "dan", points: 30, reason: "Ran the stall" },
+      { from: "cara", to: "ada", points: 40, reason: "Ada is the one everyone trusts" },
+      { from: "cara", to: "ben", points: 30, reason: "Covered a shift" },
+      { from: "cara", to: "eli", points: 30, reason: "Helped with a delivery" },
+      { from: "dan", to: "ada", points: 40, reason: "Ada is the one everyone trusts" },
+      { from: "dan", to: "eli", points: 30, reason: "Helped with a delivery" },
+      { from: "dan", to: "fay", points: 30, reason: "Fay repaired the freezer" },
+      { from: "eli", to: "ada", points: 40, reason: "Ada is the one everyone trusts" },
+      { from: "eli", to: "dan", points: 30, reason: "Ran the stall" },
+      { from: "eli", to: "fay", points: 30, reason: "Fay repaired the freezer" },
+      { from: "fay", to: "ada", points: 40, reason: "Ada ran the stall" },
+      { from: "fay", to: "ben", points: 30, reason: "Ben covered a shift" },
+      { from: "fay", to: "cara", points: 30, reason: "Cara helped with stock" },
+    ],
+  },
+];
+
+function stressName(id) { return STRESS_NAMES[id] || id; }
+
+function runStressScenario(scenarioId) {
+  const sc = STRESS_SCENARIOS.find((s) => s.id === scenarioId) || STRESS_SCENARIOS[0];
+  const r = settle(sc.allocations, STRESS_MEMBERS, STRESS_ENVELOPE_NEAR, sc.standings);
+  const after = standingAfter(sc.allocations, STRESS_MEMBERS, sc.standings);
+  const blurb = el("stressBlurb");
+  if (blurb) blurb.textContent = sc.blurb;
+  const pb = el("stressPatternBody");
+  if (pb) pb.innerHTML = sc.allocations.map((a) =>
+    "<tr><td>" + stressName(a.from) + "</td><td>" + stressName(a.to) +
+    "</td><td>" + a.points + "</td><td>" + a.reason + "</td></tr>"
+  ).join("");
+  const rb = el("stressResultBody");
+  if (rb) rb.innerHTML = STRESS_MEMBERS.map((id) => {
+    const p = r.per[id];
+    const received = sc.allocations.filter((a) => a.to === id).reduce((s, a) => s + a.points, 0);
+    return "<tr><td>" + stressName(id) + "</td><td>" + p.givers.length +
+      "</td><td>" + received + "</td><td>" + p.score +
+      "</td><td>" + fmtYocto(p.rawPayoutYocto) + "</td><td>" + (p.capped ? "Yes, capped at " + fmtYocto(r.cap) : "No") +
+      "</td><td><b>" + fmtYocto(p.payoutYocto) + "</b></td><td>" + sc.standings[id] + " to " + after[id] + "</td></tr>";
+  }).join("");
+  const verdict = el("stressVerdict");
+  if (verdict) verdict.innerHTML = stressVerdict(sc, r, after);
+  const res = el("stressResult");
+  if (res) res.style.display = "block";
+  return { scenario: sc, result: r, standingAfter: after };
+}
+
+// Verdicts are built from the computed numbers, so the words can never
+// drift away from the maths. Each one names what the mechanism caught
+// and where its limit is.
+function stressVerdict(sc, r, after) {
+  const pay = (id) => fmtYocto(r.per[id].payoutYocto);
+  const raw = (id) => fmtYocto(r.per[id].rawPayoutYocto);
+  const total = fmtYocto(r.totalPayoutYocto);
+  const head = "<p><b>Scores add to " + r.totalScore + ". Payouts add to " + total +
+    " NEAR of the 5.000 NEAR envelope, " + r.dustYocto.toString() +
+    " yocto of dust stays in the contract. No payout passes the " + fmtYocto(r.cap) + " NEAR cap.</b></p>";
+  if (sc.id === "ring") {
+    return head + "<p><b>What the mechanism caught:</b> the ring trio earns " + pay("ada") +
+      " NEAR each, while the honest three earn " + pay("dan") +
+      " NEAR each. Every mutual 40 point gift inside the ring is cut by the reciprocity discount to 20 effective points, and the outsiders gave the trio only a token 1 point each, because the trio did no work for them. The ring earns less than half of what honest members earn in the same round.</p>" +
+      "<p><b>The limit:</b> the ring still takes " + pay("ada") + " NEAR each. The mechanism taxes closed loop giving. It does not ban it. A ring that keeps its members fed at a low level can run forever.</p>";
+  }
+  if (sc.id === "popular") {
+    const cappedIds = STRESS_MEMBERS.filter((id) => r.per[id].capped);
+    const othersCapped = cappedIds.filter((id) => id !== "ada").map((id) => stressName(id) + " is capped too, at " + pay(id) + " NEAR").join("; ");
+    const pct = (Number(r.per["ada"].rawPayoutYocto) / Number(r.poolYocto) * 100).toFixed(0);
+    return head + "<p><b>What the mechanism caught:</b> Ada received 200 points from all five others, and her raw share is " + raw("ada") +
+      " NEAR, " + pct + "% of the envelope. The 25% cap holds her at " + pay("ada") +
+      " NEAR, and the surplus flows to the rest. " + (othersCapped ? othersCapped + ", after the surplus lands on them. " : "") +
+      "Ada also gains the most standing, 100 to " + after["ada"] + ", because five distinct members pointed at her.</p>" +
+      "<p><b>The limit:</b> popularity still pays the maximum allowed. The cap is a ceiling, not a cure. Ada earns the most in the round for being liked, not for doing the most work, and the square root only softens that, it does not remove it.</p>";
+  }
+  if (sc.id === "newcomer") {
+    return head + "<p><b>What the mechanism caught:</b> Fay is new, standing 100, while the veterans stand at 160, so her gifts weigh less than theirs. Even so she earns " + pay("fay") +
+      " NEAR, the second highest payout in the round, because three veterans recognised her work and pointed at her, and the cap on Ada pushes surplus down to her. Her standing rises 100 to " + after["fay"] + ".</p>" +
+      "<p><b>The limit:</b> if no veteran points at the newcomer, she earns near zero, however good her work is. Standing compounds, so veterans keep an edge round after round. A newcomer is not locked out, but entry depends on being noticed, and that is decided by the people, not the maths.</p>";
+  }
+  if (sc.id === "allcollude") {
+    return head + "<p><b>What the mechanism caught:</b> nothing. Everyone earns " + pay("ada") +
+      " NEAR, an even split of the whole 5.000 NEAR envelope, and the ring keeps all of it. The reciprocity discount still cuts every mutual gift, 40 points to 20 effective, so every score is lower than honest one way giving would give, but scores only matter relative to each other, and here everyone is cut equally.</p>" +
+      "<p><b>The limit, stated plainly:</b> when the whole round colludes, the maths cannot tell collusion from honesty. There is no honest member left to take the surplus, so nothing is redistributed away from the ring. Full collusion is stopped only by DAO curation, by who is allowed in, not by the settlement maths. Any peer allocation system that claims otherwise is hiding this.</p>";
+  }
+  return head + "<p><b>What the mechanism caught:</b> Fay did the real work and received only 70 points, while Ada received 200. Without the cap and the square root, Ada would take " + raw("ada") +
+    " NEAR, over half the envelope. The cap holds her at " + pay("ada") +
+    " NEAR, and Fay still earns " + pay("fay") +
+    " NEAR, more than Dan and Eli, because her 70 points arrived from three distinct givers.</p>" +
+    "<p><b>The limit:</b> points measure being liked, not work done. Fay earns less than Ada even though she did more of the work, and less than Ben and Cara, who gave her nothing. The mechanism softens popularity bias. It does not fix it. Judging work, rather than liking, is a human decision the contract cannot make.</p>";
+}
 
 // ---- Browser rendering (every render guards for a missing element,
 // because each page only carries the sections it uses) ----
@@ -1215,9 +1456,13 @@ if (typeof document !== "undefined") {
     if (liveSel2) liveSel2.addEventListener("change", renderLiveExplain2);
     const labBtn = el("labBtn");
     if (labBtn) labBtn.addEventListener("click", runAttackLab);
+    for (const sc of STRESS_SCENARIOS) {
+      const b = el("stressBtn-" + sc.id);
+      if (b) b.addEventListener("click", () => runStressScenario(sc.id));
+    }
   });
 }
 
 if (typeof module !== "undefined") {
-  module.exports = { PARAMS, MEMBERS, ALLOCATIONS, ENVELOPE_NEAR, settle, effectivePoints, isqrt, fmtYocto, LAB_MEMBERS, LAB_TRIO, LAB_RING, LAB_HONEST, LAB_ENVELOPE_NEAR, LIVE_ROUND1, LIVE_ROUND2, CONTRACT_ID, DAO_ID };
+  module.exports = { PARAMS, MEMBERS, ALLOCATIONS, ENVELOPE_NEAR, settle, effectivePoints, isqrt, fmtYocto, LAB_MEMBERS, LAB_TRIO, LAB_RING, LAB_HONEST, LAB_ENVELOPE_NEAR, LIVE_ROUND1, LIVE_ROUND2, CONTRACT_ID, DAO_ID, standingAfter, STRESS_MEMBERS, STRESS_NAMES, STRESS_SCENARIOS, STRESS_ENVELOPE_NEAR, runStressScenario };
 }

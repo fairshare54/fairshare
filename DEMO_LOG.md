@@ -514,6 +514,60 @@ is visible in it.
   the full badge list, and the Your wallet panel shows a connected
   member's own badge.
 
+## Fairness Stress Test — Attack Lab (2026-11-08)
+
+Five scenarios a judge can pick in the Attack Lab (`site/lab.html`,
+`site/app.js`), each settled with the exact contract maths: 6 members,
+5 NEAR envelope, 100 points each, score from square roots weighted by
+giver standing, 50% reciprocity discount on the mutual portion, 25% cap
+with water filling redistribution, standing +2 per distinct giver
+capped +10 a round, -5 for no allocation, floor 50, cap 200. The Lab is
+a browser simulation and keeps its SIMULATED label; the members are
+made up names, not real people. Verified against an independent integer
+model written from the contract spec (`hidden_files/stress_model.py`,
+dump via `hidden_files/stress_dump.js`): all five scenarios match the
+site exactly, scores, raw payouts, capped payouts, standings, totals,
+and dust. Payouts sum to the envelope minus 2 to 5 yocto of dust in
+every scenario, and no payout passes the 1.250 NEAR cap.
+
+- Three friends reward each other (ring of 3 in a 6 member round):
+  total score 91020. The ring trio earns 0.527 NEAR each; the honest
+  three earn 1.139 NEAR each. Caught: the mutual discount halves ring
+  gifts (40 to 20 effective) and the outsiders gave the trio only a
+  token 1 point each. Limit: the ring still takes 0.527 each.
+  Standings all 100 to 106.
+- A popular member receives from everyone: total score 136760. Ada
+  receives 200 points, raw share 2.645 NEAR (53% of the envelope),
+  capped at 1.250 NEAR; Dan is capped too at 1.250 NEAR after the
+  surplus lands on him; Eli 1.201, Ben and Cara 0.443, Fay 0.410.
+  Caught: the cap. Limit: popularity still pays the maximum allowed.
+  Standings: Ada 100 to 110, Dan to 108, Eli to 106, the rest to 104.
+- A new member joins an established DAO: total score 217679. Fay is
+  new at standing 100 among veterans at 160, yet earns 1.185 NEAR,
+  the second highest payout, because three veterans pointed at her
+  and Ada is capped at 1.250 NEAR. Ben 0.855, Cara 0.770, Dan and Eli
+  0.469. Caught: breadth, three distinct givers. Limit: if no veteran
+  points at the newcomer she earns near zero. Standings: Ada 160 to
+  170, Ben and Cara to 166, Dan and Eli to 164, Fay 100 to 106.
+- A group where everyone colludes: total score 104544. Everyone earns
+  0.833 NEAR, an even split, and the ring keeps the whole 5 NEAR
+  envelope. Caught: nothing. The discount cuts every score equally,
+  so relative shares do not move. Limit, stated plainly: full
+  collusion is stopped only by DAO curation, not by the maths.
+  Standings all 100 to 106.
+- A productive member who is unpopular: total score 148685. Fay does
+  the real work and receives only 70 points, earning 0.854 NEAR.
+  Ada receives 200 points, raw share 2.506 NEAR, capped at 1.250.
+  Ben and Cara 1.019, Dan and Eli 0.428. Caught: the cap and the
+  square root keep Ada from taking over half the envelope. Limit:
+  points measure being liked, not work done. Standings: Ada 100 to
+  110, Ben, Cara, and Fay to 106, Dan and Eli to 104.
+- Headless checks: `node hidden_files/dom_test.js` runs all five
+  scenarios (18 pattern rows, 6 result rows each, totals sum, cap
+  holds, standings in range). Real browser check at 390px and 1280px:
+  no horizontal overflow, all five picker buttons render results.
+  Machine record: `demo-log.json` key `stress_test`.
+
 ## History — first live demo (superseded, kept for the record)
 
 - Contract `egbe-contract.testnet`, owner `egbe-owner.testnet`,
